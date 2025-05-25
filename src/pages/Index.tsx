@@ -16,7 +16,8 @@ import {
   Mail,
   MapPin,
   Star,
-  PlayCircle
+  PlayCircle,
+  DollarSign
 } from 'lucide-react';
 
 const Index = () => {
