@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ChatAssistant from '@/components/ChatAssistant';
 import AccessibleImage from '@/components/AccessibleImage';
 import SkipLink from '@/components/SkipLink';
+import Navigation from '@/components/Navigation';
 import { 
   ArrowRight, 
   CheckCircle, 
@@ -122,26 +123,7 @@ const Index = () => {
     <div className="min-h-screen bg-white">
       <SkipLink />
       
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b sticky top-0 z-40" role="navigation" aria-label="Main navigation">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <span className="text-2xl" role="img" aria-label="Shop icon">🏪</span>
-              <span className="text-xl font-bold text-gray-900">FranchiseHub</span>
-            </div>
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#brands" className="text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:rounded">Brands</a>
-              <a href="#packages" className="text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:rounded">Packages</a>
-              <a href="#how-it-works" className="text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:rounded">How It Works</a>
-              <Link to="/contact" className="text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:rounded">Contact</Link>
-              <Button asChild className="bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500">
-                <Link to="/apply">Apply Now</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navigation />
 
       {/* Main Content */}
       <main id="main-content">
@@ -404,7 +386,11 @@ const Index = () => {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <span className="text-2xl" role="img" aria-label="Shop icon">🏪</span>
+                <img 
+                  src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏪</text></svg>" 
+                  alt="FranchiseHub Logo" 
+                  className="w-8 h-8"
+                />
                 <span className="text-xl font-bold">FranchiseHub</span>
               </div>
               <p className="text-gray-400 mb-4">
