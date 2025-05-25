@@ -3,79 +3,58 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
-import { 
-  CheckCircle, 
-  Clock, 
-  Play, 
-  Download, 
-  MessageCircle, 
-  Video, 
-  FileText, 
-  Award,
-  ArrowLeft,
-  Calendar,
-  Users,
-  Mail,
-  Phone
-} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, Play, Download, CheckCircle, Clock, Users, Calendar } from 'lucide-react';
 
-const trainingModules = [
+const modules = [
   {
     id: 1,
     title: 'Brand Orientation',
-    description: 'Learn about Siomai King\'s history, values, and brand standards',
+    description: 'Learn about our company history, values, and franchise system',
     duration: '45 minutes',
     status: 'completed',
-    progress: 100,
-    type: 'video'
+    progress: 100
   },
   {
     id: 2,
     title: 'Product Preparation',
-    description: 'Master the art of preparing authentic Siomai King products',
-    duration: '90 minutes',
-    status: 'completed',
-    progress: 100,
-    type: 'video'
+    description: 'Master the recipes and preparation techniques for all menu items',
+    duration: '2 hours',
+    status: 'completed', 
+    progress: 100
   },
   {
     id: 3,
     title: 'Sales Reporting',
-    description: 'Understand daily sales reporting and POS system operations',
-    duration: '60 minutes',
-    status: 'in-progress',
-    progress: 65,
-    type: 'interactive'
+    description: 'Understand daily sales tracking and reporting procedures',
+    duration: '30 minutes',
+    status: 'current',
+    progress: 60
   },
   {
     id: 4,
     title: 'Inventory & Logistics',
     description: 'Learn inventory management and supply chain processes',
-    duration: '75 minutes',
+    duration: '1 hour',
     status: 'pending',
-    progress: 0,
-    type: 'video'
+    progress: 0
   },
   {
     id: 5,
-    title: 'Food Safety & Compliance',
-    description: 'Government regulations and food safety protocols',
-    duration: '120 minutes',
+    title: 'Food Safety & Government Compliance',
+    description: 'Essential food safety protocols and regulatory requirements',
+    duration: '1.5 hours',
     status: 'pending',
-    progress: 0,
-    type: 'document'
+    progress: 0
   },
   {
     id: 6,
     title: 'Marketing and Promotion',
     description: 'Effective marketing strategies and promotional campaigns',
-    duration: '90 minutes',
+    duration: '45 minutes',
     status: 'pending',
-    progress: 0,
-    type: 'interactive'
+    progress: 0
   },
   {
     id: 7,
@@ -83,369 +62,224 @@ const trainingModules = [
     description: 'Final assessment to earn your franchise certification',
     duration: '30 minutes',
     status: 'locked',
-    progress: 0,
-    type: 'quiz'
+    progress: 0
   }
 ];
 
 const FranchiseeTraining = () => {
   const [selectedModule, setSelectedModule] = useState<number | null>(null);
+  const [showCertificate, setShowCertificate] = useState(false);
   
-  const completedModules = trainingModules.filter(m => m.status === 'completed').length;
-  const totalModules = trainingModules.length;
-  const overallProgress = (completedModules / totalModules) * 100;
+  const completedModules = modules.filter(m => m.status === 'completed').length;
+  const totalProgress = Math.round((completedModules / modules.length) * 100);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'in-progress': return 'bg-blue-100 text-blue-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'locked': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const handleModuleClick = (moduleId: number) => {
+    const module = modules.find(m => m.id === moduleId);
+    if (module && module.status !== 'locked') {
+      setSelectedModule(moduleId);
     }
   };
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'video': return <Video className="w-4 h-4" />;
-      case 'document': return <FileText className="w-4 h-4" />;
-      case 'interactive': return <Users className="w-4 h-4" />;
-      case 'quiz': return <Award className="w-4 h-4" />;
-      default: return <FileText className="w-4 h-4" />;
-    }
+  const downloadCertificate = () => {
+    setShowCertificate(true);
   };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed': return <CheckCircle className="w-5 h-5 text-green-500" />;
-      case 'in-progress': return <Clock className="w-5 h-5 text-blue-500" />;
-      case 'pending': return <Clock className="w-5 h-5 text-yellow-500" />;
-      case 'locked': return <Clock className="w-5 h-5 text-gray-400" />;
-      default: return <Clock className="w-5 h-5 text-gray-400" />;
-    }
-  };
-
-  if (selectedModule) {
-    const module = trainingModules.find(m => m.id === selectedModule);
-    if (!module) return null;
-
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        {/* Header */}
-        <div className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center space-x-4">
-                <Button variant="ghost" onClick={() => setSelectedModule(null)}>
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Training
-                </Button>
-                <Separator orientation="vertical" className="h-6" />
-                <span className="text-lg font-semibold">{module.title}</span>
-              </div>
-              <div className="flex items-center space-x-4">
-                <Progress value={module.progress} className="w-32" />
-                <span className="text-sm text-gray-600">{module.progress}%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Video/Content Area */}
-            <div className="lg:col-span-2">
-              <Card>
-                <CardContent className="p-0">
-                  <div className="aspect-video bg-gray-900 rounded-t-lg flex items-center justify-center">
-                    <div className="text-center text-white">
-                      <Play className="w-16 h-16 mx-auto mb-4 opacity-80" />
-                      <p className="text-lg font-medium">Training Video</p>
-                      <p className="text-sm opacity-80">{module.title}</p>
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <h2 className="text-2xl font-bold mb-4">{module.title}</h2>
-                    <p className="text-gray-600 mb-6">{module.description}</p>
-                    
-                    {/* Module Content */}
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="text-lg font-semibold mb-3">Learning Objectives</h3>
-                        <ul className="space-y-2">
-                          <li className="flex items-start">
-                            <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
-                            <span className="text-sm">Understand brand standards and guidelines</span>
-                          </li>
-                          <li className="flex items-start">
-                            <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
-                            <span className="text-sm">Learn proper preparation techniques</span>
-                          </li>
-                          <li className="flex items-start">
-                            <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
-                            <span className="text-sm">Master quality control procedures</span>
-                          </li>
-                        </ul>
-                      </div>
-                      
-                      <div>
-                        <h3 className="text-lg font-semibold mb-3">Quick Assessment</h3>
-                        <div className="bg-blue-50 p-4 rounded-lg">
-                          <p className="text-blue-900 font-medium mb-2">Question 1 of 3</p>
-                          <p className="text-blue-800 mb-4">What is the recommended steaming time for regular siomai?</p>
-                          <div className="space-y-2">
-                            <label className="flex items-center">
-                              <input type="radio" name="q1" className="mr-2" />
-                              <span className="text-sm">8-10 minutes</span>
-                            </label>
-                            <label className="flex items-center">
-                              <input type="radio" name="q1" className="mr-2" />
-                              <span className="text-sm">12-15 minutes</span>
-                            </label>
-                            <label className="flex items-center">
-                              <input type="radio" name="q1" className="mr-2" />
-                              <span className="text-sm">15-18 minutes</span>
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Module Progress */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Module Progress</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>Completion</span>
-                        <span>{module.progress}%</span>
-                      </div>
-                      <Progress value={module.progress} />
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      <p>Duration: {module.duration}</p>
-                      <p>Type: {module.type}</p>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button size="sm" variant="outline" className="flex-1">
-                        <Download className="w-4 h-4 mr-1" />
-                        Resources
-                      </Button>
-                      <Button size="sm" className="flex-1">
-                        Mark Complete
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Downloads */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Downloads</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {[
-                      'Module Handbook (PDF)',
-                      'Recipe Cards (PDF)',
-                      'Checklist (XLSX)',
-                      'Video Transcript (PDF)'
-                    ].map((item, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <span className="text-sm">{item}</span>
-                        <Button size="sm" variant="outline">
-                          <Download className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Need Help */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Need Help?</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <p className="text-sm text-gray-600">Having trouble with this module?</p>
-                    <div className="space-y-2">
-                      <Button variant="outline" className="w-full justify-start text-sm">
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        Live Chat Support
-                      </Button>
-                      <Button variant="outline" className="w-full justify-start text-sm">
-                        <Calendar className="w-4 h-4 mr-2" />
-                        Schedule 1-on-1
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
-      <div className="bg-gradient-to-r from-red-600 to-red-800 text-white py-12">
+      <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-8 items-center">
-            <div>
-              <h1 className="text-4xl font-bold mb-4">Siomai King Training</h1>
-              <p className="text-xl text-red-100 mb-6">
-                Master the skills needed to run a successful Siomai King franchise
-              </p>
-              <div className="flex items-center space-x-4">
-                <Button variant="outline" className="border-white text-white hover:bg-white/10" asChild>
-                  <Link to="/franchisee-dashboard">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Dashboard
-                  </Link>
-                </Button>
-              </div>
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4">
+              <Button variant="ghost" asChild className="text-gray-900 hover:text-gray-700">
+                <Link to="/franchisee-dashboard">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Dashboard
+                </Link>
+              </Button>
+              <span className="text-xl font-bold text-gray-900">Franchise Training Portal</span>
             </div>
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-32 h-32 bg-white/20 rounded-full mb-4">
-                <Award className="w-16 h-16" />
-              </div>
-              <p className="text-red-100">Complete all modules to earn your certification</p>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-500">{totalProgress}% Complete</span>
+              <Button variant="outline" size="sm">
+                <Users className="w-4 h-4 mr-2" />
+                Live Support
+              </Button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Brand Banner */}
+      <section className="bg-gradient-to-r from-red-600 to-red-800 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-4xl font-bold mb-4">Siomai King Training Program</h1>
+          <p className="text-xl">Master the art of royal taste - Complete your certification journey</p>
+        </div>
+      </section>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Progress Overview */}
-        <Card className="mb-8">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Training Progress</CardTitle>
-              <Badge className="bg-blue-100 text-blue-800">
-                {completedModules} of {totalModules} modules completed
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Overall Progress</span>
-                  <span>{Math.round(overallProgress)}%</span>
-                </div>
-                <Progress value={overallProgress} className="h-3" />
-              </div>
-              <div className="grid md:grid-cols-3 gap-4 text-center">
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">{completedModules}</div>
-                  <div className="text-sm text-green-700">Completed</div>
-                </div>
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {trainingModules.filter(m => m.status === 'in-progress').length}
-                  </div>
-                  <div className="text-sm text-blue-700">In Progress</div>
-                </div>
-                <div className="p-4 bg-yellow-50 rounded-lg">
-                  <div className="text-2xl font-bold text-yellow-600">
-                    {trainingModules.filter(m => m.status === 'pending' || m.status === 'locked').length}
-                  </div>
-                  <div className="text-sm text-yellow-700">Remaining</div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="grid md:grid-cols-4 gap-6 mb-12">
+          <Card>
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold text-blue-600">{totalProgress}%</div>
+              <p className="text-gray-600">Overall Progress</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold text-green-600">{completedModules}</div>
+              <p className="text-gray-600">Modules Completed</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold text-orange-600">{modules.length - completedModules}</div>
+              <p className="text-gray-600">Modules Remaining</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold text-purple-600">7.5</div>
+              <p className="text-gray-600">Total Hours</p>
+            </CardContent>
+          </Card>
+        </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Training Modules */}
-          <div className="lg:col-span-2">
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold">Training Modules</h2>
-              
-              <div className="space-y-4">
-                {trainingModules.map((module) => (
-                  <Card 
-                    key={module.id} 
-                    className={`cursor-pointer transition-all hover:shadow-lg ${
-                      module.status === 'locked' ? 'opacity-50' : ''
-                    }`}
-                    onClick={() => module.status !== 'locked' && setSelectedModule(module.id)}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-start space-x-4">
-                        <div className="flex-shrink-0">
-                          {getStatusIcon(module.status)}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">Training Modules</h2>
+              <Progress value={totalProgress} className="w-32" />
+            </div>
+
+            <div className="space-y-4">
+              {modules.map((module) => (
+                <Card 
+                  key={module.id} 
+                  className={`cursor-pointer transition-all duration-200 ${
+                    module.status === 'locked' ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg hover:-translate-y-1'
+                  } ${selectedModule === module.id ? 'ring-2 ring-blue-500' : ''}`}
+                  onClick={() => handleModuleClick(module.id)}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                            module.status === 'completed' ? 'bg-green-100 text-green-600' :
+                            module.status === 'current' ? 'bg-blue-100 text-blue-600' :
+                            module.status === 'pending' ? 'bg-gray-100 text-gray-600' :
+                            'bg-gray-100 text-gray-400'
+                          }`}>
+                            {module.status === 'completed' ? <CheckCircle className="w-4 h-4" /> : module.id}
+                          </div>
+                          <h3 className="text-lg font-semibold text-gray-900">{module.title}</h3>
+                          <Badge variant={
+                            module.status === 'completed' ? 'default' :
+                            module.status === 'current' ? 'secondary' :
+                            module.status === 'pending' ? 'outline' :
+                            'secondary'
+                          }>
+                            {module.status === 'completed' ? 'Completed' :
+                             module.status === 'current' ? 'In Progress' :
+                             module.status === 'pending' ? 'Pending' :
+                             'Locked'}
+                          </Badge>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-lg font-semibold">{module.title}</h3>
+                        <p className="text-gray-600 mb-2">{module.description}</p>
+                        <div className="flex items-center space-x-4 text-sm text-gray-500">
+                          <span className="flex items-center">
+                            <Clock className="w-4 h-4 mr-1" />
+                            {module.duration}
+                          </span>
+                          {module.progress > 0 && (
                             <div className="flex items-center space-x-2">
-                              {getTypeIcon(module.type)}
-                              <Badge className={getStatusColor(module.status)}>
-                                {module.status.replace('-', ' ')}
-                              </Badge>
+                              <Progress value={module.progress} className="w-20 h-2" />
+                              <span>{module.progress}%</span>
                             </div>
-                          </div>
-                          <p className="text-gray-600 mb-3">{module.description}</p>
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-500">{module.duration}</span>
-                            {module.progress > 0 && (
-                              <div className="flex items-center space-x-2">
-                                <Progress value={module.progress} className="w-24" />
-                                <span className="text-sm text-gray-500">{module.progress}%</span>
-                              </div>
-                            )}
-                          </div>
+                          )}
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      {module.status !== 'locked' && (
+                        <Button size="sm" variant={module.status === 'completed' ? 'outline' : 'default'}>
+                          <Play className="w-4 h-4 mr-2" />
+                          {module.status === 'completed' ? 'Review' : 'Start'}
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
+
+            {/* Certificate Section */}
+            <Card className={`${totalProgress < 100 ? 'opacity-50' : ''}`}>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <CheckCircle className="w-6 h-6 mr-2 text-green-600" />
+                  Certificate of Completion
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-4">
+                  Complete all training modules to earn your official franchise certification.
+                </p>
+                <Button 
+                  disabled={totalProgress < 100}
+                  onClick={downloadCertificate}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Certificate
+                </Button>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Certificate Status */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Certification Status</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center space-y-4">
-                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                    <Award className="w-10 h-10 text-gray-400" />
+            {/* Current Module Details */}
+            {selectedModule && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Module {selectedModule}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="aspect-video bg-gray-200 rounded-lg flex items-center justify-center">
+                      <div className="text-center">
+                        <Play className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                        <p className="text-gray-500">Training Video</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Button className="w-full">
+                        <Play className="w-4 h-4 mr-2" />
+                        Start Video
+                      </Button>
+                      <Button variant="outline" className="w-full">
+                        <Download className="w-4 h-4 mr-2" />
+                        Download Materials
+                      </Button>
+                    </div>
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <h4 className="font-medium text-blue-900 mb-1">Module Checklist</h4>
+                      <ul className="text-sm text-blue-800 space-y-1">
+                        <li>✓ Watch training video</li>
+                        <li>✓ Review study materials</li>
+                        <li>• Complete practice quiz</li>
+                        <li>• Submit assignment</li>
+                      </ul>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-900">Certificate Locked</p>
-                    <p className="text-sm text-gray-600">Complete all modules to unlock</p>
-                  </div>
-                  <Button disabled className="w-full">
-                    <Download className="w-4 h-4 mr-2" />
-                    Download Certificate
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
 
-            {/* Live Support */}
+            {/* Support Panel */}
             <Card>
               <CardHeader>
                 <CardTitle>Live Support</CardTitle>
@@ -453,53 +287,80 @@ const FranchiseeTraining = () => {
               <CardContent>
                 <div className="space-y-4">
                   <p className="text-sm text-gray-600">
-                    Get help from our training specialists
+                    Need help with your training? Our specialists are here to assist you.
                   </p>
                   <div className="space-y-2">
-                    <Button variant="outline" className="w-full justify-start">
+                    <Button className="w-full" size="sm">
                       <Calendar className="w-4 h-4 mr-2" />
                       Schedule 1-on-1 Session
                     </Button>
-                    <Button variant="outline" className="w-full justify-start">
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      WhatsApp Support
+                    <Button variant="outline" className="w-full" size="sm">
+                      <Users className="w-4 h-4 mr-2" />
+                      Join Group Session
                     </Button>
-                    <Button variant="outline" className="w-full justify-start">
-                      <Mail className="w-4 h-4 mr-2" />
-                      Email Training Team
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start">
-                      <Phone className="w-4 h-4 mr-2" />
-                      Call: (02) 8123-4567
-                    </Button>
+                  </div>
+                  <div className="text-xs text-gray-500 space-y-1">
+                    <p><strong>WhatsApp:</strong> +63 917 123 4567</p>
+                    <p><strong>Email:</strong> training@franchisehub.ph</p>
+                    <p><strong>Hours:</strong> Mon-Fri 8AM-6PM</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Training Schedule */}
+            {/* Progress Summary */}
             <Card>
               <CardHeader>
-                <CardTitle>Upcoming Sessions</CardTitle>
+                <CardTitle>Your Progress</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {[
-                    { title: 'Group Q&A Session', date: 'Jan 18, 2024', time: '2:00 PM' },
-                    { title: 'Product Demo Workshop', date: 'Jan 22, 2024', time: '10:00 AM' },
-                    { title: 'Certification Exam', date: 'Jan 25, 2024', time: '9:00 AM' }
-                  ].map((session, index) => (
-                    <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                      <p className="font-medium text-sm">{session.title}</p>
-                      <p className="text-xs text-gray-600">{session.date} at {session.time}</p>
-                    </div>
-                  ))}
+                  <div className="flex justify-between text-sm">
+                    <span>Overall Progress</span>
+                    <span className="font-medium">{totalProgress}%</span>
+                  </div>
+                  <Progress value={totalProgress} />
+                  <div className="text-xs text-gray-500 space-y-1">
+                    <p>Started: March 15, 2024</p>
+                    <p>Target Completion: March 29, 2024</p>
+                    <p>Time Invested: 4.5 hours</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
+
+      {/* Certificate Modal */}
+      {showCertificate && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <Card className="max-w-2xl w-full">
+            <CardHeader>
+              <CardTitle className="text-center">🏆 Congratulations!</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-8 rounded-lg">
+                <h2 className="text-2xl font-bold mb-2">Certificate of Completion</h2>
+                <p className="mb-4">This certifies that</p>
+                <h3 className="text-3xl font-bold mb-2">John Doe</h3>
+                <p className="mb-4">has successfully completed the</p>
+                <h4 className="text-xl font-semibold mb-4">Siomai King Franchise Training Program</h4>
+                <p className="text-sm">March 29, 2024</p>
+              </div>
+              <div className="flex gap-4 justify-center">
+                <Button onClick={() => setShowCertificate(false)} variant="outline">
+                  Close
+                </Button>
+                <Button>
+                  <Download className="w-4 h-4 mr-2" />
+                  Download PDF
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

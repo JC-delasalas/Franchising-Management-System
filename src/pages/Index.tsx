@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -145,7 +144,7 @@ const Index = () => {
                       Apply Now <ChevronRight className="ml-2 h-5 w-5" />
                     </Link>
                   </Button>
-                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10" asChild>
+                  <Button size="lg" className="bg-black/50 text-white hover:bg-black/70 border-0" asChild>
                     <Link to={`/brand/${selectedBrand.id}`}>
                       Learn More
                     </Link>
