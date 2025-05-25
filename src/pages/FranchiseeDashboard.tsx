@@ -20,11 +20,15 @@ import {
   Phone,
   FileText,
   Image as ImageIcon,
-  PlusCircle
+  PlusCircle,
+  ArrowUp,
+  Award,
+  MessageCircle
 } from 'lucide-react';
 
 const FranchiseeDashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState('January 2024');
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   const salesData = {
     today: '₱3,250',
@@ -44,6 +48,12 @@ const FranchiseeDashboard = () => {
     { title: 'New Product Launch', message: 'Introducing Spicy Siomai variant - now available for order!', date: '2024-01-15', type: 'info' },
     { title: 'Training Reminder', message: 'Monthly compliance training due by January 20th', date: '2024-01-14', type: 'warning' },
     { title: 'Promotion Update', message: 'Valentine\'s Day promo materials now ready for download', date: '2024-01-13', type: 'success' }
+  ];
+
+  const milestones = [
+    { title: 'Top 10 Sales Performance', progress: 85, reward: 'Certificate + ₱5,000 bonus', status: 'In Progress' },
+    { title: 'Perfect Compliance Score', progress: 100, reward: 'Recognition Award', status: 'Achieved' },
+    { title: 'Customer Satisfaction Excellence', progress: 67, reward: 'Premium Support Access', status: 'In Progress' }
   ];
 
   const getStockStatus = (status: string) => {
@@ -71,7 +81,7 @@ const FranchiseeDashboard = () => {
         <div className="w-64 bg-white shadow-lg h-screen sticky top-0">
           <div className="p-6">
             <div className="flex items-center space-x-2 mb-8">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg"></div>
+              <span className="text-2xl">🏪</span>
               <span className="text-xl font-bold text-gray-900">FranchiseHub</span>
             </div>
             
@@ -116,9 +126,18 @@ const FranchiseeDashboard = () => {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Welcome back, Robert!</h1>
-              <p className="text-gray-600">Siomai King - Makati Branch</p>
+              <p className="text-gray-600">Siomai King - Makati Branch (Package B)</p>
             </div>
             <div className="flex items-center space-x-4">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowUpgrade(!showUpgrade)}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-none hover:from-purple-700 hover:to-pink-700"
+              >
+                <ArrowUp className="w-4 h-4 mr-2" />
+                Upgrade Package
+              </Button>
               <Button variant="outline" size="sm">
                 <Bell className="w-4 h-4 mr-2" />
                 Notifications
@@ -129,6 +148,33 @@ const FranchiseeDashboard = () => {
               </Button>
             </div>
           </div>
+
+          {/* Upgrade Package Banner */}
+          {showUpgrade && (
+            <Card className="mb-6 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-purple-900">Upgrade to Package C - Advanced</h3>
+                    <p className="text-purple-700">Get Food Stall setup + POS System + Uniforms for just ₱130,000 more!</p>
+                    <ul className="text-sm text-purple-600 mt-2">
+                      <li>• Larger territory rights</li>
+                      <li>• Advanced POS integration</li>
+                      <li>• Priority customer support</li>
+                    </ul>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button variant="outline" onClick={() => setShowUpgrade(false)}>
+                      Maybe Later
+                    </Button>
+                    <Button className="bg-purple-600 hover:bg-purple-700">
+                      Upgrade Now
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* KPI Cards */}
           <div className="grid md:grid-cols-4 gap-6 mb-8">
@@ -176,6 +222,38 @@ const FranchiseeDashboard = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* Milestones Section */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Award className="w-5 h-5 text-yellow-500" />
+                <span>Achievement Milestones</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-3 gap-4">
+                {milestones.map((milestone, index) => (
+                  <div key={index} className="p-4 border rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium text-sm">{milestone.title}</h4>
+                      <Badge className={milestone.status === 'Achieved' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}>
+                        {milestone.status}
+                      </Badge>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                      <div 
+                        className="bg-blue-600 h-2 rounded-full" 
+                        style={{ width: `${milestone.progress}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-gray-600">{milestone.progress}% complete</p>
+                    <p className="text-xs text-green-600 mt-1">🏆 {milestone.reward}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Main Tabs */}
           <Tabs defaultValue="overview" className="space-y-6">
@@ -251,7 +329,7 @@ const FranchiseeDashboard = () => {
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium mb-2">Sales Date</label>
-                        <Input type="date" value="2024-01-15" />
+                        <Input type="date" defaultValue="2024-01-15" />
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">Total Sales Amount</label>
@@ -348,7 +426,6 @@ const FranchiseeDashboard = () => {
               </div>
             </TabsContent>
 
-            {/* Marketing Tab */}
             <TabsContent value="marketing">
               <div className="grid md:grid-cols-3 gap-6">
                 {[
@@ -377,7 +454,6 @@ const FranchiseeDashboard = () => {
               </div>
             </TabsContent>
 
-            {/* Contract Tab */}
             <TabsContent value="contract">
               <div className="grid md:grid-cols-2 gap-6">
                 <Card>
@@ -439,6 +515,17 @@ const FranchiseeDashboard = () => {
             </TabsContent>
           </Tabs>
         </div>
+      </div>
+
+      {/* Chat Assistant */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <Button 
+          size="lg" 
+          className="rounded-full w-14 h-14 bg-blue-600 hover:bg-blue-700 shadow-lg"
+          title="Chat with our assistant"
+        >
+          <MessageCircle className="w-6 h-6" />
+        </Button>
       </div>
     </div>
   );
