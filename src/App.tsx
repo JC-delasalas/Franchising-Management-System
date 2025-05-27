@@ -19,6 +19,11 @@ const BrandMicrosite = React.lazy(() => import("./pages/BrandMicrosite"));
 const Blog = React.lazy(() => import("./pages/Blog"));
 const BlogPost = React.lazy(() => import("./pages/BlogPost"));
 const Contact = React.lazy(() => import("./pages/Contact"));
+const SalesUpload = React.lazy(() => import("./pages/franchisee/SalesUpload"));
+const InventoryOrder = React.lazy(() => import("./pages/franchisee/InventoryOrder"));
+const MarketingAssets = React.lazy(() => import("./pages/franchisee/MarketingAssets"));
+const ContractPackage = React.lazy(() => import("./pages/franchisee/ContractPackage"));
+const SupportRequests = React.lazy(() => import("./pages/franchisee/SupportRequests"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
 // Configure React Query with better defaults
@@ -53,6 +58,11 @@ const App = () => (
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:id" element={<BlogPost />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/franchisee/sales-upload" element={<SalesUpload />} />
+              <Route path="/franchisee/inventory-order" element={<InventoryOrder />} />
+              <Route path="/franchisee/marketing-assets" element={<MarketingAssets />} />
+              <Route path="/franchisee/contract-package" element={<ContractPackage />} />
+              <Route path="/franchisee/support-requests" element={<SupportRequests />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

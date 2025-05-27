@@ -93,36 +93,36 @@ const FranchiseeDashboard = () => {
             </div>
 
             <nav className="space-y-2">
-              <a href="#overview" className="flex items-center space-x-3 text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
+              <div className="flex items-center space-x-3 text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
                 <TrendingUp className="w-5 h-5" />
                 <span>Overview</span>
-              </a>
-              <a href="#sales" className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg">
+              </div>
+              <Link to="/franchisee/sales-upload" className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
                 <DollarSign className="w-5 h-5" />
                 <span>Upload Sales</span>
-              </a>
-              <a href="#inventory" className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg">
+              </Link>
+              <Link to="/franchisee/inventory-order" className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
                 <Package className="w-5 h-5" />
                 <span>Order Inventory</span>
-              </a>
-              <a href="#marketing" className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg">
+              </Link>
+              <Link to="/franchisee/marketing-assets" className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
                 <ImageIcon className="w-5 h-5" />
                 <span>Marketing Assets</span>
-              </a>
-              <a href="#contract" className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg">
+              </Link>
+              <Link to="/franchisee/contract-package" className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
                 <FileText className="w-5 h-5" />
                 <span>Contract & Package</span>
-              </a>
+              </Link>
               <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 mt-4">
                 <Link to="/franchisee-training">
                   <BookOpen className="w-4 h-4 mr-2" />
                   Training
                 </Link>
               </Button>
-              <a href="#support" className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg">
+              <Link to="/franchisee/support-requests" className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
                 <Phone className="w-5 h-5" />
                 <span>Support & Requests</span>
-              </a>
+              </Link>
             </nav>
           </div>
         </div>
@@ -145,20 +145,17 @@ const FranchiseeDashboard = () => {
                 <ArrowUp className="w-4 h-4 mr-2" />
                 Upgrade Package
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => alert('Notifications feature coming soon!')}
-              >
-                <Bell className="w-4 h-4 mr-2" />
-                Notifications
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/franchisee/support-requests">
+                  <Bell className="w-4 h-4 mr-2" />
+                  Support
+                </Link>
               </Button>
-              <Button
-                size="sm"
-                onClick={() => alert('Quick action feature coming soon!')}
-              >
-                <PlusCircle className="w-4 h-4 mr-2" />
-                Quick Action
+              <Button size="sm" asChild>
+                <Link to="/franchisee/sales-upload">
+                  <PlusCircle className="w-4 h-4 mr-2" />
+                  Upload Sales
+                </Link>
               </Button>
             </div>
           </div>
@@ -181,8 +178,10 @@ const FranchiseeDashboard = () => {
                     <Button variant="outline" onClick={() => setShowUpgrade(false)}>
                       Maybe Later
                     </Button>
-                    <Button className="bg-purple-600 hover:bg-purple-700">
-                      Upgrade Now
+                    <Button className="bg-purple-600 hover:bg-purple-700" asChild>
+                      <Link to="/franchisee/contract-package">
+                        Upgrade Now
+                      </Link>
                     </Button>
                   </div>
                 </div>
@@ -287,29 +286,23 @@ const FranchiseeDashboard = () => {
                     <CardTitle>Quick Actions</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <Button
-                      className="w-full justify-start"
-                      variant="outline"
-                      onClick={() => alert('Sales upload feature coming soon!')}
-                    >
-                      <Upload className="w-4 h-4 mr-2" />
-                      Upload Today's Sales Report
+                    <Button className="w-full justify-start" variant="outline" asChild>
+                      <Link to="/franchisee/sales-upload">
+                        <Upload className="w-4 h-4 mr-2" />
+                        Upload Today's Sales Report
+                      </Link>
                     </Button>
-                    <Button
-                      className="w-full justify-start"
-                      variant="outline"
-                      onClick={() => alert('Inventory ordering feature coming soon!')}
-                    >
-                      <ShoppingCart className="w-4 h-4 mr-2" />
-                      Order Inventory Items
+                    <Button className="w-full justify-start" variant="outline" asChild>
+                      <Link to="/franchisee/inventory-order">
+                        <ShoppingCart className="w-4 h-4 mr-2" />
+                        Order Inventory Items
+                      </Link>
                     </Button>
-                    <Button
-                      className="w-full justify-start"
-                      variant="outline"
-                      onClick={() => alert('Marketing materials download coming soon!')}
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      Download Marketing Materials
+                    <Button className="w-full justify-start" variant="outline" asChild>
+                      <Link to="/franchisee/marketing-assets">
+                        <Download className="w-4 h-4 mr-2" />
+                        Download Marketing Materials
+                      </Link>
                     </Button>
                     <Button className="w-full justify-start" variant="outline" asChild>
                       <Link to="/franchisee-training">
