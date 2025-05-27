@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import Logo from '@/components/Logo';
 import ChatAssistant from '@/components/ChatAssistant';
+import FranchiseeAnalytics from '@/components/analytics/FranchiseeAnalytics';
 import {
   TrendingUp,
   Package,
@@ -25,19 +26,18 @@ import {
   PlusCircle,
   ArrowUp,
   Award,
-  MessageCircle,
-  ArrowLeft
+  ArrowLeft,
+  BarChart3
 } from 'lucide-react';
 
 const FranchiseeDashboard = () => {
-  const [selectedMonth, setSelectedMonth] = useState('January 2024');
   const [showUpgrade, setShowUpgrade] = useState(false);
 
   const salesData = {
-    today: '₱3,250',
-    thisWeek: '₱22,100',
-    thisMonth: '₱67,500',
-    target: '₱75,000'
+    today: '₱45,250',
+    thisWeek: '₱342,100',
+    thisMonth: '₱1,370,000',
+    target: '₱1,000,000'
   };
 
   const inventoryItems = [
@@ -209,7 +209,7 @@ const FranchiseeDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{salesData.thisWeek}</div>
-                <p className="text-xs text-muted-foreground">+8% from last week</p>
+                <p className="text-xs text-muted-foreground">+28% from last week</p>
               </CardContent>
             </Card>
 
@@ -220,7 +220,7 @@ const FranchiseeDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{salesData.thisMonth}</div>
-                <p className="text-xs text-muted-foreground">Target: {salesData.target}</p>
+                <p className="text-xs text-muted-foreground">Target: {salesData.target} (+37%)</p>
               </CardContent>
             </Card>
 
@@ -269,14 +269,64 @@ const FranchiseeDashboard = () => {
           </Card>
 
           {/* Main Tabs */}
-          <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="sales">Upload Sales</TabsTrigger>
-              <TabsTrigger value="inventory">Inventory</TabsTrigger>
-              <TabsTrigger value="marketing">Marketing</TabsTrigger>
-              <TabsTrigger value="contract">Contract</TabsTrigger>
-            </TabsList>
+          <Tabs defaultValue="analytics" className="space-y-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2">
+              <TabsList className="grid w-full grid-cols-6 bg-gray-50 rounded-lg p-1 gap-1">
+                <TabsTrigger
+                  value="analytics"
+                  className="flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=active]:border data-[state=active]:border-blue-100 hover:bg-white/50"
+                >
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Analytics</span>
+                  <span className="sm:hidden">Stats</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="overview"
+                  className="flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=active]:border data-[state=active]:border-blue-100 hover:bg-white/50"
+                >
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Overview</span>
+                  <span className="sm:hidden">Home</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="sales"
+                  className="flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=active]:border data-[state=active]:border-blue-100 hover:bg-white/50"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Upload Sales</span>
+                  <span className="sm:hidden">Sales</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="inventory"
+                  className="flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=active]:border data-[state=active]:border-blue-100 hover:bg-white/50"
+                >
+                  <Package className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Inventory</span>
+                  <span className="sm:hidden">Stock</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="marketing"
+                  className="flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=active]:border data-[state=active]:border-blue-100 hover:bg-white/50"
+                >
+                  <ImageIcon className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Marketing</span>
+                  <span className="sm:hidden">Media</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="contract"
+                  className="flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=active]:border data-[state=active]:border-blue-100 hover:bg-white/50"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Contract</span>
+                  <span className="sm:hidden">Docs</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            {/* Analytics Tab */}
+            <TabsContent value="analytics">
+              <FranchiseeAnalytics franchiseeName="Siomai Shop - Makati Branch" />
+            </TabsContent>
 
             {/* Overview Tab */}
             <TabsContent value="overview">

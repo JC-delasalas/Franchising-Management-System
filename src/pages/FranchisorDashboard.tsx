@@ -12,7 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from '@/components/ui/textarea';
 import Logo from '@/components/Logo';
 import ChatAssistant from '@/components/ChatAssistant';
-import { TrendingUp, Users, Package, DollarSign, Bell, Search, Filter, Download, Plus, Check, X, Clock, MessageCircle, AlertTriangle, ArrowLeft, Eye, Mail, Phone } from 'lucide-react';
+import KPICharts from '@/components/analytics/KPICharts';
+import { TrendingUp, Users, Package, DollarSign, Bell, Search, Filter, Download, Plus, Check, X, Clock, MessageCircle, AlertTriangle, ArrowLeft, Eye, Mail, Phone, BarChart3 } from 'lucide-react';
 
 const mockApplications = [
   { id: 'APP001', name: 'Maria Santos', brand: 'Siomai Shop', package: 'Package B', status: 'Pending', date: '2024-01-15', phone: '+63 912 345 6789', email: 'maria@email.com' },
@@ -111,8 +112,8 @@ const FranchisorDashboard = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">247</div>
-              <p className="text-xs text-muted-foreground">+12% from last month</p>
+              <div className="text-2xl font-bold">847</div>
+              <p className="text-xs text-muted-foreground">+34% from last month</p>
             </CardContent>
           </Card>
 
@@ -122,8 +123,8 @@ const FranchisorDashboard = () => {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">89</div>
-              <p className="text-xs text-muted-foreground">+8% from last month</p>
+              <div className="text-2xl font-bold">289</div>
+              <p className="text-xs text-muted-foreground">+28% from last month</p>
             </CardContent>
           </Card>
 
@@ -133,8 +134,8 @@ const FranchisorDashboard = () => {
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">156</div>
-              <p className="text-xs text-muted-foreground">+5% from last month</p>
+              <div className="text-2xl font-bold">97</div>
+              <p className="text-xs text-muted-foreground">+29% from last month</p>
             </CardContent>
           </Card>
 
@@ -144,8 +145,8 @@ const FranchisorDashboard = () => {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₱2.4M</div>
-              <p className="text-xs text-muted-foreground">+18% from last month</p>
+              <div className="text-2xl font-bold">₱13.7M</div>
+              <p className="text-xs text-muted-foreground">+37% from last month</p>
             </CardContent>
           </Card>
         </div>
@@ -182,13 +183,56 @@ const FranchisorDashboard = () => {
         </Card>
 
         {/* Main Content */}
-        <Tabs defaultValue="applications" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="applications">Applications</TabsTrigger>
-            <TabsTrigger value="inventory">Inventory</TabsTrigger>
-            <TabsTrigger value="revenue">Revenue</TabsTrigger>
-            <TabsTrigger value="franchisees">Franchisees</TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="analytics" className="space-y-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2">
+            <TabsList className="grid w-full grid-cols-5 bg-gray-50 rounded-lg p-1 gap-1">
+              <TabsTrigger
+                value="analytics"
+                className="flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=active]:border data-[state=active]:border-blue-100 hover:bg-white/50"
+              >
+                <BarChart3 className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Analytics</span>
+                <span className="sm:hidden">Stats</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="applications"
+                className="flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=active]:border data-[state=active]:border-blue-100 hover:bg-white/50"
+              >
+                <Users className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Applications</span>
+                <span className="sm:hidden">Apps</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="inventory"
+                className="flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=active]:border data-[state=active]:border-blue-100 hover:bg-white/50"
+              >
+                <Package className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Inventory</span>
+                <span className="sm:hidden">Stock</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="revenue"
+                className="flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=active]:border data-[state=active]:border-blue-100 hover:bg-white/50"
+              >
+                <DollarSign className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Revenue</span>
+                <span className="sm:hidden">Money</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="franchisees"
+                className="flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=active]:border data-[state=active]:border-blue-100 hover:bg-white/50"
+              >
+                <TrendingUp className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Franchisees</span>
+                <span className="sm:hidden">Partners</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics">
+            <KPICharts userType="franchisor" />
+          </TabsContent>
 
           {/* Applications Tab */}
           <TabsContent value="applications">

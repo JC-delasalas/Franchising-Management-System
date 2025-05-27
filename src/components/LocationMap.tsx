@@ -27,21 +27,36 @@ const LocationMap = () => {
       }
 
       // Check if API key is available
-      if (!config.services.googleMapsApiKey) {
+      if (!config.services.googleMapsApiKey || config.services.googleMapsApiKey.length < 20) {
+        console.warn('Google Maps API key not configured or invalid. Using fallback map.');
         setMapError(true);
         return;
       }
 
       // Load Google Maps script
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${config.services.googleMapsApiKey}&callback=initMap`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${config.services.googleMapsApiKey}&callback=initMap&libraries=places`;
       script.async = true;
       script.defer = true;
 
       // Set up callback
       window.initMap = initializeMap;
 
-      script.onerror = () => setMapError(true);
+      script.onerror = () => {
+        console.error('Failed to load Google Maps API. Using fallback map.');
+        setMapError(true);
+      };
+
+      // Add timeout for API loading
+      const timeout = setTimeout(() => {
+        if (!window.google) {
+          console.error('Google Maps API loading timeout. Using fallback map.');
+          setMapError(true);
+        }
+      }, 10000);
+
+      script.onload = () => clearTimeout(timeout);
+
       document.head.appendChild(script);
     };
 
@@ -49,6 +64,13 @@ const LocationMap = () => {
       if (!mapRef.current) return;
 
       try {
+        // Check if Google Maps API is properly loaded
+        if (!window.google || !window.google.maps || !window.google.maps.Map) {
+          console.error('Google Maps API not properly loaded. Using fallback map.');
+          setMapError(true);
+          return;
+        }
+
         const map = new window.google.maps.Map(mapRef.current, {
           center: config.contact.coordinates,
           zoom: 16,
@@ -224,23 +246,56 @@ const LocationMap = () => {
                     <p className="text-xs text-gray-600 mb-2">
                       📍 Ayala Avenue, Makati City, Metro Manila
                     </p>
-                    <div className="flex items-center space-x-2">
-                      <Button onClick={openInGoogleMaps} size="sm" className="text-xs h-7">
+                    <div className="flex flex-wrap gap-2">
+                      <Button onClick={openInGoogleMaps} size="sm" className="text-xs h-7 bg-blue-600 hover:bg-blue-700">
                         <ExternalLink className="w-3 h-3 mr-1" />
-                        Open in Maps
+                        Google Maps
                       </Button>
-                      <span className="text-xs text-gray-500">Click for directions</span>
+                      <Button
+                        onClick={() => window.open(`https://www.waze.com/ul?ll=${config.contact.coordinates.lat},${config.contact.coordinates.lng}&navigate=yes`, '_blank')}
+                        size="sm"
+                        variant="outline"
+                        className="text-xs h-7 border-purple-300 text-purple-700 hover:bg-purple-50"
+                      >
+                        🚗 Waze
+                      </Button>
                     </div>
                   </div>
                 </div>
               </div>
 
+              {/* Contact info overlay */}
+              <div className="absolute top-4 right-4 bg-white bg-opacity-95 rounded-lg p-3 shadow-lg max-w-xs">
+                <div className="text-xs text-center mb-2 text-blue-600 font-medium">
+                  📍 Office Location Preview
+                </div>
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center space-x-2">
+                    <Phone className="w-3 h-3 text-blue-600" />
+                    <a href={`tel:${config.contact.phone}`} className="text-gray-700 hover:text-blue-600">
+                      {config.contact.phone}
+                    </a>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Mail className="w-3 h-3 text-blue-600" />
+                    <a href={`mailto:${config.contact.email}`} className="text-gray-700 hover:text-blue-600">
+                      {config.contact.email}
+                    </a>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Clock className="w-3 h-3 text-blue-600" />
+                    <span className="text-gray-700">Mon-Fri: 8AM-6PM</span>
+                  </div>
+                </div>
+              </div>
+
               {/* Interactive overlay */}
-              <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all cursor-pointer flex items-center justify-center"
+              <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-5 transition-all cursor-pointer flex items-center justify-center"
                    onClick={openInGoogleMaps}>
-                <div className="opacity-0 hover:opacity-100 transition-opacity bg-white rounded-lg p-3 shadow-lg">
-                  <p className="text-sm font-medium text-gray-900 mb-2">🗺️ Interactive Map</p>
-                  <p className="text-xs text-gray-600">Click to open in Google Maps</p>
+                <div className="opacity-0 hover:opacity-100 transition-opacity bg-white rounded-lg p-4 shadow-lg max-w-xs text-center">
+                  <div className="text-2xl mb-2">🗺️</div>
+                  <p className="text-sm font-medium text-gray-900 mb-1">Interactive Map</p>
+                  <p className="text-xs text-gray-600">Click anywhere to open in Google Maps</p>
                 </div>
               </div>
             </div>
@@ -265,9 +320,14 @@ const LocationMap = () => {
 
         <div className="mt-4 text-center">
           <p className="text-sm text-gray-600">
-            {mapError ? 'Map Preview - Click to open interactive map' : 'Interactive Google Map'}
+            {mapError ? '🗺️ Map Preview - Click anywhere to open in Google Maps or Waze' : 'Interactive Google Map'}
           </p>
           <p className="text-xs text-gray-500">{config.contact.address}</p>
+          {mapError && (
+            <p className="text-xs text-blue-600 mt-1">
+              📍 Real location: Ayala Avenue, Makati City (Business District)
+            </p>
+          )}
         </div>
       </div>
     </div>

@@ -65,13 +65,36 @@ VITE_CONTACT_PHONE=+63 2 8123 4567
 VITE_CONTACT_EMAIL=info@franchisehub.ph
 VITE_CONTACT_ADDRESS=Ayala Avenue, Makati City, Metro Manila, Philippines
 
-# Google Maps API (optional)
+# Google Maps API (optional - fallback map active by default)
 VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
 
 # Feature Flags
 VITE_FEATURE_CHAT_ASSISTANT=true
 VITE_FEATURE_ANALYTICS=true
 ```
+
+## 📊 Analytics Dashboard
+
+Comprehensive analytics and KPI tracking with advanced charting capabilities:
+
+- **Multi-Period Analysis**: Month-to-Date, Quarter-to-Date, Year-to-Date views
+- **Interactive Charts**: Line, bar, area, and pie charts with Recharts
+- **KPI Tracking**: Sales trends, target achievement, growth metrics
+- **Performance Insights**: Automated alerts and actionable recommendations
+- **Responsive Design**: Mobile-friendly charts and dashboards
+- **Documentation**: See `docs/ANALYTICS_DASHBOARD.md` for detailed guide
+
+Features include sales trend analysis, franchisee performance tracking, and revenue distribution by brand.
+
+## 🗺️ Maps Integration
+
+The platform includes Google Maps integration with an intelligent fallback system:
+
+- **Fallback Map (Active)**: Beautiful custom map design with navigation links
+- **Google Maps API (Optional)**: Interactive maps with full functionality
+- **Setup Guide**: See `docs/GOOGLE_MAPS_SETUP.md` for detailed instructions
+
+The fallback map provides excellent user experience without API costs.
 
 ## 🗄️ Database Setup
 

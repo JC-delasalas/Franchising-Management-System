@@ -97,10 +97,34 @@ const Navigation = () => {
                           </Link>
                         </NavigationMenuLink>
                         <NavigationMenuLink asChild>
-                          <Link to="/brand/siomai-king" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                            <div className="text-sm font-medium leading-none">Brand Microsite</div>
+                          <Link to="/brand/siomai-shop" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                            <div className="text-sm font-medium leading-none">Siomai Shop</div>
                             <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                              View brand-specific information
+                              Your Neighborhood Siomai Specialist
+                            </p>
+                          </Link>
+                        </NavigationMenuLink>
+                        <NavigationMenuLink asChild>
+                          <Link to="/brand/lemon-juice-stand" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                            <div className="text-sm font-medium leading-none">Lemon Juice Stand</div>
+                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                              Fresh & Natural Lemon Drinks
+                            </p>
+                          </Link>
+                        </NavigationMenuLink>
+                        <NavigationMenuLink asChild>
+                          <Link to="/brand/coffee-shop" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                            <div className="text-sm font-medium leading-none">Coffee Shop</div>
+                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                              Your Daily Coffee Experience
+                            </p>
+                          </Link>
+                        </NavigationMenuLink>
+                        <NavigationMenuLink asChild>
+                          <Link to="/brand/burger-fries" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                            <div className="text-sm font-medium leading-none">Burger & Fries</div>
+                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                              Classic Burgers & Crispy Fries
                             </p>
                           </Link>
                         </NavigationMenuLink>
@@ -198,11 +222,32 @@ const Navigation = () => {
                           Training Portal
                         </Link>
                         <Link
-                          to="/brand/siomai-king"
+                          to="/brand/siomai-shop"
                           className="text-sm text-gray-600 hover:text-blue-600 transition-colors py-1"
                           onClick={() => setMobileMenuOpen(false)}
                         >
-                          Brand Microsite
+                          Siomai Shop
+                        </Link>
+                        <Link
+                          to="/brand/lemon-juice-stand"
+                          className="text-sm text-gray-600 hover:text-blue-600 transition-colors py-1"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Lemon Juice Stand
+                        </Link>
+                        <Link
+                          to="/brand/coffee-shop"
+                          className="text-sm text-gray-600 hover:text-blue-600 transition-colors py-1"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Coffee Shop
+                        </Link>
+                        <Link
+                          to="/brand/burger-fries"
+                          className="text-sm text-gray-600 hover:text-blue-600 transition-colors py-1"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Burger & Fries
                         </Link>
                       </div>
                     </div>
