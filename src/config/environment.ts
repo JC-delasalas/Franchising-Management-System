@@ -35,7 +35,7 @@ export const config = {
 
   // Feature Flags
   features: {
-    chatAssistant: import.meta.env.VITE_FEATURE_CHAT_ASSISTANT !== 'false',
+    chatSupport: import.meta.env.VITE_FEATURE_CHAT_SUPPORT !== 'false',
     analytics: import.meta.env.VITE_FEATURE_ANALYTICS !== 'false',
     errorReporting: import.meta.env.VITE_FEATURE_ERROR_REPORTING !== 'false',
   },

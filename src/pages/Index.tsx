@@ -34,28 +34,28 @@ const Index = () => {
       name: 'Siomai Shop',
       tagline: 'Your Neighborhood Siomai Specialist',
       color: 'from-red-600 to-red-800',
-      image: '/lovable-uploads/8db742b2-2916-4644-9f26-242447e378e6.png'
+      image: 'https://images.unsplash.com/photo-1496116218417-1a781b1c416c?auto=format&fit=crop&w=800&q=80'
     },
     {
       id: 'lemon-juice-stand',
       name: 'Lemon Juice Stand',
       tagline: 'Fresh & Natural Lemon Drinks',
       color: 'from-yellow-500 to-orange-500',
-      image: '/lovable-uploads/8db742b2-2916-4644-9f26-242447e378e6.png'
+      image: 'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?auto=format&fit=crop&w=800&q=80'
     },
     {
       id: 'coffee-shop',
       name: 'Coffee Shop',
       tagline: 'Your Daily Coffee Experience',
       color: 'from-amber-700 to-amber-900',
-      image: '/lovable-uploads/8db742b2-2916-4644-9f26-242447e378e6.png'
+      image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80'
     },
     {
       id: 'burger-fries',
       name: 'Burger & Fries',
       tagline: 'Classic Burgers & Crispy Fries',
       color: 'from-green-600 to-green-800',
-      image: '/lovable-uploads/8db742b2-2916-4644-9f26-242447e378e6.png'
+      image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80'
     }
   ];
 
@@ -99,7 +99,7 @@ const Index = () => {
       brand: 'Siomai Shop',
       rating: 5,
       comment: 'Best investment I\'ve made! ROI within 8 months.',
-      image: '/lovable-uploads/8db742b2-2916-4644-9f26-242447e378e6.png'
+      image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?auto=format&fit=crop&w=150&q=80'
     },
     {
       name: 'Juan Dela Cruz',
@@ -107,7 +107,7 @@ const Index = () => {
       brand: 'Coffee Shop',
       rating: 5,
       comment: 'Amazing support from the team. Highly recommended!',
-      image: '/lovable-uploads/8db742b2-2916-4644-9f26-242447e378e6.png'
+      image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80'
     },
     {
       name: 'Ana Rodriguez',
@@ -115,7 +115,7 @@ const Index = () => {
       brand: 'Lemon Juice Stand',
       rating: 5,
       comment: 'Great business model with excellent profit margins.',
-      image: '/lovable-uploads/8db742b2-2916-4644-9f26-242447e378e6.png'
+      image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=150&q=80'
     }
   ];
 
@@ -471,7 +471,7 @@ const Index = () => {
         </div>
       </footer>
 
-      {isFeatureEnabled('chatAssistant') && <ChatAssistant />}
+      {isFeatureEnabled('chatSupport') && <ChatAssistant />}
     </div>
   );
 };

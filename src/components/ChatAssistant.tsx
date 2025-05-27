@@ -13,7 +13,7 @@ const ChatAssistant = () => {
     {
       id: 1,
       type: 'bot',
-      content: 'Hi! I\'m your FranchiseHub assistant. How can I help you today?',
+      content: 'Hi! I\'m your FranchiseHub support specialist. How can I help you today?',
       timestamp: new Date()
     }
   ]);
@@ -55,7 +55,7 @@ const ChatAssistant = () => {
 
   const generateBotResponse = (userMessage: string) => {
     const lowerMessage = userMessage.toLowerCase();
-    
+
     if (lowerMessage.includes('package') || lowerMessage.includes('price')) {
       return 'We offer 4 franchise packages ranging from ₱50,000 to ₱500,000+. Each package includes different equipment, support levels, and territory rights. Would you like me to provide detailed information about a specific package?';
     } else if (lowerMessage.includes('approval') || lowerMessage.includes('application')) {
@@ -92,10 +92,10 @@ const ChatAssistant = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button 
-          size="lg" 
+        <Button
+          size="lg"
           className="fixed bottom-6 right-6 z-50 rounded-full w-14 h-14 bg-blue-600 hover:bg-blue-700 shadow-lg"
-          title="Chat with our assistant"
+          title="Chat with our support team"
         >
           <MessageCircle className="w-6 h-6" />
         </Button>
@@ -104,18 +104,18 @@ const ChatAssistant = () => {
         <DialogHeader className="p-4 border-b bg-blue-600 text-white rounded-t-lg">
           <DialogTitle className="flex items-center space-x-2">
             <MessageCircle className="w-5 h-5" />
-            <span>FranchiseHub Assistant</span>
+            <span>FranchiseHub Support</span>
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="flex-1 flex flex-col">
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.map((message) => (
               <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] p-3 rounded-lg ${
-                  message.type === 'user' 
-                    ? 'bg-blue-600 text-white' 
+                  message.type === 'user'
+                    ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-900'
                 }`}>
                   <p className="text-sm">{message.content}</p>
