@@ -2,6 +2,52 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Blog Content Styles */
+.prose {
+  @apply text-gray-800 leading-relaxed;
+}
+
+.prose h2 {
+  @apply text-2xl font-bold text-gray-900 mt-8 mb-4 border-b border-gray-200 pb-2;
+}
+
+.prose h3 {
+  @apply text-xl font-semibold text-gray-900 mt-6 mb-3;
+}
+
+.prose p {
+  @apply mb-4 text-gray-700 leading-7;
+}
+
+.prose ul {
+  @apply mb-4 ml-6 space-y-2;
+}
+
+.prose li {
+  @apply text-gray-700 leading-6;
+  list-style-type: disc;
+}
+
+.prose strong {
+  @apply font-semibold text-gray-900;
+}
+
+.prose blockquote {
+  @apply border-l-4 border-blue-500 pl-4 italic text-gray-600 my-6;
+}
+
+.prose code {
+  @apply bg-gray-100 px-2 py-1 rounded text-sm font-mono;
+}
+
+.prose pre {
+  @apply bg-gray-100 p-4 rounded-lg overflow-x-auto my-6;
+}
+
+.prose a {
+  @apply text-blue-600 hover:text-blue-800 underline;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

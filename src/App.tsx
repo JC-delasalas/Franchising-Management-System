@@ -16,6 +16,8 @@ const FranchisorDashboard = React.lazy(() => import("./pages/FranchisorDashboard
 const FranchiseeDashboard = React.lazy(() => import("./pages/FranchiseeDashboard"));
 const FranchiseeTraining = React.lazy(() => import("./pages/FranchiseeTraining"));
 const BrandMicrosite = React.lazy(() => import("./pages/BrandMicrosite"));
+const Blog = React.lazy(() => import("./pages/Blog"));
+const BlogPost = React.lazy(() => import("./pages/BlogPost"));
 const Contact = React.lazy(() => import("./pages/Contact"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
@@ -48,6 +50,8 @@ const App = () => (
               <Route path="/franchisee-dashboard" element={<FranchiseeDashboard />} />
               <Route path="/franchisee-training" element={<FranchiseeTraining />} />
               <Route path="/brand/:brandId" element={<BrandMicrosite />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:id" element={<BlogPost />} />
               <Route path="/contact" element={<Contact />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

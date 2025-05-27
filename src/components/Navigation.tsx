@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
@@ -19,11 +19,20 @@ import {
 const Navigation = () => {
   const [devMode, setDevMode] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
+
+  const handleNavClick = (href: string, isRoute: boolean) => {
+    if (!isRoute && location.pathname !== '/') {
+      // If we're not on homepage and clicking an anchor link, go to homepage first
+      window.location.href = `/${href}`;
+    }
+  };
 
   const navigationLinks = [
     { href: "#brands", label: "Brands" },
     { href: "#packages", label: "Packages" },
     { href: "#how-it-works", label: "How It Works" },
+    { href: "/blog", label: "Blog", isRoute: true },
     { href: "/contact", label: "Contact", isRoute: true }
   ];
 
@@ -48,6 +57,7 @@ const Navigation = () => {
                 <a
                   key={link.href}
                   href={link.href}
+                  onClick={() => handleNavClick(link.href, false)}
                   className="text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:rounded transition-colors"
                 >
                   {link.label}
@@ -151,7 +161,10 @@ const Navigation = () => {
                           key={link.href}
                           href={link.href}
                           className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors py-2"
-                          onClick={() => setMobileMenuOpen(false)}
+                          onClick={() => {
+                            handleNavClick(link.href, false);
+                            setMobileMenuOpen(false);
+                          }}
                         >
                           {link.label}
                         </a>
