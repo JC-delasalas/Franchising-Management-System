@@ -8,11 +8,13 @@ import ChatAssistant from '@/components/ChatAssistant';
 import AccessibleImage from '@/components/AccessibleImage';
 import SkipLink from '@/components/SkipLink';
 import Navigation from '@/components/Navigation';
-import { 
-  ArrowRight, 
-  CheckCircle, 
-  Users, 
-  TrendingUp, 
+import Logo from '@/components/Logo';
+import { config, isFeatureEnabled } from '@/config/environment';
+import {
+  ArrowRight,
+  CheckCircle,
+  Users,
+  TrendingUp,
   Award,
   Phone,
   Mail,
@@ -122,7 +124,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-white">
       <SkipLink />
-      
+
       <Navigation />
 
       {/* Main Content */}
@@ -142,7 +144,7 @@ const Index = () => {
                   </span>
                 </h1>
                 <p className="text-xl text-gray-600 mb-8">
-                  Join thousands of successful entrepreneurs with our proven franchise systems. 
+                  Join thousands of successful entrepreneurs with our proven franchise systems.
                   Low capital, high returns, complete support.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -152,9 +154,9 @@ const Index = () => {
                       <ArrowRight className="ml-2 w-5 h-5" aria-hidden="true" />
                     </Link>
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    size="lg" 
+                  <Button
+                    variant="outline"
+                    size="lg"
                     className="border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white focus:ring-2 focus:ring-gray-500"
                     aria-label="Watch demonstration video"
                   >
@@ -167,8 +169,8 @@ const Index = () => {
                 <div className={`bg-gradient-to-br ${currentBrand?.color} rounded-2xl p-8 text-white`}>
                   <h3 className="text-2xl font-bold mb-2">{currentBrand?.name}</h3>
                   <p className="text-lg opacity-90 mb-6">{currentBrand?.tagline}</p>
-                  <AccessibleImage 
-                    src={currentBrand?.image || ''} 
+                  <AccessibleImage
+                    src={currentBrand?.image || ''}
                     alt={`${currentBrand?.name} franchise showcase`}
                     className="w-full h-48 object-cover rounded-lg"
                     loading="eager"
@@ -186,13 +188,13 @@ const Index = () => {
               <h2 id="brands-heading" className="text-3xl font-bold text-gray-900 mb-4">Choose Your Brand</h2>
               <p className="text-lg text-gray-600">Multiple proven brands, one platform</p>
             </div>
-            
+
             <Tabs value={selectedBrand} onValueChange={setSelectedBrand} className="w-full">
               <TabsList className="grid w-full grid-cols-4 mb-8" role="tablist" aria-label="Brand selection">
                 {brands.map((brand) => (
-                  <TabsTrigger 
-                    key={brand.id} 
-                    value={brand.id} 
+                  <TabsTrigger
+                    key={brand.id}
+                    value={brand.id}
                     className="text-sm focus:ring-2 focus:ring-blue-500"
                     role="tab"
                     aria-selected={selectedBrand === brand.id}
@@ -201,7 +203,7 @@ const Index = () => {
                   </TabsTrigger>
                 ))}
               </TabsList>
-              
+
               {brands.map((brand) => (
                 <TabsContent key={brand.id} value={brand.id} role="tabpanel">
                   <div className={`bg-gradient-to-br ${brand.color} rounded-2xl text-white p-8 mb-8`}>
@@ -225,8 +227,8 @@ const Index = () => {
                         </ul>
                       </div>
                       <div className="text-center">
-                        <AccessibleImage 
-                          src={brand.image} 
+                        <AccessibleImage
+                          src={brand.image}
                           alt={`${brand.name} brand showcase and products`}
                           className="w-full h-64 object-cover rounded-lg mx-auto"
                         />
@@ -246,7 +248,7 @@ const Index = () => {
               <h2 id="packages-heading" className="text-3xl font-bold text-gray-900 mb-4">Franchise Packages</h2>
               <p className="text-lg text-gray-600">Choose the perfect package for your budget and goals</p>
             </div>
-            
+
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {currentPackages.map((pkg, index) => (
                 <Card key={index} className={`relative ${pkg.popular ? 'ring-2 ring-blue-500' : ''}`}>
@@ -269,9 +271,9 @@ const Index = () => {
                         </li>
                       ))}
                     </ul>
-                    <Button 
-                      asChild 
-                      className="w-full focus:ring-2 focus:ring-blue-500" 
+                    <Button
+                      asChild
+                      className="w-full focus:ring-2 focus:ring-blue-500"
                       variant={pkg.popular ? 'default' : 'outline'}
                     >
                       <Link to={`/apply?brand=${selectedBrand}&package=${pkg.tier}`}>
@@ -292,7 +294,7 @@ const Index = () => {
               <h2 id="how-it-works-heading" className="text-3xl font-bold text-gray-900 mb-4">How It Works</h2>
               <p className="text-lg text-gray-600">Simple 5-step process to franchise success</p>
             </div>
-            
+
             <div className="grid md:grid-cols-5 gap-8">
               {[
                 { step: 1, title: 'Choose Brand', desc: 'Select your preferred franchise brand' },
@@ -302,7 +304,7 @@ const Index = () => {
                 { step: 5, title: 'Start Selling', desc: 'Launch your franchise and earn profits' }
               ].map((item, index) => (
                 <div key={index} className="text-center">
-                  <div 
+                  <div
                     className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4"
                     aria-label={`Step ${item.step}`}
                   >
@@ -323,7 +325,7 @@ const Index = () => {
               <h2 id="why-franchise-heading" className="text-3xl font-bold text-gray-900 mb-4">Why Franchise With Us</h2>
               <p className="text-lg text-gray-600">Join thousands of successful franchisees</p>
             </div>
-            
+
             <div className="grid md:grid-cols-4 gap-8">
               {[
                 { icon: DollarSign, title: 'Low Capital', desc: 'Start from just ₱50,000' },
@@ -350,14 +352,14 @@ const Index = () => {
               <h2 id="success-stories-heading" className="text-3xl font-bold text-gray-900 mb-4">Success Stories</h2>
               <p className="text-lg text-gray-600">Hear from our successful franchisees</p>
             </div>
-            
+
             <div className="grid md:grid-cols-3 gap-8">
               {testimonials.map((testimonial, index) => (
                 <Card key={index}>
                   <CardContent className="p-6">
                     <div className="flex items-center space-x-4 mb-4">
-                      <AccessibleImage 
-                        src={testimonial.image} 
+                      <AccessibleImage
+                        src={testimonial.image}
                         alt={`${testimonial.name} - successful franchisee`}
                         className="w-12 h-12 rounded-full object-cover"
                       />
@@ -385,19 +387,14 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <img 
-                  src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏪</text></svg>" 
-                  alt="FranchiseHub Logo" 
-                  className="w-8 h-8"
-                />
-                <span className="text-xl font-bold">FranchiseHub</span>
+              <div className="mb-4">
+                <Logo size="md" className="text-white" />
               </div>
               <p className="text-gray-400 mb-4">
                 The leading multi-brand franchising platform in the Philippines.
               </p>
             </div>
-            
+
             <div>
               <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
               <nav aria-label="Footer navigation">
@@ -409,38 +406,48 @@ const Index = () => {
                 </ul>
               </nav>
             </div>
-            
+
             <div>
               <h3 className="text-lg font-semibold mb-4">Contact Info</h3>
               <address className="space-y-2 not-italic">
                 <div className="flex items-center space-x-2">
                   <Phone className="w-4 h-4" aria-hidden="true" />
-                  <span className="text-gray-400">+63 2 8123 4567</span>
+                  <a
+                    href={`tel:${config.contact.phone}`}
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    {config.contact.phone}
+                  </a>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Mail className="w-4 h-4" aria-hidden="true" />
-                  <span className="text-gray-400">info@franchisehub.ph</span>
+                  <a
+                    href={`mailto:${config.contact.email}`}
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    {config.contact.email}
+                  </a>
                 </div>
                 <div className="flex items-center space-x-2">
                   <MapPin className="w-4 h-4" aria-hidden="true" />
-                  <span className="text-gray-400">Makati City, Philippines</span>
+                  <span className="text-gray-400">{config.contact.address.split(',').slice(-2).join(',').trim()}</span>
                 </div>
               </address>
             </div>
-            
+
             <div>
               <h3 className="text-lg font-semibold mb-4">Newsletter</h3>
               <p className="text-gray-400 mb-4">Get updates on new franchise opportunities</p>
               <form className="flex" aria-label="Newsletter subscription">
                 <label htmlFor="newsletter-email" className="sr-only">Email address</label>
-                <input 
+                <input
                   id="newsletter-email"
-                  type="email" 
+                  type="email"
                   placeholder="Your email"
                   required
                   className="flex-1 px-3 py-2 bg-gray-800 text-white rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-600"
                 />
-                <Button 
+                <Button
                   type="submit"
                   className="rounded-l-none bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
                   aria-label="Subscribe to newsletter"
@@ -450,14 +457,14 @@ const Index = () => {
               </form>
             </div>
           </div>
-          
+
           <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 FranchiseHub. All rights reserved.</p>
+            <p>&copy; 2024 {config.app.name}. All rights reserved.</p>
           </div>
         </div>
       </footer>
 
-      <ChatAssistant />
+      {isFeatureEnabled('chatAssistant') && <ChatAssistant />}
     </div>
   );
 };
