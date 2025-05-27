@@ -7,11 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import Navigation from '@/components/Navigation';
 import SEO from '@/components/SEO';
-import { 
-  Package, 
-  ShoppingCart, 
-  Plus, 
-  Minus, 
+import {
+  Package,
+  ShoppingCart,
+  Plus,
+  Minus,
   AlertTriangle,
   CheckCircle,
   Clock,
@@ -38,6 +38,11 @@ const InventoryOrder = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [recentOrders, setRecentOrders] = useState([
+    { id: 'ORD-001', date: '2024-01-10', items: 5, total: '₱4,250', status: 'Delivered' },
+    { id: 'ORD-002', date: '2024-01-08', items: 3, total: '₱2,100', status: 'In Transit' },
+    { id: 'ORD-003', date: '2024-01-05', items: 7, total: '₱6,800', status: 'Delivered' }
+  ]);
 
   const inventoryItems: InventoryItem[] = [
     { id: '1', name: 'Siomai Mix (500pcs)', currentStock: 45, unit: 'pcs', reorderLevel: 20, status: 'Good', price: 2500, category: 'Food' },
@@ -52,12 +57,6 @@ const InventoryOrder = () => {
 
   const categories = ['All', 'Food', 'Condiments', 'Packaging', 'Supplies'];
 
-  const recentOrders = [
-    { id: 'ORD-001', date: '2024-01-10', items: 5, total: '₱4,250', status: 'Delivered' },
-    { id: 'ORD-002', date: '2024-01-08', items: 3, total: '₱2,100', status: 'In Transit' },
-    { id: 'ORD-003', date: '2024-01-05', items: 7, total: '₱6,800', status: 'Delivered' }
-  ];
-
   const filteredItems = inventoryItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
@@ -67,8 +66,8 @@ const InventoryOrder = () => {
   const addToCart = (item: InventoryItem) => {
     const existingItem = cart.find(cartItem => cartItem.id === item.id);
     if (existingItem) {
-      setCart(cart.map(cartItem => 
-        cartItem.id === item.id 
+      setCart(cart.map(cartItem =>
+        cartItem.id === item.id
           ? { ...cartItem, quantity: cartItem.quantity + 1 }
           : cartItem
       ));
@@ -81,7 +80,7 @@ const InventoryOrder = () => {
     if (quantity <= 0) {
       setCart(cart.filter(item => item.id !== id));
     } else {
-      setCart(cart.map(item => 
+      setCart(cart.map(item =>
         item.id === id ? { ...item, quantity } : item
       ));
     }
@@ -122,14 +121,34 @@ const InventoryOrder = () => {
       alert('Please add items to your cart first.');
       return;
     }
-    
-    alert(`Order placed successfully! Total: ₱${getTotalAmount().toLocaleString()}`);
+
+    // Generate new order ID
+    const newOrderId = `ORD-${String(recentOrders.length + 1).padStart(3, '0')}`;
+    const today = new Date().toISOString().split('T')[0];
+    const totalAmount = getTotalAmount();
+
+    // Create new order
+    const newOrder = {
+      id: newOrderId,
+      date: today,
+      items: cart.length,
+      total: `₱${totalAmount.toLocaleString()}`,
+      status: 'Processing'
+    };
+
+    // Add to recent orders (at the beginning)
+    setRecentOrders([newOrder, ...recentOrders]);
+
+    // Clear cart
     setCart([]);
+
+    // Show success message
+    alert(`✅ Order placed successfully!\n\nOrder ID: ${newOrderId}\nTotal: ₱${totalAmount.toLocaleString()}\nItems: ${cart.length}\n\nYour order is now being processed and will be delivered in 3-5 business days.`);
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SEO 
+      <SEO
         title="Inventory Order - Franchisee Dashboard"
         description="Order inventory items and manage stock levels for your franchise"
         noIndex={true}
@@ -204,7 +223,7 @@ const InventoryOrder = () => {
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <span className="text-xl font-bold text-green-600">
                         ₱{item.price.toLocaleString()}
@@ -290,14 +309,14 @@ const InventoryOrder = () => {
                         </div>
                       </div>
                     ))}
-                    
+
                     <Separator />
-                    
+
                     <div className="flex justify-between items-center font-bold text-lg">
                       <span>Total:</span>
                       <span>₱{getTotalAmount().toLocaleString()}</span>
                     </div>
-                    
+
                     <Button onClick={handleCheckout} className="w-full">
                       Place Order
                     </Button>

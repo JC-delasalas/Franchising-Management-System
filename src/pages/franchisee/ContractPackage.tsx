@@ -7,11 +7,11 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Navigation from '@/components/Navigation';
 import SEO from '@/components/SEO';
-import { 
-  FileText, 
-  Download, 
-  Calendar, 
-  MapPin, 
+import {
+  FileText,
+  Download,
+  Calendar,
+  MapPin,
   DollarSign,
   CheckCircle,
   ArrowLeft,
@@ -131,14 +131,23 @@ const ContractPackage = () => {
     alert(`Downloading ${docName}...`);
   };
 
-  const handleUpgrade = (packageName: string) => {
-    alert(`Initiating upgrade to ${packageName}. Our team will contact you within 24 hours.`);
-    setShowUpgradeModal(false);
+  const handleUpgrade = (packageName: string, price: string) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to upgrade to ${packageName}?\n\nAdditional Cost: ${price}\n\nOur team will contact you within 24 hours to process your upgrade.`
+    );
+
+    if (confirmed) {
+      // Simulate API call
+      setTimeout(() => {
+        alert(`✅ Upgrade request submitted successfully!\n\nPackage: ${packageName}\nCost: ${price}\n\nOur team will contact you within 24 hours to complete the upgrade process.`);
+      }, 1000);
+      setShowUpgradeModal(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SEO 
+      <SEO
         title="Contract & Package - Franchisee Dashboard"
         description="View your franchise contract details and package information"
         noIndex={true}
@@ -161,7 +170,7 @@ const ContractPackage = () => {
               <h1 className="text-3xl font-bold text-gray-900">Contract & Package</h1>
               <p className="text-gray-600">View your franchise agreement and package details</p>
             </div>
-            <Button 
+            <Button
               onClick={() => setShowUpgradeModal(true)}
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
@@ -198,7 +207,7 @@ const ContractPackage = () => {
                           <p className="text-blue-800 text-lg font-bold">{contractDetails.investment}</p>
                           <p className="text-blue-700 text-sm">Total Investment</p>
                         </div>
-                        
+
                         <div className="space-y-3">
                           <div className="flex justify-between">
                             <span className="text-gray-600">Agreement Date:</span>
@@ -251,7 +260,7 @@ const ContractPackage = () => {
                             <span>Quality standards and compliance requirements</span>
                           </div>
                         </div>
-                        
+
                         <Button className="w-full mt-4" onClick={() => handleDownload('Franchise Agreement')}>
                           <Download className="w-4 h-4 mr-2" />
                           Download Full Contract
@@ -280,7 +289,7 @@ const ContractPackage = () => {
                           ))}
                         </div>
                       </div>
-                      
+
                       <div>
                         <h4 className="font-semibold text-gray-900 mb-4">Support Services</h4>
                         <div className="space-y-3">
@@ -350,7 +359,7 @@ const ContractPackage = () => {
                               {new Date(milestone.date).toLocaleDateString()}
                             </p>
                           </div>
-                          <Badge 
+                          <Badge
                             className={
                               milestone.status === 'completed' ? 'bg-green-100 text-green-800' :
                               milestone.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
@@ -403,12 +412,12 @@ const ContractPackage = () => {
                       <h4 className="font-semibold text-sm mb-2">{option.name}</h4>
                       <p className="text-lg font-bold text-green-600 mb-2">{option.price}</p>
                       <p className="text-xs text-green-600 mb-3">{option.savings}</p>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         className="w-full"
-                        onClick={() => handleUpgrade(option.name)}
+                        onClick={() => handleUpgrade(option.name, option.price)}
                       >
-                        Learn More
+                        Upgrade Now
                       </Button>
                     </div>
                   ))}
