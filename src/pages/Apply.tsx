@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -278,24 +277,27 @@ const Apply = () => {
             
             <div className="space-y-4">
               {[
-                'Valid Government ID',
-                'Proof of Billing/Address',
-                'Bank Statement (Last 3 months)',
-                'Business License (if applicable)'
+                { name: 'Valid Government ID', required: true },
+                { name: 'Proof of Billing/Address', required: true },
+                { name: 'Bank Statement (Last 3 months)', required: false },
+                { name: 'Business License (if applicable)', required: false }
               ].map((doc, index) => (
-                <div key={index} className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                <div key={index} className={`border-2 border-dashed rounded-lg p-6 text-center hover:border-blue-400 transition-colors ${
+                  doc.required ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                }`}>
                   <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm font-medium text-gray-700">{doc}</p>
+                  <p className="text-sm font-medium text-gray-700">{doc.name}</p>
                   <p className="text-xs text-gray-500 mt-1">Click to upload or drag and drop</p>
-                  <Badge variant="outline" className="mt-2">Optional</Badge>
+                  <Badge variant={doc.required ? "destructive" : "outline"} className="mt-2">
+                    {doc.required ? "Required" : "Optional"}
+                  </Badge>
                 </div>
               ))}
             </div>
             
             <div className="bg-yellow-50 p-4 rounded-lg">
               <p className="text-sm text-yellow-800">
-                <strong>Note:</strong> Documents can also be submitted during the interview process. 
-                You may proceed without uploading all documents now.
+                <strong>Note:</strong> Required documents must be submitted to proceed. Optional documents can also be submitted during the interview process.
               </p>
             </div>
           </div>
