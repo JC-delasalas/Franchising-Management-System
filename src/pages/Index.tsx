@@ -218,7 +218,7 @@ const Index = () => {
                       <div>
                         <h3 className="text-3xl font-bold mb-4">{brand.name}</h3>
                         <p className="text-xl opacity-90 mb-6">{brand.tagline}</p>
-                        <ul className="space-y-3" role="list">
+                        <ul className="space-y-3 mb-6" role="list">
                           <li className="flex items-center space-x-2">
                             <CheckCircle className="w-5 h-5" aria-hidden="true" />
                             <span>Proven business model</span>
@@ -232,6 +232,18 @@ const Index = () => {
                             <span>Marketing support</span>
                           </li>
                         </ul>
+                        <div className="flex flex-col sm:flex-row gap-4">
+                          <Button asChild size="lg" className="bg-white text-gray-900 hover:bg-gray-100">
+                            <Link to={`/brand/${brand.id}`}>
+                              Learn More <ArrowRight className="ml-2 w-5 h-5" />
+                            </Link>
+                          </Button>
+                          <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+                            <Link to={`/apply?brand=${brand.id}`}>
+                              Apply Now
+                            </Link>
+                          </Button>
+                        </div>
                       </div>
                       <div className="text-center">
                         <AccessibleImage
@@ -245,6 +257,40 @@ const Index = () => {
                 </TabsContent>
               ))}
             </Tabs>
+          </div>
+        </section>
+
+        {/* Brand Overview Cards */}
+        <section className="py-16" aria-labelledby="brand-overview-heading">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 id="brand-overview-heading" className="text-3xl font-bold text-gray-900 mb-4">Explore Our Brands</h2>
+              <p className="text-lg text-gray-600">Click on any brand to learn more about the opportunity</p>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {brands.map((brand) => (
+                <Card key={brand.id} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+                  <Link to={`/brand/${brand.id}`} className="block">
+                    <div className="aspect-video overflow-hidden rounded-t-lg">
+                      <AccessibleImage
+                        src={brand.image}
+                        alt={`${brand.name} franchise opportunity`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                    <CardContent className="p-6">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">{brand.name}</h3>
+                      <p className="text-gray-600 mb-4">{brand.tagline}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-blue-600 font-medium">Learn More</span>
+                        <ArrowRight className="w-4 h-4 text-blue-600 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </CardContent>
+                  </Link>
+                </Card>
+              ))}
+            </div>
           </div>
         </section>
 
