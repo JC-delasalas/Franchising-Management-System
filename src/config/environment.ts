@@ -20,8 +20,8 @@ export const config = {
     email: import.meta.env.VITE_CONTACT_EMAIL || 'info@franchisehub.ph',
     address: import.meta.env.VITE_CONTACT_ADDRESS || 'Ayala Avenue, Makati City, Metro Manila, Philippines 1226',
     coordinates: {
-      lat: parseFloat(import.meta.env.VITE_CONTACT_LAT || '14.5547'),
-      lng: parseFloat(import.meta.env.VITE_CONTACT_LNG || '121.0244')
+      lat: parseFloat(import.meta.env.VITE_CONTACT_LAT || '14.5564'),
+      lng: parseFloat(import.meta.env.VITE_CONTACT_LNG || '121.0252')
     }
   },
 

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import Logo from '@/components/Logo';
+import ChatAssistant from '@/components/ChatAssistant';
 import {
   TrendingUp,
   Package,
@@ -543,16 +544,7 @@ const FranchiseeDashboard = () => {
       </div>
 
       {/* Chat Assistant */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <Button
-          size="lg"
-          className="rounded-full w-14 h-14 bg-blue-600 hover:bg-blue-700 shadow-lg"
-          title="Chat with our assistant"
-          onClick={() => alert('Chat assistant feature coming soon!')}
-        >
-          <MessageCircle className="w-6 h-6" />
-        </Button>
-      </div>
+      <ChatAssistant />
     </div>
   );
 };

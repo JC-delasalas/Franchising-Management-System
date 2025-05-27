@@ -9,6 +9,7 @@ import AccessibleImage from '@/components/AccessibleImage';
 import SkipLink from '@/components/SkipLink';
 import Navigation from '@/components/Navigation';
 import Logo from '@/components/Logo';
+import SEO from '@/components/SEO';
 import { config, isFeatureEnabled } from '@/config/environment';
 import {
   ArrowRight,
@@ -123,6 +124,12 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEO
+        title="Franchise Opportunities in the Philippines"
+        description="Discover profitable franchise opportunities with FranchiseHub. Start your business journey with proven brands like Siomai Shop, Coffee Shop, Lemon Juice Stand, and Burger & Fries. Get comprehensive support and training."
+        keywords="franchise Philippines, business opportunity, food franchise, siomai franchise, coffee shop franchise, burger franchise, investment opportunity"
+        url="/"
+      />
       <SkipLink />
 
       <Navigation />

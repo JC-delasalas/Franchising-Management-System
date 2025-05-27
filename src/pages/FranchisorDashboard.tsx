@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import Logo from '@/components/Logo';
+import ChatAssistant from '@/components/ChatAssistant';
 import { TrendingUp, Users, Package, DollarSign, Bell, Search, Filter, Download, Plus, Check, X, Clock, MessageCircle, AlertTriangle, ArrowLeft, Eye, Mail, Phone } from 'lucide-react';
 
 const mockApplications = [
@@ -666,16 +667,7 @@ const FranchisorDashboard = () => {
       </div>
 
       {/* Chat Assistant */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <Button
-          size="lg"
-          className="rounded-full w-14 h-14 bg-blue-600 hover:bg-blue-700 shadow-lg"
-          title="Chat with our assistant"
-          onClick={() => alert('Chat assistant feature coming soon!')}
-        >
-          <MessageCircle className="w-6 h-6" />
-        </Button>
-      </div>
+      <ChatAssistant />
     </div>
   );
 };
