@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { TrendingUp, Users, Package, DollarSign, Bell, Search, Filter, Download, Plus, Check, X, Clock, MessageCircle, AlertTriangle } from 'lucide-react';
+import Logo from '@/components/Logo';
+import { TrendingUp, Users, Package, DollarSign, Bell, Search, Filter, Download, Plus, Check, X, Clock, MessageCircle, AlertTriangle, ArrowLeft, Eye, Mail, Phone } from 'lucide-react';
 
 const mockApplications = [
   { id: 'APP001', name: 'Maria Santos', brand: 'Siomai King', package: 'Package B', status: 'Pending', date: '2024-01-15', phone: '+63 912 345 6789', email: 'maria@email.com' },
@@ -68,18 +70,29 @@ const FranchisorDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <span className="text-2xl">🏪</span>
-                <span className="text-xl font-bold text-gray-900">FranchiseHub</span>
-              </div>
+              <Button variant="ghost" asChild className="text-gray-900 hover:text-gray-700">
+                <Link to="/">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Home
+                </Link>
+              </Button>
+              <div className="h-6 w-px bg-gray-300"></div>
+              <Logo size="md" />
               <span className="text-sm text-gray-500">Franchisor Dashboard</span>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => alert('Notifications feature coming soon!')}
+              >
                 <Bell className="w-4 h-4 mr-2" />
                 Notifications
               </Button>
-              <Button size="sm">
+              <Button
+                size="sm"
+                onClick={() => alert('New announcement feature coming soon!')}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 New Announcement
               </Button>
@@ -101,7 +114,7 @@ const FranchisorDashboard = () => {
               <p className="text-xs text-muted-foreground">+12% from last month</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Approved Franchisees</CardTitle>
@@ -112,7 +125,7 @@ const FranchisorDashboard = () => {
               <p className="text-xs text-muted-foreground">+8% from last month</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active Franchisees</CardTitle>
@@ -123,7 +136,7 @@ const FranchisorDashboard = () => {
               <p className="text-xs text-muted-foreground">+5% from last month</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
@@ -153,8 +166,8 @@ const FranchisorDashboard = () => {
                     <p className="text-sm text-gray-600">{franchisee.brand} - {franchisee.location}</p>
                     <p className="text-xs text-orange-700">Low: {franchisee.lowStock.join(', ')}</p>
                   </div>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
                     onClick={() => sendLowStockNotification(franchisee)}
                     className="border-orange-300 text-orange-700 hover:bg-orange-100"
@@ -211,7 +224,11 @@ const FranchisorDashboard = () => {
                         <SelectItem value="rejected">Rejected</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => alert('Export functionality coming soon!')}
+                    >
                       <Download className="w-4 h-4 mr-2" />
                       Export
                     </Button>
@@ -246,13 +263,67 @@ const FranchisorDashboard = () => {
                         <TableCell>{app.date}</TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
-                            <Button variant="outline" size="sm">View</Button>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  <Eye className="w-4 h-4 mr-1" />
+                                  View
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-2xl">
+                                <DialogHeader>
+                                  <DialogTitle>Application Details - {app.id}</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-700">Name</label>
+                                      <p className="text-gray-900">{app.name}</p>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-700">Brand</label>
+                                      <p className="text-gray-900">{app.brand}</p>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-700">Package</label>
+                                      <p className="text-gray-900">{app.package}</p>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-700">Status</label>
+                                      <Badge className={getStatusColor(app.status)}>{app.status}</Badge>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-700">Phone</label>
+                                      <p className="text-gray-900">{app.phone}</p>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-700">Email</label>
+                                      <p className="text-gray-900">{app.email}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex justify-end space-x-2 pt-4">
+                                    <Button variant="outline" asChild>
+                                      <a href={`tel:${app.phone}`}>
+                                        <Phone className="w-4 h-4 mr-2" />
+                                        Call
+                                      </a>
+                                    </Button>
+                                    <Button variant="outline" asChild>
+                                      <a href={`mailto:${app.email}`}>
+                                        <Mail className="w-4 h-4 mr-2" />
+                                        Email
+                                      </a>
+                                    </Button>
+                                  </div>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
                             {app.status === 'Pending' && (
                               <>
                                 <Dialog>
                                   <DialogTrigger asChild>
-                                    <Button 
-                                      size="sm" 
+                                    <Button
+                                      size="sm"
                                       className="bg-green-600 hover:bg-green-700"
                                       onClick={() => handleApplicationAction(app, 'approve')}
                                     >
@@ -266,7 +337,7 @@ const FranchisorDashboard = () => {
                                     </DialogHeader>
                                     <div className="space-y-4">
                                       <p>Are you sure you want to approve {app.name}'s application?</p>
-                                      <Textarea 
+                                      <Textarea
                                         placeholder="Add approval notes (optional)"
                                         value={actionReason}
                                         onChange={(e) => setActionReason(e.target.value)}
@@ -280,8 +351,8 @@ const FranchisorDashboard = () => {
                                 </Dialog>
                                 <Dialog>
                                   <DialogTrigger asChild>
-                                    <Button 
-                                      size="sm" 
+                                    <Button
+                                      size="sm"
                                       variant="outline"
                                       className="border-blue-300 text-blue-700 hover:bg-blue-50"
                                       onClick={() => handleApplicationAction(app, 'semi-approve')}
@@ -296,7 +367,7 @@ const FranchisorDashboard = () => {
                                     </DialogHeader>
                                     <div className="space-y-4">
                                       <p>What additional requirements does {app.name} need to complete?</p>
-                                      <Textarea 
+                                      <Textarea
                                         placeholder="List additional requirements..."
                                         value={actionReason}
                                         onChange={(e) => setActionReason(e.target.value)}
@@ -310,8 +381,8 @@ const FranchisorDashboard = () => {
                                 </Dialog>
                                 <Dialog>
                                   <DialogTrigger asChild>
-                                    <Button 
-                                      size="sm" 
+                                    <Button
+                                      size="sm"
                                       variant="outline"
                                       className="border-red-300 text-red-700 hover:bg-red-50"
                                       onClick={() => handleApplicationAction(app, 'reject')}
@@ -326,7 +397,7 @@ const FranchisorDashboard = () => {
                                     </DialogHeader>
                                     <div className="space-y-4">
                                       <p>Please provide a reason for rejecting {app.name}'s application:</p>
-                                      <Textarea 
+                                      <Textarea
                                         placeholder="Rejection reason..."
                                         value={actionReason}
                                         onChange={(e) => setActionReason(e.target.value)}
@@ -378,7 +449,7 @@ const FranchisorDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Low Stock Alerts</CardTitle>
@@ -396,7 +467,11 @@ const FranchisorDashboard = () => {
                           <p className="text-sm text-red-700">{alert.brand}</p>
                           <p className="text-xs text-red-600">Current: {alert.stock}</p>
                         </div>
-                        <Button size="sm" variant="outline">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => alert(`Reordering ${alert.item} for ${alert.brand}`)}
+                        >
                           Reorder
                         </Button>
                       </div>
@@ -437,7 +512,7 @@ const FranchisorDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Royalty Collections</CardTitle>
@@ -482,7 +557,11 @@ const FranchisorDashboard = () => {
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <Input placeholder="Search franchisees..." className="pl-10 w-64" />
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => alert('Franchisee export functionality coming soon!')}
+                    >
                       <Download className="w-4 h-4 mr-2" />
                       Export
                     </Button>
@@ -517,8 +596,63 @@ const FranchisorDashboard = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
-                            <Button variant="outline" size="sm">View</Button>
-                            <Button variant="outline" size="sm">Contact</Button>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  <Eye className="w-4 h-4 mr-1" />
+                                  View
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-2xl">
+                                <DialogHeader>
+                                  <DialogTitle>Franchisee Details - {franchisee.id}</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-700">Name</label>
+                                      <p className="text-gray-900">{franchisee.name}</p>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-700">Brand</label>
+                                      <p className="text-gray-900">{franchisee.brand}</p>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-700">Location</label>
+                                      <p className="text-gray-900">{franchisee.location}</p>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-700">Monthly Revenue</label>
+                                      <p className="text-green-600 font-medium">{franchisee.monthlyRevenue}</p>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-700">Status</label>
+                                      <Badge className={getStatusColor(franchisee.status)}>{franchisee.status}</Badge>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm font-medium text-gray-700">Low Stock Items</label>
+                                      <p className="text-gray-900">
+                                        {franchisee.lowStock.length > 0 ? franchisee.lowStock.join(', ') : 'None'}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex justify-end space-x-2 pt-4">
+                                    <Button variant="outline" asChild>
+                                      <Link to="/franchisee-dashboard">
+                                        <Eye className="w-4 h-4 mr-2" />
+                                        View Dashboard
+                                      </Link>
+                                    </Button>
+                                  </div>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                            <Button variant="outline" size="sm" asChild>
+                              <Link to="/contact">
+                                <Mail className="w-4 h-4 mr-1" />
+                                Contact
+                              </Link>
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -533,10 +667,11 @@ const FranchisorDashboard = () => {
 
       {/* Chat Assistant */}
       <div className="fixed bottom-6 right-6 z-50">
-        <Button 
-          size="lg" 
+        <Button
+          size="lg"
           className="rounded-full w-14 h-14 bg-blue-600 hover:bg-blue-700 shadow-lg"
           title="Chat with our assistant"
+          onClick={() => alert('Chat assistant feature coming soon!')}
         >
           <MessageCircle className="w-6 h-6" />
         </Button>

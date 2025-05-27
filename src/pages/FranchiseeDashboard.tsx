@@ -7,10 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { 
-  TrendingUp, 
-  Package, 
-  DollarSign, 
+import Logo from '@/components/Logo';
+import {
+  TrendingUp,
+  Package,
+  DollarSign,
   Calendar,
   Upload,
   Download,
@@ -23,7 +24,8 @@ import {
   PlusCircle,
   ArrowUp,
   Award,
-  MessageCircle
+  MessageCircle,
+  ArrowLeft
 } from 'lucide-react';
 
 const FranchiseeDashboard = () => {
@@ -80,11 +82,15 @@ const FranchiseeDashboard = () => {
         {/* Sidebar */}
         <div className="w-64 bg-white shadow-lg h-screen sticky top-0">
           <div className="p-6">
-            <div className="flex items-center space-x-2 mb-8">
-              <span className="text-2xl">🏪</span>
-              <span className="text-xl font-bold text-gray-900">FranchiseHub</span>
+            <div className="flex items-center justify-between mb-8">
+              <Logo size="md" />
+              <Button variant="ghost" asChild size="sm" className="text-gray-900 hover:text-gray-700 p-1">
+                <Link to="/">
+                  <ArrowLeft className="w-4 h-4" />
+                </Link>
+              </Button>
             </div>
-            
+
             <nav className="space-y-2">
               <a href="#overview" className="flex items-center space-x-3 text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
                 <TrendingUp className="w-5 h-5" />
@@ -129,8 +135,8 @@ const FranchiseeDashboard = () => {
               <p className="text-gray-600">Siomai King - Makati Branch (Package B)</p>
             </div>
             <div className="flex items-center space-x-4">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={() => setShowUpgrade(!showUpgrade)}
                 className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-none hover:from-purple-700 hover:to-pink-700"
@@ -138,11 +144,18 @@ const FranchiseeDashboard = () => {
                 <ArrowUp className="w-4 h-4 mr-2" />
                 Upgrade Package
               </Button>
-              <Button variant="outline" size="sm">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => alert('Notifications feature coming soon!')}
+              >
                 <Bell className="w-4 h-4 mr-2" />
                 Notifications
               </Button>
-              <Button size="sm">
+              <Button
+                size="sm"
+                onClick={() => alert('Quick action feature coming soon!')}
+              >
                 <PlusCircle className="w-4 h-4 mr-2" />
                 Quick Action
               </Button>
@@ -188,7 +201,7 @@ const FranchiseeDashboard = () => {
                 <p className="text-xs text-muted-foreground">+15% from yesterday</p>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">This Week</CardTitle>
@@ -199,7 +212,7 @@ const FranchiseeDashboard = () => {
                 <p className="text-xs text-muted-foreground">+8% from last week</p>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">This Month</CardTitle>
@@ -210,7 +223,7 @@ const FranchiseeDashboard = () => {
                 <p className="text-xs text-muted-foreground">Target: {salesData.target}</p>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Inventory Status</CardTitle>
@@ -242,8 +255,8 @@ const FranchiseeDashboard = () => {
                       </Badge>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full" 
+                      <div
+                        className="bg-blue-600 h-2 rounded-full"
                         style={{ width: `${milestone.progress}%` }}
                       ></div>
                     </div>
@@ -273,15 +286,27 @@ const FranchiseeDashboard = () => {
                     <CardTitle>Quick Actions</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <Button className="w-full justify-start" variant="outline">
+                    <Button
+                      className="w-full justify-start"
+                      variant="outline"
+                      onClick={() => alert('Sales upload feature coming soon!')}
+                    >
                       <Upload className="w-4 h-4 mr-2" />
                       Upload Today's Sales Report
                     </Button>
-                    <Button className="w-full justify-start" variant="outline">
+                    <Button
+                      className="w-full justify-start"
+                      variant="outline"
+                      onClick={() => alert('Inventory ordering feature coming soon!')}
+                    >
                       <ShoppingCart className="w-4 h-4 mr-2" />
                       Order Inventory Items
                     </Button>
-                    <Button className="w-full justify-start" variant="outline">
+                    <Button
+                      className="w-full justify-start"
+                      variant="outline"
+                      onClick={() => alert('Marketing materials download coming soon!')}
+                    >
                       <Download className="w-4 h-4 mr-2" />
                       Download Marketing Materials
                     </Button>
@@ -340,7 +365,7 @@ const FranchiseeDashboard = () => {
                         <Input placeholder="0" type="number" />
                       </div>
                     </div>
-                    
+
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium mb-2">Upload Sales Sheet</label>
@@ -352,9 +377,9 @@ const FranchiseeDashboard = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <Separator />
-                  
+
                   <div className="flex justify-end space-x-4">
                     <Button variant="outline">Save as Draft</Button>
                     <Button>Submit Report</Button>
@@ -391,7 +416,7 @@ const FranchiseeDashboard = () => {
                     </div>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardHeader>
                     <CardTitle>Quick Order</CardTitle>
@@ -486,7 +511,7 @@ const FranchiseeDashboard = () => {
                     </Button>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardHeader>
                     <CardTitle>Package Inclusions</CardTitle>
@@ -519,10 +544,11 @@ const FranchiseeDashboard = () => {
 
       {/* Chat Assistant */}
       <div className="fixed bottom-6 right-6 z-50">
-        <Button 
-          size="lg" 
+        <Button
+          size="lg"
           className="rounded-full w-14 h-14 bg-blue-600 hover:bg-blue-700 shadow-lg"
           title="Chat with our assistant"
+          onClick={() => alert('Chat assistant feature coming soon!')}
         >
           <MessageCircle className="w-6 h-6" />
         </Button>
