@@ -30,7 +30,8 @@ const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({ formData }) => {
           <p className="text-sm text-gray-600">
             {formData.firstName} {formData.lastName}<br />
             {formData.email}<br />
-            {formData.phone}
+            {formData.phone}<br />
+            {formData.address}
           </p>
         </div>
         
@@ -48,7 +49,7 @@ const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({ formData }) => {
           <p className="text-sm text-blue-800">
             Brand: {brands.find(b => b.id === formData.selectedBrand)?.name}<br />
             Package: {formData.selectedPackage && packages[formData.selectedPackage as keyof typeof packages]?.name}<br />
-            Location: {formData.location}
+            Location: {formData.city}, {formData.province}
           </p>
         </div>
         
