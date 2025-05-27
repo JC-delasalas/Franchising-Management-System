@@ -25,7 +25,8 @@ export interface FormData {
   timeframe: string;
   selectedBrand: string;
   selectedPackage: string;
-  location: string;
+  province: string;
+  city: string;
 }
 
 const Apply = () => {
@@ -43,7 +44,8 @@ const Apply = () => {
     timeframe: '',
     selectedBrand: '',
     selectedPackage: '',
-    location: ''
+    province: '',
+    city: ''
   });
 
   const totalSteps = 5;
@@ -64,7 +66,7 @@ const Apply = () => {
       case 2:
         return !!(formData.businessExperience && formData.investmentCapacity && formData.timeframe);
       case 3:
-        return !!(formData.selectedBrand && formData.selectedPackage && formData.location);
+        return !!(formData.selectedBrand && formData.selectedPackage && formData.province && formData.city);
       case 4:
         return documentsValid;
       case 5:
