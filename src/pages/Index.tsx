@@ -25,41 +25,41 @@ import {
 } from 'lucide-react';
 
 const Index = () => {
-  const [selectedBrand, setSelectedBrand] = useState('siomai-king');
+  const [selectedBrand, setSelectedBrand] = useState('siomai-shop');
 
   const brands = [
     {
-      id: 'siomai-king',
-      name: 'Siomai King',
-      tagline: 'The King of Siomai Franchise',
+      id: 'siomai-shop',
+      name: 'Siomai Shop',
+      tagline: 'Your Neighborhood Siomai Specialist',
       color: 'from-red-600 to-red-800',
       image: '/lovable-uploads/8db742b2-2916-4644-9f26-242447e378e6.png'
     },
     {
-      id: 'juicy-lemon',
-      name: 'Juicy Lemon',
-      tagline: 'Fresh & Zesty Drinks',
+      id: 'lemon-juice-stand',
+      name: 'Lemon Juice Stand',
+      tagline: 'Fresh & Natural Lemon Drinks',
       color: 'from-yellow-500 to-orange-500',
       image: '/lovable-uploads/8db742b2-2916-4644-9f26-242447e378e6.png'
     },
     {
-      id: 'cafe-supremo',
-      name: 'Café Supremo',
-      tagline: 'Premium Coffee Experience',
+      id: 'coffee-shop',
+      name: 'Coffee Shop',
+      tagline: 'Your Daily Coffee Experience',
       color: 'from-amber-700 to-amber-900',
       image: '/lovable-uploads/8db742b2-2916-4644-9f26-242447e378e6.png'
     },
     {
-      id: 'bite-go',
-      name: 'Bite & Go Burgers',
-      tagline: 'Quick & Delicious Burgers',
+      id: 'burger-fries',
+      name: 'Burger & Fries',
+      tagline: 'Classic Burgers & Crispy Fries',
       color: 'from-green-600 to-green-800',
       image: '/lovable-uploads/8db742b2-2916-4644-9f26-242447e378e6.png'
     }
   ];
 
   const packages = {
-    'siomai-king': [
+    'siomai-shop': [
       {
         tier: 'A',
         name: 'Entry Level',
@@ -95,7 +95,7 @@ const Index = () => {
     {
       name: 'Maria Santos',
       location: 'Quezon City',
-      brand: 'Siomai King',
+      brand: 'Siomai Shop',
       rating: 5,
       comment: 'Best investment I\'ve made! ROI within 8 months.',
       image: '/lovable-uploads/8db742b2-2916-4644-9f26-242447e378e6.png'
@@ -103,7 +103,7 @@ const Index = () => {
     {
       name: 'Juan Dela Cruz',
       location: 'Makati',
-      brand: 'Café Supremo',
+      brand: 'Coffee Shop',
       rating: 5,
       comment: 'Amazing support from the team. Highly recommended!',
       image: '/lovable-uploads/8db742b2-2916-4644-9f26-242447e378e6.png'
@@ -111,7 +111,7 @@ const Index = () => {
     {
       name: 'Ana Rodriguez',
       location: 'BGC',
-      brand: 'Juicy Lemon',
+      brand: 'Lemon Juice Stand',
       rating: 5,
       comment: 'Great business model with excellent profit margins.',
       image: '/lovable-uploads/8db742b2-2916-4644-9f26-242447e378e6.png'
@@ -119,7 +119,7 @@ const Index = () => {
   ];
 
   const currentBrand = brands.find(b => b.id === selectedBrand);
-  const currentPackages = packages[selectedBrand] || packages['siomai-king'];
+  const currentPackages = packages[selectedBrand] || packages['siomai-shop'];
 
   return (
     <div className="min-h-screen bg-white">

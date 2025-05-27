@@ -14,18 +14,18 @@ import Logo from '@/components/Logo';
 import { TrendingUp, Users, Package, DollarSign, Bell, Search, Filter, Download, Plus, Check, X, Clock, MessageCircle, AlertTriangle, ArrowLeft, Eye, Mail, Phone } from 'lucide-react';
 
 const mockApplications = [
-  { id: 'APP001', name: 'Maria Santos', brand: 'Siomai King', package: 'Package B', status: 'Pending', date: '2024-01-15', phone: '+63 912 345 6789', email: 'maria@email.com' },
-  { id: 'APP002', name: 'Juan Dela Cruz', brand: 'Café Supremo', package: 'Package C', status: 'Approved', date: '2024-01-14', phone: '+63 917 234 5678', email: 'juan@email.com' },
-  { id: 'APP003', name: 'Ana Rodriguez', brand: 'Juicy Lemon', package: 'Package A', status: 'Semi-Approved', date: '2024-01-13', phone: '+63 905 876 5432', email: 'ana@email.com' },
-  { id: 'APP004', name: 'Carlos Mendoza', brand: 'Bite & Go Burgers', package: 'Package D', status: 'Approved', date: '2024-01-12', phone: '+63 922 111 2222', email: 'carlos@email.com' },
-  { id: 'APP005', name: 'Lisa Garcia', brand: 'Siomai King', package: 'Package A', status: 'Rejected', date: '2024-01-11', phone: '+63 909 333 4444', email: 'lisa@email.com' }
+  { id: 'APP001', name: 'Maria Santos', brand: 'Siomai Shop', package: 'Package B', status: 'Pending', date: '2024-01-15', phone: '+63 912 345 6789', email: 'maria@email.com' },
+  { id: 'APP002', name: 'Juan Dela Cruz', brand: 'Coffee Shop', package: 'Package C', status: 'Approved', date: '2024-01-14', phone: '+63 917 234 5678', email: 'juan@email.com' },
+  { id: 'APP003', name: 'Ana Rodriguez', brand: 'Lemon Juice Stand', package: 'Package A', status: 'Semi-Approved', date: '2024-01-13', phone: '+63 905 876 5432', email: 'ana@email.com' },
+  { id: 'APP004', name: 'Carlos Mendoza', brand: 'Burger & Fries', package: 'Package D', status: 'Approved', date: '2024-01-12', phone: '+63 922 111 2222', email: 'carlos@email.com' },
+  { id: 'APP005', name: 'Lisa Garcia', brand: 'Siomai Shop', package: 'Package A', status: 'Rejected', date: '2024-01-11', phone: '+63 909 333 4444', email: 'lisa@email.com' }
 ];
 
 const mockFranchisees = [
-  { id: 'FR001', name: 'Robert Kim', brand: 'Siomai King', location: 'Makati', monthlyRevenue: '₱45,000', status: 'Active', lowStock: ['Sauce Packets', 'Paper Bags'] },
-  { id: 'FR002', name: 'Jennifer Lopez', brand: 'Café Supremo', location: 'BGC', monthlyRevenue: '₱78,000', status: 'Active', lowStock: [] },
-  { id: 'FR003', name: 'Michael Chen', brand: 'Juicy Lemon', location: 'Ortigas', monthlyRevenue: '₱32,000', status: 'Active', lowStock: ['Lemon Concentrate'] },
-  { id: 'FR004', name: 'Sarah Johnson', brand: 'Bite & Go Burgers', location: 'Quezon City', monthlyRevenue: '₱56,000', status: 'Active', lowStock: ['Burger Patties'] }
+  { id: 'FR001', name: 'Robert Kim', brand: 'Siomai Shop', location: 'Makati', monthlyRevenue: '₱45,000', status: 'Active', lowStock: ['Sauce Packets', 'Paper Bags'] },
+  { id: 'FR002', name: 'Jennifer Lopez', brand: 'Coffee Shop', location: 'BGC', monthlyRevenue: '₱78,000', status: 'Active', lowStock: [] },
+  { id: 'FR003', name: 'Michael Chen', brand: 'Lemon Juice Stand', location: 'Ortigas', monthlyRevenue: '₱32,000', status: 'Active', lowStock: ['Lemon Concentrate'] },
+  { id: 'FR004', name: 'Sarah Johnson', brand: 'Burger & Fries', location: 'Quezon City', monthlyRevenue: '₱56,000', status: 'Active', lowStock: ['Burger Patties'] }
 ];
 
 const FranchisorDashboard = () => {
@@ -206,10 +206,10 @@ const FranchisorDashboard = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Brands</SelectItem>
-                        <SelectItem value="siomai-king">Siomai King</SelectItem>
-                        <SelectItem value="cafe-supremo">Café Supremo</SelectItem>
-                        <SelectItem value="juicy-lemon">Juicy Lemon</SelectItem>
-                        <SelectItem value="bite-go">Bite & Go Burgers</SelectItem>
+                        <SelectItem value="siomai-shop">Siomai Shop</SelectItem>
+                        <SelectItem value="coffee-shop">Coffee Shop</SelectItem>
+                        <SelectItem value="lemon-juice-stand">Lemon Juice Stand</SelectItem>
+                        <SelectItem value="burger-fries">Burger & Fries</SelectItem>
                       </SelectContent>
                     </Select>
                     <Select value={selectedStatus} onValueChange={setSelectedStatus}>
@@ -491,10 +491,10 @@ const FranchisorDashboard = () => {
                 <CardContent>
                   <div className="space-y-4">
                     {[
-                      { brand: 'Siomai King', revenue: '₱980,000', growth: '+15%', color: 'bg-red-500' },
-                      { brand: 'Café Supremo', revenue: '₱750,000', growth: '+22%', color: 'bg-amber-600' },
-                      { brand: 'Bite & Go Burgers', revenue: '₱560,000', growth: '+18%', color: 'bg-green-500' },
-                      { brand: 'Juicy Lemon', revenue: '₱380,000', growth: '+12%', color: 'bg-yellow-500' }
+                      { brand: 'Siomai Shop', revenue: '₱980,000', growth: '+15%', color: 'bg-red-500' },
+                      { brand: 'Coffee Shop', revenue: '₱750,000', growth: '+22%', color: 'bg-amber-600' },
+                      { brand: 'Burger & Fries', revenue: '₱560,000', growth: '+18%', color: 'bg-green-500' },
+                      { brand: 'Lemon Juice Stand', revenue: '₱380,000', growth: '+12%', color: 'bg-yellow-500' }
                     ].map((brand, index) => (
                       <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                         <div className="flex items-center space-x-3">

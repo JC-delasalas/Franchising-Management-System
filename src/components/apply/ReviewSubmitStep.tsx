@@ -7,10 +7,10 @@ interface ReviewSubmitStepProps {
 }
 
 const brands = [
-  { id: 'siomai-king', name: 'Siomai King' },
-  { id: 'juicy-lemon', name: 'Juicy Lemon' },
-  { id: 'cafe-supremo', name: 'Café Supremo' },
-  { id: 'bite-go-burgers', name: 'Bite & Go Burgers' }
+  { id: 'siomai-shop', name: 'Siomai Shop' },
+  { id: 'lemon-juice-stand', name: 'Lemon Juice Stand' },
+  { id: 'coffee-shop', name: 'Coffee Shop' },
+  { id: 'burger-fries', name: 'Burger & Fries' }
 ];
 
 const packages = {
@@ -34,7 +34,7 @@ const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({ formData }) => {
             {formData.address}
           </p>
         </div>
-        
+
         <div className="bg-gray-50 p-4 rounded-lg">
           <h4 className="font-semibold mb-2">Business Experience</h4>
           <p className="text-sm text-gray-600">
@@ -43,7 +43,7 @@ const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({ formData }) => {
             Timeframe: {formData.timeframe}
           </p>
         </div>
-        
+
         <div className="bg-blue-50 p-4 rounded-lg">
           <h4 className="font-semibold mb-2 text-blue-900">Selected Franchise</h4>
           <p className="text-sm text-blue-800">
@@ -52,7 +52,7 @@ const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({ formData }) => {
             Location: {formData.city}, {formData.province}
           </p>
         </div>
-        
+
         <div className="bg-green-50 p-4 rounded-lg">
           <h4 className="font-semibold mb-2 text-green-900">Next Steps</h4>
           <ul className="text-sm text-green-800 space-y-1">

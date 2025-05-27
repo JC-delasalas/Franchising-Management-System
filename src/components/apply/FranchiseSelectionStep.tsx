@@ -11,10 +11,10 @@ interface FranchiseSelectionStepProps {
 }
 
 const brands = [
-  { id: 'siomai-king', name: 'Siomai King' },
-  { id: 'juicy-lemon', name: 'Juicy Lemon' },
-  { id: 'cafe-supremo', name: 'Café Supremo' },
-  { id: 'bite-go-burgers', name: 'Bite & Go Burgers' }
+  { id: 'siomai-shop', name: 'Siomai Shop' },
+  { id: 'lemon-juice-stand', name: 'Lemon Juice Stand' },
+  { id: 'coffee-shop', name: 'Coffee Shop' },
+  { id: 'burger-fries', name: 'Burger & Fries' }
 ];
 
 const packages = {
@@ -118,7 +118,7 @@ const FranchiseSelectionStep: React.FC<FranchiseSelectionStepProps> = ({ formDat
     onInputChange('province', province);
     onInputChange('city', ''); // Reset city when province changes
   };
-  
+
   return (
     <div className="space-y-4">
       <h3 className="text-xl font-semibold mb-4">Franchise Selection</h3>
@@ -137,7 +137,7 @@ const FranchiseSelectionStep: React.FC<FranchiseSelectionStepProps> = ({ formDat
           </SelectContent>
         </Select>
       </div>
-      
+
       <div className="space-y-2">
         <Label htmlFor="selectedPackage">Package Tier *</Label>
         <Select value={formData.selectedPackage} onValueChange={(value) => onInputChange('selectedPackage', value)}>
@@ -153,7 +153,7 @@ const FranchiseSelectionStep: React.FC<FranchiseSelectionStepProps> = ({ formDat
           </SelectContent>
         </Select>
       </div>
-      
+
       <div className="space-y-2">
         <Label htmlFor="province">Preferred Province *</Label>
         <Select value={formData.province} onValueChange={handleProvinceChange}>
@@ -169,12 +169,12 @@ const FranchiseSelectionStep: React.FC<FranchiseSelectionStepProps> = ({ formDat
           </SelectContent>
         </Select>
       </div>
-      
+
       <div className="space-y-2">
         <Label htmlFor="city">Preferred City *</Label>
-        <Select 
-          value={formData.city} 
-          onValueChange={(value) => onInputChange('city', value)} 
+        <Select
+          value={formData.city}
+          onValueChange={(value) => onInputChange('city', value)}
           disabled={!formData.province}
         >
           <SelectTrigger>
@@ -189,7 +189,7 @@ const FranchiseSelectionStep: React.FC<FranchiseSelectionStepProps> = ({ formDat
           </SelectContent>
         </Select>
       </div>
-      
+
       {formData.selectedPackage && (
         <div className="bg-blue-50 p-4 rounded-lg">
           <h4 className="font-semibold text-blue-900 mb-2">Selected Package Summary:</h4>

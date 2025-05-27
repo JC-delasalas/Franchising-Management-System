@@ -8,9 +8,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { ChevronRight, Download, Star, TrendingUp, Users, Shield, ArrowLeft } from 'lucide-react';
 
 const brandData = {
-  'siomai-king': {
-    name: 'Siomai King',
-    tagline: 'The Royal Taste of Asia',
+  'siomai-shop': {
+    name: 'Siomai Shop',
+    tagline: 'Your Neighborhood Siomai Specialist',
     color: 'from-red-600 to-red-800',
     description: 'Experience the authentic taste of premium siomai with our signature recipes that have delighted Filipino families for over a decade.',
     heroImage: 'https://images.unsplash.com/photo-1496116218417-1a781b1c416c?auto=format&fit=crop&w=1200&q=80',
@@ -35,9 +35,9 @@ const brandData = {
       }
     ]
   },
-  'juicy-lemon': {
-    name: 'Juicy Lemon',
-    tagline: 'Fresh. Natural. Refreshing.',
+  'lemon-juice-stand': {
+    name: 'Lemon Juice Stand',
+    tagline: 'Fresh & Natural Lemon Drinks',
     color: 'from-yellow-500 to-orange-500',
     description: 'Refresh your customers with our premium natural fruit drinks made from the finest ingredients.',
     heroImage: 'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?auto=format&fit=crop&w=1200&q=80',
@@ -62,9 +62,9 @@ const brandData = {
       }
     ]
   },
-  'cafe-supremo': {
-    name: 'Café Supremo',
-    tagline: 'Premium Coffee Experience',
+  'coffee-shop': {
+    name: 'Coffee Shop',
+    tagline: 'Your Daily Coffee Experience',
     color: 'from-amber-700 to-amber-900',
     description: 'Bring the premium coffee shop experience to your community with our expertly crafted blends and cozy atmosphere.',
     heroImage: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1200&q=80',
@@ -89,11 +89,11 @@ const brandData = {
       }
     ]
   },
-  'bite-go-burgers': {
-    name: 'Bite & Go Burgers',
-    tagline: 'Fast. Fresh. Flavorful.',
+  'burger-fries': {
+    name: 'Burger & Fries',
+    tagline: 'Classic Burgers & Crispy Fries',
     color: 'from-green-600 to-green-800',
-    description: 'Satisfy the growing demand for quality fast food with our gourmet burgers made from premium ingredients.',
+    description: 'Satisfy the growing demand for quality fast food with our gourmet burgers and crispy fries made from premium ingredients.',
     heroImage: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=80',
     benefits: [
       'Fast-growing burger market opportunity',
@@ -127,7 +127,7 @@ const packages = [
     inclusions: ['Food Cart Setup', '₱20,000 Initial Inventory', 'Basic Training', 'Starter Marketing Kit']
   },
   {
-    id: 'B', 
+    id: 'B',
     name: 'Mid Tier',
     price: '₱120,000',
     setup: 'Kiosk',
@@ -212,7 +212,7 @@ const BrandMicrosite = () => {
                   {brand.description}
                 </p>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" className="bg-white text-gray-900 hover:bg-gray-100" asChild>
                   <Link to="/apply">
@@ -225,10 +225,10 @@ const BrandMicrosite = () => {
                 </Button>
               </div>
             </div>
-            
+
             <div className="relative">
-              <img 
-                src={brand.heroImage} 
+              <img
+                src={brand.heroImage}
                 alt={brand.name}
                 className="rounded-2xl shadow-2xl w-full h-96 object-cover"
               />
@@ -245,7 +245,7 @@ const BrandMicrosite = () => {
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose {brand.name}?</h2>
             <p className="text-xl text-gray-600">Join a proven business model with exceptional support</p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {brand.benefits.map((benefit, index) => (
               <Card key={index} className="text-center p-6 hover:shadow-lg transition-shadow">
@@ -266,7 +266,7 @@ const BrandMicrosite = () => {
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Choose Your Package</h2>
             <p className="text-xl text-gray-600">Find the perfect investment level for your business goals</p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {packages.map((pkg) => (
               <Card key={pkg.id} className="relative hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
@@ -306,7 +306,7 @@ const BrandMicrosite = () => {
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Package Comparison</h2>
             <p className="text-xl text-gray-600">Detailed breakdown of features included in each package</p>
           </div>
-          
+
           <Card>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
@@ -353,7 +353,7 @@ const BrandMicrosite = () => {
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
             <p className="text-xl text-gray-600">Get answers to common questions about {brand.name} franchise</p>
           </div>
-          
+
           <Accordion type="single" collapsible className="space-y-4">
             {brand.faqs.map((faq, index) => (
               <AccordionItem key={index} value={`item-${index}`} className="bg-white rounded-lg px-6">
