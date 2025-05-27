@@ -12,6 +12,7 @@ import DocumentUploadStep from '@/components/apply/DocumentUploadStep';
 import ReviewSubmitStep from '@/components/apply/ReviewSubmitStep';
 import ApplicationSuccess from '@/components/apply/ApplicationSuccess';
 import ApplicationSidebar from '@/components/apply/ApplicationSidebar';
+import Logo from '@/components/Logo';
 
 export interface FormData {
   firstName: string;
@@ -30,6 +31,7 @@ export interface FormData {
 const Apply = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [documentsValid, setDocumentsValid] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
@@ -51,6 +53,10 @@ const Apply = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleDocumentValidation = (isValid: boolean) => {
+    setDocumentsValid(isValid);
+  };
+
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 1:
@@ -60,8 +66,7 @@ const Apply = () => {
       case 3:
         return !!(formData.selectedBrand && formData.selectedPackage && formData.location);
       case 4:
-        // For now, we'll assume documents are handled separately
-        return true;
+        return documentsValid;
       case 5:
         return true;
       default:
@@ -113,7 +118,7 @@ const Apply = () => {
           />
         );
       case 4:
-        return <DocumentUploadStep />;
+        return <DocumentUploadStep onValidationChange={handleDocumentValidation} />;
       case 5:
         return <ReviewSubmitStep formData={formData} />;
       default:
@@ -138,8 +143,7 @@ const Apply = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg"></div>
-              <span className="text-xl font-bold text-gray-900">FranchiseHub</span>
+              <Logo size="md" />
             </Link>
             <div className="text-sm text-gray-500">
               Step {currentStep} of {totalSteps}
@@ -197,9 +201,12 @@ const Apply = () => {
                   )}
                 </div>
                 
-                {!isStepValid && currentStep <= 3 && (
+                {!isStepValid && (
                   <p className="text-sm text-red-600 mt-2 text-center">
-                    Please fill in all required fields to continue.
+                    {currentStep === 4 
+                      ? "Please upload all required documents to continue."
+                      : "Please fill in all required fields to continue."
+                    }
                   </p>
                 )}
               </CardContent>
