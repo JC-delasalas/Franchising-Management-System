@@ -1,45 +1,44 @@
+
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, ArrowRight, Upload, CheckCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
+import PersonalInfoStep from '@/components/apply/PersonalInfoStep';
+import BusinessExperienceStep from '@/components/apply/BusinessExperienceStep';
+import FranchiseSelectionStep from '@/components/apply/FranchiseSelectionStep';
+import DocumentUploadStep from '@/components/apply/DocumentUploadStep';
+import ReviewSubmitStep from '@/components/apply/ReviewSubmitStep';
+import ApplicationSuccess from '@/components/apply/ApplicationSuccess';
+import ApplicationSidebar from '@/components/apply/ApplicationSidebar';
 
-const brands = [
-  { id: 'siomai-king', name: 'Siomai King' },
-  { id: 'juicy-lemon', name: 'Juicy Lemon' },
-  { id: 'cafe-supremo', name: 'Café Supremo' },
-  { id: 'bite-go-burgers', name: 'Bite & Go Burgers' }
-];
-
-const packages = {
-  A: { name: 'Entry Level', price: '₱50,000', description: 'Food Cart Setup' },
-  B: { name: 'Mid Tier', price: '₱120,000', description: 'Kiosk Setup' },
-  C: { name: 'Advanced', price: '₱250,000', description: 'Food Stall Setup' },
-  D: { name: 'Investor Tier', price: '₱500,000+', description: 'Mini Branch Setup' }
-};
+export interface FormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+  businessExperience: string;
+  investmentCapacity: string;
+  timeframe: string;
+  selectedBrand: string;
+  selectedPackage: string;
+  location: string;
+}
 
 const Apply = () => {
-  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [formData, setFormData] = useState({
-    // Personal Info
+  const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
     address: '',
-    // Business Experience
     businessExperience: '',
     investmentCapacity: '',
     timeframe: '',
-    // Franchise Selection
     selectedBrand: '',
     selectedPackage: '',
     location: ''
@@ -48,12 +47,30 @@ const Apply = () => {
   const totalSteps = 5;
   const progress = (currentStep / totalSteps) * 100;
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const validateStep = (step: number): boolean => {
+    switch (step) {
+      case 1:
+        return !!(formData.firstName && formData.lastName && formData.email && formData.phone && formData.address);
+      case 2:
+        return !!(formData.businessExperience && formData.investmentCapacity && formData.timeframe);
+      case 3:
+        return !!(formData.selectedBrand && formData.selectedPackage && formData.location);
+      case 4:
+        // For now, we'll assume documents are handled separately
+        return true;
+      case 5:
+        return true;
+      default:
+        return false;
+    }
+  };
+
   const nextStep = () => {
-    if (currentStep < totalSteps) {
+    if (validateStep(currentStep) && currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -69,290 +86,50 @@ const Apply = () => {
   };
 
   if (isSubmitted) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-        <Card className="max-w-2xl w-full text-center p-8">
-          <div className="space-y-6">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircle className="w-10 h-10 text-green-600" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900">Application Submitted!</h1>
-            <p className="text-lg text-gray-600">
-              Thank you for your interest in franchising with us. We'll review your application and contact you within 2-3 business days.
-            </p>
-            <div className="space-y-4">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-blue-900 mb-2">Next Steps:</h3>
-                <ul className="text-sm text-blue-800 space-y-1">
-                  <li>• Review and verification of documents</li>
-                  <li>• Initial consultation call</li>
-                  <li>• Site visit and approval</li>
-                  <li>• Contract signing and training schedule</li>
-                </ul>
-              </div>
-              <div className="flex gap-4 justify-center">
-                <Button asChild>
-                  <Link to="/">Return Home</Link>
-                </Button>
-                <Button variant="outline" asChild>
-                  <Link to="/franchisee-training">Preview Training</Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </Card>
-      </div>
-    );
+    return <ApplicationSuccess />;
   }
 
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold mb-4">Personal Information</h3>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  value={formData.firstName}
-                  onChange={(e) => handleInputChange('firstName', e.target.value)}
-                  placeholder="Enter your first name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  value={formData.lastName}
-                  onChange={(e) => handleInputChange('lastName', e.target.value)}
-                  placeholder="Enter your last name"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                placeholder="your.email@example.com"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-                placeholder="+63 9XX XXX XXXX"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="address">Complete Address</Label>
-              <Textarea
-                id="address"
-                value={formData.address}
-                onChange={(e) => handleInputChange('address', e.target.value)}
-                placeholder="Street, Barangay, City, Province"
-                rows={3}
-              />
-            </div>
-          </div>
+          <PersonalInfoStep 
+            formData={formData} 
+            onInputChange={handleInputChange} 
+          />
         );
-
       case 2:
         return (
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold mb-4">Business Experience</h3>
-            <div className="space-y-2">
-              <Label htmlFor="businessExperience">Previous Business Experience</Label>
-              <Select value={formData.businessExperience} onValueChange={(value) => handleInputChange('businessExperience', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select your experience level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No previous business experience</SelectItem>
-                  <SelectItem value="limited">Limited experience (1-2 years)</SelectItem>
-                  <SelectItem value="moderate">Moderate experience (3-5 years)</SelectItem>
-                  <SelectItem value="extensive">Extensive experience (5+ years)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="investmentCapacity">Investment Capacity</Label>
-              <Select value={formData.investmentCapacity} onValueChange={(value) => handleInputChange('investmentCapacity', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select your investment range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="50k-100k">₱50,000 - ₱100,000</SelectItem>
-                  <SelectItem value="100k-250k">₱100,000 - ₱250,000</SelectItem>
-                  <SelectItem value="250k-500k">₱250,000 - ₱500,000</SelectItem>
-                  <SelectItem value="500k+">₱500,000+</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="timeframe">When do you plan to start?</Label>
-              <Select value={formData.timeframe} onValueChange={(value) => handleInputChange('timeframe', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select timeframe" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="immediately">Immediately</SelectItem>
-                  <SelectItem value="1-3months">Within 1-3 months</SelectItem>
-                  <SelectItem value="3-6months">Within 3-6 months</SelectItem>
-                  <SelectItem value="6months+">More than 6 months</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <BusinessExperienceStep 
+            formData={formData} 
+            onInputChange={handleInputChange} 
+          />
         );
-
       case 3:
         return (
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold mb-4">Franchise Selection</h3>
-            <div className="space-y-2">
-              <Label htmlFor="selectedBrand">Preferred Brand</Label>
-              <Select value={formData.selectedBrand} onValueChange={(value) => handleInputChange('selectedBrand', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a brand" />
-                </SelectTrigger>
-                <SelectContent>
-                  {brands.map((brand) => (
-                    <SelectItem key={brand.id} value={brand.id}>
-                      {brand.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="selectedPackage">Package Tier</Label>
-              <Select value={formData.selectedPackage} onValueChange={(value) => handleInputChange('selectedPackage', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a package" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(packages).map(([key, pkg]) => (
-                    <SelectItem key={key} value={key}>
-                      Package {key} - {pkg.name} ({pkg.price})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="location">Preferred Location</Label>
-              <Input
-                id="location"
-                value={formData.location}
-                onChange={(e) => handleInputChange('location', e.target.value)}
-                placeholder="City or specific area"
-              />
-            </div>
-            
-            {formData.selectedPackage && (
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-blue-900 mb-2">Selected Package Summary:</h4>
-                <div className="text-sm text-blue-800">
-                  <p><strong>Package:</strong> {packages[formData.selectedPackage as keyof typeof packages]?.name}</p>
-                  <p><strong>Investment:</strong> {packages[formData.selectedPackage as keyof typeof packages]?.price}</p>
-                  <p><strong>Setup:</strong> {packages[formData.selectedPackage as keyof typeof packages]?.description}</p>
-                </div>
-              </div>
-            )}
-          </div>
+          <FranchiseSelectionStep 
+            formData={formData} 
+            onInputChange={handleInputChange} 
+          />
         );
-
       case 4:
-        return (
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold mb-4">Upload Requirements</h3>
-            <p className="text-gray-600 mb-6">Please upload the following documents to complete your application:</p>
-            
-            <div className="space-y-4">
-              {[
-                { name: 'Valid Government ID', required: true },
-                { name: 'Proof of Billing/Address', required: true },
-                { name: 'Bank Statement (Last 3 months)', required: false },
-                { name: 'Business License (if applicable)', required: false }
-              ].map((doc, index) => (
-                <div key={index} className={`border-2 border-dashed rounded-lg p-6 text-center hover:border-blue-400 transition-colors ${
-                  doc.required ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                }`}>
-                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm font-medium text-gray-700">{doc.name}</p>
-                  <p className="text-xs text-gray-500 mt-1">Click to upload or drag and drop</p>
-                  <Badge variant={doc.required ? "destructive" : "outline"} className="mt-2">
-                    {doc.required ? "Required" : "Optional"}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-            
-            <div className="bg-yellow-50 p-4 rounded-lg">
-              <p className="text-sm text-yellow-800">
-                <strong>Note:</strong> Required documents must be submitted to proceed. Optional documents can also be submitted during the interview process.
-              </p>
-            </div>
-          </div>
-        );
-
+        return <DocumentUploadStep />;
       case 5:
-        return (
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold mb-4">Review & Submit</h3>
-            <div className="space-y-6">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-semibold mb-2">Personal Information</h4>
-                <p className="text-sm text-gray-600">
-                  {formData.firstName} {formData.lastName}<br />
-                  {formData.email}<br />
-                  {formData.phone}
-                </p>
-              </div>
-              
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-semibold mb-2">Business Experience</h4>
-                <p className="text-sm text-gray-600">
-                  Experience: {formData.businessExperience}<br />
-                  Investment Capacity: {formData.investmentCapacity}<br />
-                  Timeframe: {formData.timeframe}
-                </p>
-              </div>
-              
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-semibold mb-2 text-blue-900">Selected Franchise</h4>
-                <p className="text-sm text-blue-800">
-                  Brand: {brands.find(b => b.id === formData.selectedBrand)?.name}<br />
-                  Package: {formData.selectedPackage && packages[formData.selectedPackage as keyof typeof packages]?.name}<br />
-                  Location: {formData.location}
-                </p>
-              </div>
-              
-              <div className="bg-green-50 p-4 rounded-lg">
-                <h4 className="font-semibold mb-2 text-green-900">Next Steps</h4>
-                <ul className="text-sm text-green-800 space-y-1">
-                  <li>• Application review (2-3 business days)</li>
-                  <li>• Initial consultation call</li>
-                  <li>• Document verification</li>
-                  <li>• Site visit and approval</li>
-                  <li>• Contract signing and training</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        );
-
+        return <ReviewSubmitStep formData={formData} />;
       default:
         return null;
     }
   };
+
+  const stepTitles = [
+    'Personal Information',
+    'Business Experience',
+    'Franchise Selection',
+    'Upload Documents',
+    'Review & Submit'
+  ];
+
+  const isStepValid = validateStep(currentStep);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -386,13 +163,7 @@ const Apply = () => {
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle>Step {currentStep}: {
-                  currentStep === 1 ? 'Personal Information' :
-                  currentStep === 2 ? 'Business Experience' :
-                  currentStep === 3 ? 'Franchise Selection' :
-                  currentStep === 4 ? 'Upload Documents' :
-                  'Review & Submit'
-                }</CardTitle>
+                <CardTitle>Step {currentStep}: {stepTitles[currentStep - 1]}</CardTitle>
               </CardHeader>
               <CardContent>
                 {renderStepContent()}
@@ -408,75 +179,35 @@ const Apply = () => {
                   </Button>
                   
                   {currentStep === totalSteps ? (
-                    <Button onClick={handleSubmit} className="bg-green-600 hover:bg-green-700">
+                    <Button 
+                      onClick={handleSubmit} 
+                      className="bg-green-600 hover:bg-green-700"
+                      disabled={!isStepValid}
+                    >
                       Submit Application
                     </Button>
                   ) : (
-                    <Button onClick={nextStep}>
+                    <Button 
+                      onClick={nextStep}
+                      disabled={!isStepValid}
+                    >
                       Next
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   )}
                 </div>
+                
+                {!isStepValid && currentStep <= 3 && (
+                  <p className="text-sm text-red-600 mt-2 text-center">
+                    Please fill in all required fields to continue.
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Application Progress</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {[
-                    'Personal Information',
-                    'Business Experience', 
-                    'Franchise Selection',
-                    'Upload Documents',
-                    'Review & Submit'
-                  ].map((step, index) => (
-                    <div key={index} className={`flex items-center space-x-3 ${
-                      index + 1 < currentStep ? 'text-green-600' :
-                      index + 1 === currentStep ? 'text-blue-600' :
-                      'text-gray-400'
-                    }`}>
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-                        index + 1 < currentStep ? 'bg-green-100' :
-                        index + 1 === currentStep ? 'bg-blue-100' :
-                        'bg-gray-100'
-                      }`}>
-                        {index + 1 < currentStep ? '✓' : index + 1}
-                      </div>
-                      <span className="text-sm">{step}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Need Help?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4 text-sm">
-                  <p className="text-gray-600">
-                    Our franchise specialists are here to assist you with your application.
-                  </p>
-                  <div className="space-y-2">
-                    <p><strong>Phone:</strong> (02) 8123-4567</p>
-                    <p><strong>Email:</strong> franchise@franchisehub.ph</p>
-                    <p><strong>Hours:</strong> Mon-Fri 8AM-6PM</p>
-                  </div>
-                  <Button variant="outline" size="sm" className="w-full">
-                    Contact Support
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <ApplicationSidebar currentStep={currentStep} />
         </div>
       </div>
     </div>
