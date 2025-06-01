@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +20,7 @@ export interface FormData {
   phone: string;
   address: string;
   businessExperience: string;
+  businessDescription: string;
   investmentCapacity: string;
   timeframe: string;
   selectedBrand: string;
@@ -40,6 +40,7 @@ const Apply = () => {
     phone: '',
     address: '',
     businessExperience: '',
+    businessDescription: '',
     investmentCapacity: '',
     timeframe: '',
     selectedBrand: '',

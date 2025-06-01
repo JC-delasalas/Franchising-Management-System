@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -505,17 +504,17 @@ const FranchisorDashboard = () => {
                       { item: 'Siomai Mix', brand: 'Siomai King', stock: '120 units', threshold: '< 150' },
                       { item: 'Burger Patties', brand: 'Bite & Go', stock: '85 units', threshold: '< 100' },
                       { item: 'Lemon Concentrate', brand: 'Juicy Lemon', stock: '45 units', threshold: '< 50' }
-                    ].map((alert, index) => (
+                    ].map((stockAlert, index) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
                         <div>
-                          <p className="font-medium text-red-900">{alert.item}</p>
-                          <p className="text-sm text-red-700">{alert.brand}</p>
-                          <p className="text-xs text-red-600">Current: {alert.stock}</p>
+                          <p className="font-medium text-red-900">{stockAlert.item}</p>
+                          <p className="text-sm text-red-700">{stockAlert.brand}</p>
+                          <p className="text-xs text-red-600">Current: {stockAlert.stock}</p>
                         </div>
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => alert(`Reordering ${alert.item} for ${alert.brand}`)}
+                          onClick={() => alert(`Reordering ${stockAlert.item} for ${stockAlert.brand}`)}
                         >
                           Reorder
                         </Button>
