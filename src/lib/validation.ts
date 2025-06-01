@@ -39,3 +39,28 @@ export const validateName = (name: string, fieldName: string): ValidationResult 
     errors: isValid ? [] : [`${fieldName} must be 2-50 characters and contain only letters and spaces`]
   };
 };
+
+// Additional validation functions for better form handling
+export const validateMinLength = (value: string, minLength: number, fieldName: string): ValidationResult => {
+  const isValid = value.trim().length >= minLength;
+  return {
+    isValid,
+    errors: isValid ? [] : [`${fieldName} must be at least ${minLength} characters long`]
+  };
+};
+
+export const validateMaxLength = (value: string, maxLength: number, fieldName: string): ValidationResult => {
+  const isValid = value.trim().length <= maxLength;
+  return {
+    isValid,
+    errors: isValid ? [] : [`${fieldName} must be no more than ${maxLength} characters long`]
+  };
+};
+
+export const combineValidations = (...validations: ValidationResult[]): ValidationResult => {
+  const allErrors = validations.flatMap(v => v.errors);
+  return {
+    isValid: allErrors.length === 0,
+    errors: allErrors
+  };
+};

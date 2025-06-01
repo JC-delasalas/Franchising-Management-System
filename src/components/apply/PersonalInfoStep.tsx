@@ -4,7 +4,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { FormData } from '@/pages/Apply';
-import { validateEmail, validatePhone, validateName, validateRequired } from '@/lib/validation';
+import { 
+  validateEmail, 
+  validatePhone, 
+  validateName, 
+  validateRequired,
+  combineValidations
+} from '@/lib/validation';
+import FormValidation from './FormValidation';
 
 interface PersonalInfoStepProps {
   formData: FormData;
@@ -12,33 +19,46 @@ interface PersonalInfoStepProps {
 }
 
 const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ formData, onInputChange }) => {
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [errors, setErrors] = useState<{[key: string]: string[]}>({});
   const [touched, setTouched] = useState<{[key: string]: boolean}>({});
 
   const validateField = (field: keyof FormData, value: string) => {
-    let error = '';
+    let validationResults;
 
     switch (field) {
       case 'firstName':
+        validationResults = combineValidations(
+          validateRequired(value, 'First Name'),
+          validateName(value, 'First Name')
+        );
+        break;
       case 'lastName':
-        const nameResult = validateName(value, field === 'firstName' ? 'First Name' : 'Last Name');
-        error = nameResult.errors[0] || '';
+        validationResults = combineValidations(
+          validateRequired(value, 'Last Name'),
+          validateName(value, 'Last Name')
+        );
         break;
       case 'email':
-        const emailResult = validateEmail(value);
-        error = emailResult.errors[0] || '';
+        validationResults = combineValidations(
+          validateRequired(value, 'Email'),
+          validateEmail(value)
+        );
         break;
       case 'phone':
-        const phoneResult = validatePhone(value);
-        error = phoneResult.errors[0] || '';
+        validationResults = combineValidations(
+          validateRequired(value, 'Phone'),
+          validatePhone(value)
+        );
         break;
       case 'address':
-        const addressResult = validateRequired(value, 'Address');
-        error = addressResult.errors[0] || '';
+        validationResults = validateRequired(value, 'Address');
         break;
+      default:
+        validationResults = { isValid: true, errors: [] };
     }
 
-    setErrors(prev => ({ ...prev, [field]: error }));
+    setErrors(prev => ({ ...prev, [field]: validationResults.errors }));
+    return validationResults.isValid;
   };
 
   const handleInputChange = (field: keyof FormData, value: string) => {
@@ -65,12 +85,10 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ formData, onInputCh
             onChange={(e) => handleInputChange('firstName', e.target.value)}
             onBlur={() => handleBlur('firstName')}
             placeholder="Enter your first name"
-            className={errors.firstName ? 'border-red-500' : ''}
+            className={errors.firstName?.length ? 'border-red-500' : ''}
             required
           />
-          {errors.firstName && (
-            <p className="text-sm text-red-600">{errors.firstName}</p>
-          )}
+          <FormValidation errors={errors.firstName || []} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="lastName">Last Name *</Label>
@@ -80,12 +98,10 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ formData, onInputCh
             onChange={(e) => handleInputChange('lastName', e.target.value)}
             onBlur={() => handleBlur('lastName')}
             placeholder="Enter your last name"
-            className={errors.lastName ? 'border-red-500' : ''}
+            className={errors.lastName?.length ? 'border-red-500' : ''}
             required
           />
-          {errors.lastName && (
-            <p className="text-sm text-red-600">{errors.lastName}</p>
-          )}
+          <FormValidation errors={errors.lastName || []} />
         </div>
       </div>
       <div className="space-y-2">
@@ -97,12 +113,10 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ formData, onInputCh
           onChange={(e) => handleInputChange('email', e.target.value)}
           onBlur={() => handleBlur('email')}
           placeholder="your.email@example.com"
-          className={errors.email ? 'border-red-500' : ''}
+          className={errors.email?.length ? 'border-red-500' : ''}
           required
         />
-        {errors.email && (
-          <p className="text-sm text-red-600">{errors.email}</p>
-        )}
+        <FormValidation errors={errors.email || []} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="phone">Phone Number *</Label>
@@ -112,12 +126,10 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ formData, onInputCh
           onChange={(e) => handleInputChange('phone', e.target.value)}
           onBlur={() => handleBlur('phone')}
           placeholder="+63 9XX XXX XXXX"
-          className={errors.phone ? 'border-red-500' : ''}
+          className={errors.phone?.length ? 'border-red-500' : ''}
           required
         />
-        {errors.phone && (
-          <p className="text-sm text-red-600">{errors.phone}</p>
-        )}
+        <FormValidation errors={errors.phone || []} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="address">Complete Address *</Label>
@@ -127,13 +139,11 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ formData, onInputCh
           onChange={(e) => handleInputChange('address', e.target.value)}
           onBlur={() => handleBlur('address')}
           placeholder="Street, Barangay, City, Province"
-          className={errors.address ? 'border-red-500' : ''}
+          className={errors.address?.length ? 'border-red-500' : ''}
           rows={3}
           required
         />
-        {errors.address && (
-          <p className="text-sm text-red-600">{errors.address}</p>
-        )}
+        <FormValidation errors={errors.address || []} />
       </div>
     </div>
   );

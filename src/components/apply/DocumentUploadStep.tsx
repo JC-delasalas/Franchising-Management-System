@@ -1,11 +1,19 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Upload, Check, X, AlertTriangle, FileText } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import FormValidation from './FormValidation';
 
 interface DocumentUploadStepProps {
   onValidationChange: (isValid: boolean) => void;
+}
+
+interface DocumentType {
+  name: string;
+  required: boolean;
+  accept: string;
+  maxSize: number;
 }
 
 const DocumentUploadStep: React.FC<DocumentUploadStepProps> = ({ onValidationChange }) => {
@@ -15,9 +23,9 @@ const DocumentUploadStep: React.FC<DocumentUploadStepProps> = ({ onValidationCha
     'Bank Statement (Last 3 months)': false,
     'Business License (if applicable)': false
   });
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [errors, setErrors] = useState<{[key: string]: string[]}>({});
 
-  const documents = [
+  const documents: DocumentType[] = [
     { name: 'Valid Government ID', required: true, accept: '.pdf,.jpg,.jpeg,.png', maxSize: 5 },
     { name: 'Proof of Billing/Address', required: true, accept: '.pdf,.jpg,.jpeg,.png', maxSize: 5 },
     { name: 'Bank Statement (Last 3 months)', required: false, accept: '.pdf,.jpg,.jpeg,.png', maxSize: 10 },
@@ -31,34 +39,40 @@ const DocumentUploadStep: React.FC<DocumentUploadStepProps> = ({ onValidationCha
     onValidationChange(allRequiredUploaded);
   }, [allRequiredUploaded, onValidationChange]);
 
-  const validateFile = (file: File, maxSizeMB: number): string | null => {
+  const validateFile = useCallback((file: File, maxSizeMB: number): string[] => {
+    const errors: string[] = [];
     const maxSizeBytes = maxSizeMB * 1024 * 1024;
     
     // Check file size
     if (file.size > maxSizeBytes) {
-      return `File size must be less than ${maxSizeMB}MB`;
+      errors.push(`File size must be less than ${maxSizeMB}MB`);
     }
 
     // Check file type
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
     if (!allowedTypes.includes(file.type)) {
-      return 'Only PDF, JPG, JPEG, and PNG files are allowed';
+      errors.push('Only PDF, JPG, JPEG, and PNG files are allowed');
     }
 
-    return null;
-  };
+    // Check file name length
+    if (file.name.length > 255) {
+      errors.push('File name is too long');
+    }
 
-  const handleFileUpload = (docName: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    return errors;
+  }, []);
+
+  const handleFileUpload = useCallback((docName: string, event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     const document = documents.find(doc => doc.name === docName);
     if (!document) return;
 
-    const validationError = validateFile(file, document.maxSize);
+    const validationErrors = validateFile(file, document.maxSize);
     
-    if (validationError) {
-      setErrors(prev => ({ ...prev, [docName]: validationError }));
+    if (validationErrors.length > 0) {
+      setErrors(prev => ({ ...prev, [docName]: validationErrors }));
       setUploadedDocs(prev => ({ ...prev, [docName]: false }));
       // Clear the input
       event.target.value = '';
@@ -79,16 +93,16 @@ const DocumentUploadStep: React.FC<DocumentUploadStepProps> = ({ onValidationCha
     });
     
     setUploadedDocs(prev => ({ ...prev, [docName]: true }));
-  };
+  }, [documents, validateFile]);
 
-  const removeDocument = (docName: string) => {
+  const removeDocument = useCallback((docName: string) => {
     setUploadedDocs(prev => ({ ...prev, [docName]: false }));
     setErrors(prev => {
       const newErrors = { ...prev };
       delete newErrors[docName];
       return newErrors;
     });
-  };
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -112,7 +126,7 @@ const DocumentUploadStep: React.FC<DocumentUploadStepProps> = ({ onValidationCha
               className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors relative ${
                 uploadedDocs[doc.name] 
                   ? 'border-green-400 bg-green-50' 
-                  : errors[doc.name]
+                  : errors[doc.name]?.length
                     ? 'border-red-400 bg-red-50'
                     : doc.required 
                       ? 'border-red-300 bg-red-50 hover:border-red-400' 
@@ -161,12 +175,7 @@ const DocumentUploadStep: React.FC<DocumentUploadStepProps> = ({ onValidationCha
               )}
             </div>
             
-            {errors[doc.name] && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>{errors[doc.name]}</AlertDescription>
-              </Alert>
-            )}
+            <FormValidation errors={errors[doc.name] || []} />
           </div>
         ))}
       </div>
