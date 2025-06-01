@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import AppErrorBoundary from "@/components/AppErrorBoundary";
 import { PageLoading } from "@/components/ui/loading";
 import { validateConfig } from "@/config/environment";
 
@@ -26,51 +27,65 @@ const ContractPackage = React.lazy(() => import("./pages/franchisee/ContractPack
 const SupportRequests = React.lazy(() => import("./pages/franchisee/SupportRequests"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
-// Configure React Query with better defaults
+// Configure React Query with better defaults and error handling
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 3,
+      retry: (failureCount, error) => {
+        // Don't retry on 4xx errors
+        if (error && typeof error === 'object' && 'status' in error) {
+          const status = (error as any).status;
+          if (status >= 400 && status < 500) return false;
+        }
+        return failureCount < 3;
+      },
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 10 * 60 * 1000, // 10 minutes
+      refetchOnWindowFocus: false,
     },
   },
 });
 
-// Validate configuration on app start
-validateConfig();
+// Validate configuration on app start with error handling
+try {
+  validateConfig();
+} catch (error) {
+  console.error('Configuration validation failed:', error);
+}
 
 const App = () => (
-  <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Suspense fallback={<PageLoading />}>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/apply" element={<Apply />} />
-              <Route path="/franchisor-dashboard" element={<FranchisorDashboard />} />
-              <Route path="/franchisee-dashboard" element={<FranchiseeDashboard />} />
-              <Route path="/franchisee-training" element={<FranchiseeTraining />} />
-              <Route path="/brand/:brandId" element={<BrandMicrosite />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/blog/:id" element={<BlogPost />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/franchisee/sales-upload" element={<SalesUpload />} />
-              <Route path="/franchisee/inventory-order" element={<InventoryOrder />} />
-              <Route path="/franchisee/marketing-assets" element={<MarketingAssets />} />
-              <Route path="/franchisee/contract-package" element={<ContractPackage />} />
-              <Route path="/franchisee/support-requests" element={<SupportRequests />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ErrorBoundary>
+  <AppErrorBoundary>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Suspense fallback={<PageLoading />}>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/apply" element={<Apply />} />
+                <Route path="/franchisor-dashboard" element={<FranchisorDashboard />} />
+                <Route path="/franchisee-dashboard" element={<FranchiseeDashboard />} />
+                <Route path="/franchisee-training" element={<FranchiseeTraining />} />
+                <Route path="/brand/:brandId" element={<BrandMicrosite />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:id" element={<BlogPost />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/franchisee/sales-upload" element={<SalesUpload />} />
+                <Route path="/franchisee/inventory-order" element={<InventoryOrder />} />
+                <Route path="/franchisee/marketing-assets" element={<MarketingAssets />} />
+                <Route path="/franchisee/contract-package" element={<ContractPackage />} />
+                <Route path="/franchisee/support-requests" element={<SupportRequests />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  </AppErrorBoundary>
 );
 
 export default App;

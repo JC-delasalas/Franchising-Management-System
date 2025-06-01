@@ -9,17 +9,20 @@ interface FormValidationProps {
 }
 
 const FormValidation: React.FC<FormValidationProps> = ({ errors, className = '' }) => {
-  if (errors.length === 0) return null;
+  // Safety check for errors
+  const safeErrors = Array.isArray(errors) ? errors.filter(Boolean) : [];
+  
+  if (safeErrors.length === 0) return null;
 
   return (
-    <Alert variant="destructive" className={className}>
+    <Alert variant="destructive" className={`${className} mt-2`}>
       <AlertTriangle className="h-4 w-4" />
       <AlertDescription>
-        {errors.length === 1 ? (
-          <span>{errors[0]}</span>
+        {safeErrors.length === 1 ? (
+          <span className="text-sm">{safeErrors[0]}</span>
         ) : (
-          <ul className="list-disc list-inside space-y-1">
-            {errors.map((error, index) => (
+          <ul className="list-disc list-inside space-y-1 text-sm">
+            {safeErrors.map((error, index) => (
               <li key={index}>{error}</li>
             ))}
           </ul>

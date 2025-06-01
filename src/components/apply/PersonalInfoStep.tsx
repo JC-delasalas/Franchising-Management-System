@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,53 +25,77 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ formData, onInputCh
   const validateField = (field: keyof FormData, value: string) => {
     let validationResults;
 
-    switch (field) {
-      case 'firstName':
-        validationResults = combineValidations(
-          validateRequired(value, 'First Name'),
-          validateName(value, 'First Name')
-        );
-        break;
-      case 'lastName':
-        validationResults = combineValidations(
-          validateRequired(value, 'Last Name'),
-          validateName(value, 'Last Name')
-        );
-        break;
-      case 'email':
-        validationResults = combineValidations(
-          validateRequired(value, 'Email'),
-          validateEmail(value)
-        );
-        break;
-      case 'phone':
-        validationResults = combineValidations(
-          validateRequired(value, 'Phone'),
-          validatePhone(value)
-        );
-        break;
-      case 'address':
-        validationResults = validateRequired(value, 'Address');
-        break;
-      default:
-        validationResults = { isValid: true, errors: [] };
-    }
+    try {
+      switch (field) {
+        case 'firstName':
+          validationResults = combineValidations(
+            validateRequired(value, 'First Name'),
+            validateName(value, 'First Name')
+          );
+          break;
+        case 'lastName':
+          validationResults = combineValidations(
+            validateRequired(value, 'Last Name'),
+            validateName(value, 'Last Name')
+          );
+          break;
+        case 'email':
+          validationResults = combineValidations(
+            validateRequired(value, 'Email'),
+            validateEmail(value)
+          );
+          break;
+        case 'phone':
+          validationResults = combineValidations(
+            validateRequired(value, 'Phone'),
+            validatePhone(value)
+          );
+          break;
+        case 'address':
+          validationResults = validateRequired(value, 'Address');
+          break;
+        default:
+          validationResults = { isValid: true, errors: [] };
+      }
 
-    setErrors(prev => ({ ...prev, [field]: validationResults.errors }));
-    return validationResults.isValid;
+      setErrors(prev => ({ ...prev, [field]: validationResults.errors || [] }));
+      return validationResults.isValid;
+    } catch (error) {
+      console.error('Validation error:', error);
+      setErrors(prev => ({ ...prev, [field]: ['Validation error occurred'] }));
+      return false;
+    }
   };
 
   const handleInputChange = (field: keyof FormData, value: string) => {
-    onInputChange(field, value);
-    if (touched[field]) {
-      validateField(field, value);
+    try {
+      onInputChange(field, value);
+      if (touched[field]) {
+        validateField(field, value);
+      }
+    } catch (error) {
+      console.error('Input change error:', error);
     }
   };
 
   const handleBlur = (field: keyof FormData) => {
-    setTouched(prev => ({ ...prev, [field]: true }));
-    validateField(field, formData[field]);
+    try {
+      setTouched(prev => ({ ...prev, [field]: true }));
+      validateField(field, formData[field] || '');
+    } catch (error) {
+      console.error('Blur handler error:', error);
+    }
   };
+
+  // Initialize form data if not present
+  useEffect(() => {
+    const requiredFields: (keyof FormData)[] = ['firstName', 'lastName', 'email', 'phone', 'address'];
+    requiredFields.forEach(field => {
+      if (formData[field] === undefined) {
+        onInputChange(field, '');
+      }
+    });
+  }, [formData, onInputChange]);
 
   return (
     <div className="space-y-4">
@@ -81,7 +105,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ formData, onInputCh
           <Label htmlFor="firstName">First Name *</Label>
           <Input
             id="firstName"
-            value={formData.firstName}
+            value={formData.firstName || ''}
             onChange={(e) => handleInputChange('firstName', e.target.value)}
             onBlur={() => handleBlur('firstName')}
             placeholder="Enter your first name"
@@ -94,7 +118,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ formData, onInputCh
           <Label htmlFor="lastName">Last Name *</Label>
           <Input
             id="lastName"
-            value={formData.lastName}
+            value={formData.lastName || ''}
             onChange={(e) => handleInputChange('lastName', e.target.value)}
             onBlur={() => handleBlur('lastName')}
             placeholder="Enter your last name"
@@ -109,7 +133,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ formData, onInputCh
         <Input
           id="email"
           type="email"
-          value={formData.email}
+          value={formData.email || ''}
           onChange={(e) => handleInputChange('email', e.target.value)}
           onBlur={() => handleBlur('email')}
           placeholder="your.email@example.com"
@@ -122,7 +146,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ formData, onInputCh
         <Label htmlFor="phone">Phone Number *</Label>
         <Input
           id="phone"
-          value={formData.phone}
+          value={formData.phone || ''}
           onChange={(e) => handleInputChange('phone', e.target.value)}
           onBlur={() => handleBlur('phone')}
           placeholder="+63 9XX XXX XXXX"
@@ -135,7 +159,7 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ formData, onInputCh
         <Label htmlFor="address">Complete Address *</Label>
         <Textarea
           id="address"
-          value={formData.address}
+          value={formData.address || ''}
           onChange={(e) => handleInputChange('address', e.target.value)}
           onBlur={() => handleBlur('address')}
           placeholder="Street, Barangay, City, Province"

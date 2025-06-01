@@ -5,7 +5,8 @@ export interface ValidationResult {
 }
 
 export const validateRequired = (value: string, fieldName: string): ValidationResult => {
-  const isValid = value.trim().length > 0;
+  const trimmedValue = value?.trim() || '';
+  const isValid = trimmedValue.length > 0;
   return {
     isValid,
     errors: isValid ? [] : [`${fieldName} is required`]
@@ -14,7 +15,8 @@ export const validateRequired = (value: string, fieldName: string): ValidationRe
 
 export const validateEmail = (email: string): ValidationResult => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const isValid = emailRegex.test(email);
+  const trimmedEmail = email?.trim() || '';
+  const isValid = emailRegex.test(trimmedEmail);
   return {
     isValid,
     errors: isValid ? [] : ['Please enter a valid email address']
@@ -22,27 +24,29 @@ export const validateEmail = (email: string): ValidationResult => {
 };
 
 export const validatePhone = (phone: string): ValidationResult => {
-  // Philippine phone number validation
+  // Philippine phone number validation - more flexible
   const phoneRegex = /^(\+63|0)?[9]\d{9}$/;
-  const isValid = phoneRegex.test(phone.replace(/\s/g, ''));
+  const cleanPhone = phone?.replace(/[\s\-\(\)]/g, '') || '';
+  const isValid = phoneRegex.test(cleanPhone);
   return {
     isValid,
-    errors: isValid ? [] : ['Please enter a valid Philippine phone number']
+    errors: isValid ? [] : ['Please enter a valid Philippine phone number (e.g., +63 9XX XXX XXXX)']
   };
 };
 
 export const validateName = (name: string, fieldName: string): ValidationResult => {
-  const nameRegex = /^[a-zA-Z\s]{2,50}$/;
-  const isValid = nameRegex.test(name);
+  const nameRegex = /^[a-zA-Z\s\-\.]{2,50}$/;
+  const trimmedName = name?.trim() || '';
+  const isValid = nameRegex.test(trimmedName);
   return {
     isValid,
-    errors: isValid ? [] : [`${fieldName} must be 2-50 characters and contain only letters and spaces`]
+    errors: isValid ? [] : [`${fieldName} must be 2-50 characters and contain only letters, spaces, hyphens, and periods`]
   };
 };
 
-// Additional validation functions for better form handling
 export const validateMinLength = (value: string, minLength: number, fieldName: string): ValidationResult => {
-  const isValid = value.trim().length >= minLength;
+  const trimmedValue = value?.trim() || '';
+  const isValid = trimmedValue.length >= minLength;
   return {
     isValid,
     errors: isValid ? [] : [`${fieldName} must be at least ${minLength} characters long`]
@@ -50,7 +54,8 @@ export const validateMinLength = (value: string, minLength: number, fieldName: s
 };
 
 export const validateMaxLength = (value: string, maxLength: number, fieldName: string): ValidationResult => {
-  const isValid = value.trim().length <= maxLength;
+  const trimmedValue = value?.trim() || '';
+  const isValid = trimmedValue.length <= maxLength;
   return {
     isValid,
     errors: isValid ? [] : [`${fieldName} must be no more than ${maxLength} characters long`]
@@ -58,9 +63,32 @@ export const validateMaxLength = (value: string, maxLength: number, fieldName: s
 };
 
 export const combineValidations = (...validations: ValidationResult[]): ValidationResult => {
-  const allErrors = validations.flatMap(v => v.errors);
+  const allErrors = validations.flatMap(v => v.errors || []);
   return {
     isValid: allErrors.length === 0,
     errors: allErrors
+  };
+};
+
+// Utility function to validate form data
+export const validateFormData = (formData: any): ValidationResult => {
+  const errors: string[] = [];
+  
+  if (!formData) {
+    errors.push('Form data is required');
+    return { isValid: false, errors };
+  }
+
+  // Add comprehensive form validation
+  const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'address'];
+  requiredFields.forEach(field => {
+    if (!formData[field] || !formData[field].trim()) {
+      errors.push(`${field.charAt(0).toUpperCase() + field.slice(1)} is required`);
+    }
+  });
+
+  return {
+    isValid: errors.length === 0,
+    errors
   };
 };
