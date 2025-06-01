@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,6 +7,24 @@ import { TrendingUp, TrendingDown, Target, Award, AlertTriangle, CheckCircle } f
 interface KPISummaryProps {
   period: 'MTD' | 'QTD' | 'YTD';
   userType?: 'franchisor' | 'franchisee';
+}
+
+interface FranchisorData {
+  totalSales: number;
+  growth: number;
+  target: number;
+  franchisees: number;
+  topPerformer: string;
+  insights: { type: string; message: string; }[];
+}
+
+interface FranchiseeData {
+  totalSales: number;
+  growth: number;
+  target: number;
+  orders: number;
+  topProduct: string;
+  insights: { type: string; message: string; }[];
 }
 
 const KPISummary: React.FC<KPISummaryProps> = ({ period, userType = 'franchisor' }) => {
@@ -31,7 +50,7 @@ const KPISummary: React.FC<KPISummaryProps> = ({ period, userType = 'franchisor'
           { type: 'success', message: '5 new premium franchisees added this month' },
           { type: 'info', message: 'Network expansion accelerating in Metro Manila' }
         ]
-      },
+      } as FranchisorData,
       QTD: {
         totalSales: 44520000,
         growth: 18.9,
@@ -43,7 +62,7 @@ const KPISummary: React.FC<KPISummaryProps> = ({ period, userType = 'franchisor'
           { type: 'success', message: 'Best quarter performance in company history' },
           { type: 'success', message: 'Coffee Masters brand leading with 31% growth' }
         ]
-      },
+      } as FranchisorData,
       YTD: {
         totalSales: 203990000,
         growth: 20.7,
@@ -55,7 +74,7 @@ const KPISummary: React.FC<KPISummaryProps> = ({ period, userType = 'franchisor'
           { type: 'success', message: '22 new franchisees added - 29% network growth' },
           { type: 'success', message: 'Ready for IPO with ₱200M+ revenue milestone' }
         ]
-      }
+      } as FranchisorData
     },
     franchisee: {
       MTD: {
@@ -69,7 +88,7 @@ const KPISummary: React.FC<KPISummaryProps> = ({ period, userType = 'franchisor'
           { type: 'success', message: 'Average order value: ₱234 - Premium positioning' },
           { type: 'success', message: 'Customer satisfaction: 4.8/5 stars' }
         ]
-      },
+      } as FranchiseeData,
       QTD: {
         totalSales: 4452000,
         growth: 18.9,
@@ -81,7 +100,7 @@ const KPISummary: React.FC<KPISummaryProps> = ({ period, userType = 'franchisor'
           { type: 'success', message: 'Customer retention rate: 92% - Exceptional loyalty' },
           { type: 'success', message: 'Qualified for Platinum Franchisee status' }
         ]
-      },
+      } as FranchiseeData,
       YTD: {
         totalSales: 20399000,
         growth: 20.7,
@@ -93,7 +112,7 @@ const KPISummary: React.FC<KPISummaryProps> = ({ period, userType = 'franchisor'
           { type: 'success', message: 'Top 1% performer in entire network - Hall of Fame!' },
           { type: 'success', message: 'Eligible for ₱500K performance bonus + expansion rights' }
         ]
-      }
+      } as FranchiseeData
     }
   };
 
@@ -190,14 +209,14 @@ const KPISummary: React.FC<KPISummaryProps> = ({ period, userType = 'franchisor'
             {userType === 'franchisor' ? (
               <div className="text-center p-3 bg-gray-50 rounded-lg">
                 <div className="text-lg font-bold text-gray-900">
-                  {currentData.franchisees}
+                  {(currentData as FranchisorData).franchisees}
                 </div>
                 <p className="text-xs text-gray-600">Active Franchisees</p>
               </div>
             ) : (
               <div className="text-center p-3 bg-gray-50 rounded-lg">
                 <div className="text-lg font-bold text-gray-900">
-                  {currentData.orders?.toLocaleString()}
+                  {(currentData as FranchiseeData).orders?.toLocaleString()}
                 </div>
                 <p className="text-xs text-gray-600">Total Orders</p>
               </div>
@@ -209,7 +228,9 @@ const KPISummary: React.FC<KPISummaryProps> = ({ period, userType = 'franchisor'
               {userType === 'franchisor' ? 'Top Performer' : 'Best Product'}
             </p>
             <p className="text-xs text-blue-700">
-              {userType === 'franchisor' ? currentData.topPerformer : currentData.topProduct}
+              {userType === 'franchisor' 
+                ? (currentData as FranchisorData).topPerformer 
+                : (currentData as FranchiseeData).topProduct}
             </p>
           </div>
         </CardContent>
