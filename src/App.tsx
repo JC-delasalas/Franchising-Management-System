@@ -10,7 +10,10 @@ import AppErrorBoundary from "@/components/AppErrorBoundary";
 import { PageLoading } from "@/components/ui/loading";
 import { validateConfig } from "@/config/environment";
 
-// Lazy load pages for better performance
+// Import Contact directly to fix the loading issue
+import Contact from "./pages/Contact";
+
+// Lazy load other pages for better performance
 const Index = React.lazy(() => import("./pages/Index"));
 const Apply = React.lazy(() => import("./pages/Apply"));
 const FranchisorDashboard = React.lazy(() => import("./pages/FranchisorDashboard"));
@@ -19,13 +22,18 @@ const FranchiseeTraining = React.lazy(() => import("./pages/FranchiseeTraining")
 const BrandMicrosite = React.lazy(() => import("./pages/BrandMicrosite"));
 const Blog = React.lazy(() => import("./pages/Blog"));
 const BlogPost = React.lazy(() => import("./pages/BlogPost"));
-const Contact = React.lazy(() => import("./pages/Contact"));
 const SalesUpload = React.lazy(() => import("./pages/franchisee/SalesUpload"));
 const InventoryOrder = React.lazy(() => import("./pages/franchisee/InventoryOrder"));
 const MarketingAssets = React.lazy(() => import("./pages/franchisee/MarketingAssets"));
 const ContractPackage = React.lazy(() => import("./pages/franchisee/ContractPackage"));
 const SupportRequests = React.lazy(() => import("./pages/franchisee/SupportRequests"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
+
+// New pages for analytics and auth
+const FranchisorAnalytics = React.lazy(() => import("./pages/FranchisorAnalytics"));
+const FranchiseeAnalytics = React.lazy(() => import("./pages/FranchiseeAnalytics"));
+const Login = React.lazy(() => import("./pages/Login"));
+const Signup = React.lazy(() => import("./pages/Signup"));
 
 // Configure React Query with better defaults and error handling
 const queryClient = new QueryClient({
@@ -65,8 +73,12 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/apply" element={<Apply />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
                 <Route path="/franchisor-dashboard" element={<FranchisorDashboard />} />
+                <Route path="/franchisor-analytics" element={<FranchisorAnalytics />} />
                 <Route path="/franchisee-dashboard" element={<FranchiseeDashboard />} />
+                <Route path="/franchisee-analytics" element={<FranchiseeAnalytics />} />
                 <Route path="/franchisee-training" element={<FranchiseeTraining />} />
                 <Route path="/brand/:brandId" element={<BrandMicrosite />} />
                 <Route path="/blog" element={<Blog />} />
