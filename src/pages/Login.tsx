@@ -11,7 +11,7 @@ import Navigation from '@/components/Navigation';
 import FormValidation from '@/components/apply/FormValidation';
 import { validateEmail, validateRequired, combineValidations } from '@/lib/validation';
 import { loginUser } from '@/services/authService';
-import { Eye, EyeOff, LogIn } from 'lucide-react';
+import { Eye, EyeOff, LogIn, User } from 'lucide-react';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -30,8 +30,13 @@ const Login = () => {
   };
 
   const validateForm = () => {
-    const emailValidation = validateEmail(formData.email);
+    const emailValidation = { isValid: true, errors: [] }; // Allow username or email
     const passwordValidation = validateRequired(formData.password, 'Password');
+    
+    if (!formData.email.trim()) {
+      emailValidation.isValid = false;
+      emailValidation.errors.push('Username or email is required');
+    }
     
     const combinedValidation = combineValidations(emailValidation, passwordValidation);
     setErrors(combinedValidation.errors);
@@ -52,7 +57,7 @@ const Login = () => {
       if (result.success && result.user) {
         toast({
           title: "Login Successful",
-          description: "Welcome back!",
+          description: `Welcome back, ${result.user.firstName}!`,
         });
         
         // Redirect based on account type
@@ -71,6 +76,10 @@ const Login = () => {
     }
   };
 
+  const handleDemoLogin = (username: string, password: string) => {
+    setFormData({ email: username, password });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
@@ -83,15 +92,42 @@ const Login = () => {
               <p className="text-gray-600">Sign in to your franchise account</p>
             </CardHeader>
             <CardContent>
+              {/* Demo Accounts */}
+              <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h3 className="text-sm font-medium text-blue-900 mb-3">Demo Accounts</h3>
+                <div className="space-y-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start text-xs"
+                    onClick={() => handleDemoLogin('Franchisor', 'WelcomeAdmin*123')}
+                  >
+                    <User className="w-3 h-3 mr-2" />
+                    Franchisor (Admin)
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start text-xs"
+                    onClick={() => handleDemoLogin('Franchisee', 'Franchisee*123')}
+                  >
+                    <User className="w-3 h-3 mr-2" />
+                    Franchisee (Demo)
+                  </Button>
+                </div>
+              </div>
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <Label htmlFor="email">Email Address</Label>
+                  <Label htmlFor="email">Username or Email</Label>
                   <Input
                     id="email"
-                    type="email"
+                    type="text"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="your.email@example.com"
+                    placeholder="Enter username or email"
                     required
                     disabled={isLoading}
                   />
@@ -147,12 +183,6 @@ const Login = () => {
                   <Link to="/signup" className="text-blue-600 hover:text-blue-800 font-medium">
                     Sign up here
                   </Link>
-                </div>
-
-                <div className="mt-6 pt-4 border-t border-gray-200">
-                  <p className="text-xs text-gray-500 text-center">
-                    Demo: Create an account to test the email verification flow
-                  </p>
                 </div>
               </form>
             </CardContent>
