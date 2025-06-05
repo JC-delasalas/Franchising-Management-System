@@ -1,12 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import Logo from '@/components/Logo';
-import { Menu, X } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -21,20 +21,29 @@ const Navigation = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
 
-  const handleNavClick = (href: string, isRoute: boolean) => {
-    if (!isRoute && location.pathname !== '/') {
-      // If we're not on homepage and clicking an anchor link, go to homepage first
-      window.location.href = `/${href}`;
-    }
-  };
-
-  const navigationLinks = [
+  const navigationLinks = useMemo(() => [
     { href: "#brands", label: "Brands" },
     { href: "#packages", label: "Packages" },
     { href: "#how-it-works", label: "How It Works" },
     { href: "/blog", label: "Blog", isRoute: true },
     { href: "/contact", label: "Contact", isRoute: true }
-  ];
+  ], []);
+
+  const devPages = useMemo(() => [
+    { href: "/franchisor-dashboard", label: "Franchisor Dashboard", desc: "Manage franchise applications and inventory" },
+    { href: "/franchisee-dashboard", label: "Franchisee Dashboard", desc: "View your franchise performance and milestones" },
+    { href: "/franchisee-training", label: "Training Portal", desc: "Access training materials and progress" },
+    { href: "/brand/siomai-shop", label: "Siomai Shop", desc: "Your Neighborhood Siomai Specialist" },
+    { href: "/brand/lemon-juice-stand", label: "Lemon Juice Stand", desc: "Fresh & Natural Lemon Drinks" },
+    { href: "/brand/coffee-shop", label: "Coffee Shop", desc: "Your Daily Coffee Experience" },
+    { href: "/brand/burger-fries", label: "Burger & Fries", desc: "Classic Burgers & Crispy Fries" },
+  ], []);
+
+  const handleNavClick = (href: string, isRoute: boolean) => {
+    if (!isRoute && location.pathname !== '/') {
+      window.location.href = `/${href}`;
+    }
+  };
 
   return (
     <nav className="bg-white shadow-sm border-b sticky top-0 z-40" role="navigation" aria-label="Main navigation">
@@ -49,7 +58,7 @@ const Navigation = () => {
                 <Link
                   key={link.href}
                   to={link.href}
-                  className="text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:rounded transition-colors"
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   {link.label}
                 </Link>
@@ -58,7 +67,7 @@ const Navigation = () => {
                   key={link.href}
                   href={link.href}
                   onClick={() => handleNavClick(link.href, false)}
-                  className="text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:rounded transition-colors"
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   {link.label}
                 </a>
@@ -72,62 +81,16 @@ const Navigation = () => {
                     <NavigationMenuTrigger>Dev Pages</NavigationMenuTrigger>
                     <NavigationMenuContent>
                       <div className="grid gap-3 p-4 w-[400px]">
-                        <NavigationMenuLink asChild>
-                          <Link to="/franchisor-dashboard" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                            <div className="text-sm font-medium leading-none">Franchisor Dashboard</div>
-                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                              Manage franchise applications and inventory
-                            </p>
-                          </Link>
-                        </NavigationMenuLink>
-                        <NavigationMenuLink asChild>
-                          <Link to="/franchisee-dashboard" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                            <div className="text-sm font-medium leading-none">Franchisee Dashboard</div>
-                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                              View your franchise performance and milestones
-                            </p>
-                          </Link>
-                        </NavigationMenuLink>
-                        <NavigationMenuLink asChild>
-                          <Link to="/franchisee-training" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                            <div className="text-sm font-medium leading-none">Training Portal</div>
-                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                              Access training materials and progress
-                            </p>
-                          </Link>
-                        </NavigationMenuLink>
-                        <NavigationMenuLink asChild>
-                          <Link to="/brand/siomai-shop" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                            <div className="text-sm font-medium leading-none">Siomai Shop</div>
-                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                              Your Neighborhood Siomai Specialist
-                            </p>
-                          </Link>
-                        </NavigationMenuLink>
-                        <NavigationMenuLink asChild>
-                          <Link to="/brand/lemon-juice-stand" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                            <div className="text-sm font-medium leading-none">Lemon Juice Stand</div>
-                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                              Fresh & Natural Lemon Drinks
-                            </p>
-                          </Link>
-                        </NavigationMenuLink>
-                        <NavigationMenuLink asChild>
-                          <Link to="/brand/coffee-shop" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                            <div className="text-sm font-medium leading-none">Coffee Shop</div>
-                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                              Your Daily Coffee Experience
-                            </p>
-                          </Link>
-                        </NavigationMenuLink>
-                        <NavigationMenuLink asChild>
-                          <Link to="/brand/burger-fries" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                            <div className="text-sm font-medium leading-none">Burger & Fries</div>
-                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                              Classic Burgers & Crispy Fries
-                            </p>
-                          </Link>
-                        </NavigationMenuLink>
+                        {devPages.map((page) => (
+                          <NavigationMenuLink key={page.href} asChild>
+                            <Link to={page.href} className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                              <div className="text-sm font-medium leading-none">{page.label}</div>
+                              <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                {page.desc}
+                              </p>
+                            </Link>
+                          </NavigationMenuLink>
+                        ))}
                       </div>
                     </NavigationMenuContent>
                   </NavigationMenuItem>
@@ -145,7 +108,7 @@ const Navigation = () => {
               {devMode && <Badge variant="outline" className="text-xs">DEV</Badge>}
             </div>
 
-            <Button asChild className="bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500">
+            <Button asChild className="bg-blue-600 hover:bg-blue-700">
               <Link to="/apply">Apply Now</Link>
             </Button>
           </div>
@@ -200,55 +163,16 @@ const Navigation = () => {
                     <div className="border-t pt-4 mt-6">
                       <h3 className="text-sm font-semibold text-gray-900 mb-3">Development Pages</h3>
                       <div className="flex flex-col space-y-2">
-                        <Link
-                          to="/franchisor-dashboard"
-                          className="text-sm text-gray-600 hover:text-blue-600 transition-colors py-1"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          Franchisor Dashboard
-                        </Link>
-                        <Link
-                          to="/franchisee-dashboard"
-                          className="text-sm text-gray-600 hover:text-blue-600 transition-colors py-1"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          Franchisee Dashboard
-                        </Link>
-                        <Link
-                          to="/franchisee-training"
-                          className="text-sm text-gray-600 hover:text-blue-600 transition-colors py-1"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          Training Portal
-                        </Link>
-                        <Link
-                          to="/brand/siomai-shop"
-                          className="text-sm text-gray-600 hover:text-blue-600 transition-colors py-1"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          Siomai Shop
-                        </Link>
-                        <Link
-                          to="/brand/lemon-juice-stand"
-                          className="text-sm text-gray-600 hover:text-blue-600 transition-colors py-1"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          Lemon Juice Stand
-                        </Link>
-                        <Link
-                          to="/brand/coffee-shop"
-                          className="text-sm text-gray-600 hover:text-blue-600 transition-colors py-1"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          Coffee Shop
-                        </Link>
-                        <Link
-                          to="/brand/burger-fries"
-                          className="text-sm text-gray-600 hover:text-blue-600 transition-colors py-1"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          Burger & Fries
-                        </Link>
+                        {devPages.map((page) => (
+                          <Link
+                            key={page.href}
+                            to={page.href}
+                            className="text-sm text-gray-600 hover:text-blue-600 transition-colors py-1"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            {page.label}
+                          </Link>
+                        ))}
                       </div>
                     </div>
                   )}

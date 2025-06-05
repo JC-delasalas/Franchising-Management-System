@@ -10,51 +10,58 @@ import AppErrorBoundary from "@/components/AppErrorBoundary";
 import { PageLoading } from "@/components/ui/loading";
 import { validateConfig } from "@/config/environment";
 
-// Import Contact directly to fix the loading issue
-import Contact from "./pages/Contact";
-
-// Lazy load other pages for better performance
+// Lazy load pages for better performance
 const Index = React.lazy(() => import("./pages/Index"));
 const Apply = React.lazy(() => import("./pages/Apply"));
+const Login = React.lazy(() => import("./pages/Login"));
+const Signup = React.lazy(() => import("./pages/Signup"));
+const Contact = React.lazy(() => import("./pages/Contact"));
+const Blog = React.lazy(() => import("./pages/Blog"));
+const BlogPost = React.lazy(() => import("./pages/BlogPost"));
+const BrandMicrosite = React.lazy(() => import("./pages/BrandMicrosite"));
+
+// Dashboard pages
 const FranchisorDashboard = React.lazy(() => import("./pages/FranchisorDashboard"));
 const FranchiseeDashboard = React.lazy(() => import("./pages/FranchiseeDashboard"));
 const FranchiseeTraining = React.lazy(() => import("./pages/FranchiseeTraining"));
-const BrandMicrosite = React.lazy(() => import("./pages/BrandMicrosite"));
-const Blog = React.lazy(() => import("./pages/Blog"));
-const BlogPost = React.lazy(() => import("./pages/BlogPost"));
+
+// Analytics pages
+const FranchisorAnalytics = React.lazy(() => import("./pages/FranchisorAnalytics"));
+const FranchiseeAnalytics = React.lazy(() => import("./pages/FranchiseeAnalytics"));
+
+// Franchisee sub-pages
 const SalesUpload = React.lazy(() => import("./pages/franchisee/SalesUpload"));
 const InventoryOrder = React.lazy(() => import("./pages/franchisee/InventoryOrder"));
 const MarketingAssets = React.lazy(() => import("./pages/franchisee/MarketingAssets"));
 const ContractPackage = React.lazy(() => import("./pages/franchisee/ContractPackage"));
 const SupportRequests = React.lazy(() => import("./pages/franchisee/SupportRequests"));
+
+// 404 page
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
-// New pages for analytics and auth
-const FranchisorAnalytics = React.lazy(() => import("./pages/FranchisorAnalytics"));
-const FranchiseeAnalytics = React.lazy(() => import("./pages/FranchiseeAnalytics"));
-const Login = React.lazy(() => import("./pages/Login"));
-const Signup = React.lazy(() => import("./pages/Signup"));
-
-// Configure React Query with better defaults and error handling
+// Optimized React Query configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error) => {
-        // Don't retry on 4xx errors
         if (error && typeof error === 'object' && 'status' in error) {
           const status = (error as any).status;
           if (status >= 400 && status < 500) return false;
         }
-        return failureCount < 3;
+        return failureCount < 2; // Reduced from 3 to 2 for faster failure detection
       },
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 10 * 60 * 1000, // 10 minutes
       refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+    },
+    mutations: {
+      retry: 1, // Only retry mutations once
     },
   },
 });
 
-// Validate configuration on app start with error handling
+// Validate configuration on app start
 try {
   validateConfig();
 } catch (error) {
@@ -75,21 +82,28 @@ const App = () => (
                 <Route path="/apply" element={<Apply />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
-                <Route path="/franchisor-dashboard" element={<FranchisorDashboard />} />
-                <Route path="/franchisor-analytics" element={<FranchisorAnalytics />} />
-                <Route path="/franchisee-dashboard" element={<FranchiseeDashboard />} />
-                <Route path="/franchisee-analytics" element={<FranchiseeAnalytics />} />
-                <Route path="/franchisee-training" element={<FranchiseeTraining />} />
-                <Route path="/brand/:brandId" element={<BrandMicrosite />} />
+                <Route path="/contact" element={<Contact />} />
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:id" element={<BlogPost />} />
-                <Route path="/contact" element={<Contact />} />
+                <Route path="/brand/:brandId" element={<BrandMicrosite />} />
+                
+                {/* Dashboard Routes */}
+                <Route path="/franchisor-dashboard" element={<FranchisorDashboard />} />
+                <Route path="/franchisee-dashboard" element={<FranchiseeDashboard />} />
+                <Route path="/franchisee-training" element={<FranchiseeTraining />} />
+                
+                {/* Analytics Routes */}
+                <Route path="/franchisor-analytics" element={<FranchisorAnalytics />} />
+                <Route path="/franchisee-analytics" element={<FranchiseeAnalytics />} />
+                
+                {/* Franchisee Sub-pages */}
                 <Route path="/franchisee/sales-upload" element={<SalesUpload />} />
                 <Route path="/franchisee/inventory-order" element={<InventoryOrder />} />
                 <Route path="/franchisee/marketing-assets" element={<MarketingAssets />} />
                 <Route path="/franchisee/contract-package" element={<ContractPackage />} />
                 <Route path="/franchisee/support-requests" element={<SupportRequests />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                
+                {/* Catch-all route - MUST be last */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
