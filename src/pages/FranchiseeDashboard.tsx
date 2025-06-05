@@ -1,33 +1,22 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import Logo from '@/components/Logo';
 import ChatAssistant from '@/components/ChatAssistant';
 import FranchiseeAnalytics from '@/components/analytics/FranchiseeAnalytics';
+import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
+import KPICards from '@/components/dashboard/KPICards';
+import UpgradeBanner from '@/components/dashboard/UpgradeBanner';
 import {
-  TrendingUp,
-  Package,
-  DollarSign,
-  Calendar,
-  Upload,
-  Download,
-  ShoppingCart,
   Bell,
-  BookOpen,
-  Phone,
-  FileText,
-  Image as ImageIcon,
   PlusCircle,
   ArrowUp,
-  Award,
-  ArrowLeft,
-  BarChart3
+  BarChart3,
+  TrendingUp,
+  Upload,
+  Package,
+  ImageIcon,
+  FileText
 } from 'lucide-react';
 
 const FranchiseeDashboard = () => {
@@ -81,51 +70,7 @@ const FranchiseeDashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-white shadow-lg h-screen sticky top-0">
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-8">
-              <Logo size="md" />
-              <Button variant="ghost" asChild size="sm" className="text-gray-900 hover:text-gray-700 p-1">
-                <Link to="/">
-                  <ArrowLeft className="w-4 h-4" />
-                </Link>
-              </Button>
-            </div>
-
-            <nav className="space-y-2">
-              <div className="flex items-center space-x-3 text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
-                <TrendingUp className="w-5 h-5" />
-                <span>Overview</span>
-              </div>
-              <Link to="/franchisee/sales-upload" className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
-                <DollarSign className="w-5 h-5" />
-                <span>Upload Sales</span>
-              </Link>
-              <Link to="/franchisee/inventory-order" className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
-                <Package className="w-5 h-5" />
-                <span>Order Inventory</span>
-              </Link>
-              <Link to="/franchisee/marketing-assets" className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
-                <ImageIcon className="w-5 h-5" />
-                <span>Marketing Assets</span>
-              </Link>
-              <Link to="/franchisee/contract-package" className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
-                <FileText className="w-5 h-5" />
-                <span>Contract & Package</span>
-              </Link>
-              <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 mt-4">
-                <Link to="/franchisee-training">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Training
-                </Link>
-              </Button>
-              <Link to="/franchisee/support-requests" className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
-                <Phone className="w-5 h-5" />
-                <span>Support & Requests</span>
-              </Link>
-            </nav>
-          </div>
-        </div>
+        <DashboardSidebar />
 
         {/* Main Content */}
         <div className="flex-1 p-8">
@@ -161,80 +106,10 @@ const FranchiseeDashboard = () => {
           </div>
 
           {/* Upgrade Package Banner */}
-          {showUpgrade && (
-            <Card className="mb-6 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-purple-900">Upgrade to Package C - Advanced</h3>
-                    <p className="text-purple-700">Get Food Stall setup + POS System + Uniforms for just ₱130,000 more!</p>
-                    <ul className="text-sm text-purple-600 mt-2">
-                      <li>• Larger territory rights</li>
-                      <li>• Advanced POS integration</li>
-                      <li>• Priority customer support</li>
-                    </ul>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" onClick={() => setShowUpgrade(false)}>
-                      Maybe Later
-                    </Button>
-                    <Button className="bg-purple-600 hover:bg-purple-700" asChild>
-                      <Link to="/franchisee/contract-package">
-                        Upgrade Now
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          <UpgradeBanner showUpgrade={showUpgrade} onClose={() => setShowUpgrade(false)} />
 
           {/* KPI Cards */}
-          <div className="grid md:grid-cols-4 gap-6 mb-8">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Today's Sales</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">{salesData.today}</div>
-                <p className="text-xs text-muted-foreground">+15% from yesterday</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">This Week</CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{salesData.thisWeek}</div>
-                <p className="text-xs text-muted-foreground">+28% from last week</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">This Month</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{salesData.thisMonth}</div>
-                <p className="text-xs text-muted-foreground">Target: {salesData.target} (+37%)</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Inventory Status</CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-yellow-600">2 Low</div>
-                <p className="text-xs text-muted-foreground">Items need reordering</p>
-              </CardContent>
-            </Card>
-          </div>
+          <KPICards salesData={salesData} />
 
           {/* Milestones Section */}
           <Card className="mb-8">

@@ -1,29 +1,17 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LoadingSpinner } from '@/components/ui/loading';
 import { useToast } from '@/hooks/use-toast';
 import Navigation from '@/components/Navigation';
 import SEO from '@/components/SEO';
+import ContractDetails from '@/components/contract/ContractDetails';
+import PackageInclusions from '@/components/contract/PackageInclusions';
+import ContractDocuments from '@/components/contract/ContractDocuments';
+import UpgradeOptions from '@/components/contract/UpgradeOptions';
 import { downloadDocument, downloadAllDocuments } from '@/utils/downloadUtils';
 import { upgradePackages, processUpgrade } from '@/services/upgradeService';
-import {
-  FileText,
-  Download,
-  Calendar,
-  MapPin,
-  DollarSign,
-  CheckCircle,
-  ArrowLeft,
-  ArrowUp,
-  Shield,
-  Clock,
-  Users
-} from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 const ContractPackage = () => {
   const [isUpgrading, setIsUpgrading] = useState(false);
@@ -123,25 +111,6 @@ const ContractPackage = () => {
     }
   };
 
-  const handleDownloadAll = async () => {
-    setIsDownloading('all');
-    try {
-      await downloadAllDocuments();
-      toast({
-        title: "Downloads Started",
-        description: "All documents are being downloaded...",
-      });
-    } catch (error) {
-      toast({
-        title: "Download Failed",
-        description: "There was an error downloading the documents.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsDownloading(null);
-    }
-  };
-
   const handleUpgrade = async (packageName: string, additionalCost: number) => {
     setIsUpgrading(true);
     try {
@@ -205,163 +174,23 @@ const ContractPackage = () => {
               </TabsList>
 
               <TabsContent value="contract">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2">
-                      <FileText className="w-5 h-5" />
-                      <span>Franchise Agreement Details</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <div className="p-4 bg-blue-50 rounded-lg">
-                          <h3 className="font-semibold text-blue-900 mb-2">{contractDetails.packageType}</h3>
-                          <p className="text-blue-800 text-lg font-bold">{contractDetails.investment}</p>
-                          <p className="text-blue-700 text-sm">Total Investment</p>
-                        </div>
-
-                        <div className="space-y-3">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Agreement Date:</span>
-                            <span className="font-medium">{contractDetails.agreementDate}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Franchise Term:</span>
-                            <span className="font-medium">{contractDetails.franchiseTerm}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Territory:</span>
-                            <span className="font-medium">{contractDetails.territory}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Royalty Rate:</span>
-                            <span className="font-medium">{contractDetails.royaltyRate}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Renewal Option:</span>
-                            <span className="font-medium text-green-600">{contractDetails.renewalOption}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Status:</span>
-                            <Badge className="bg-green-100 text-green-800">{contractDetails.status}</Badge>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <h4 className="font-semibold text-gray-900">Key Terms & Conditions</h4>
-                        <div className="space-y-3 text-sm">
-                          <div className="flex items-start space-x-2">
-                            <Shield className="w-4 h-4 text-green-500 mt-0.5" />
-                            <span>Exclusive territory protection within 500m radius</span>
-                          </div>
-                          <div className="flex items-start space-x-2">
-                            <Shield className="w-4 h-4 text-green-500 mt-0.5" />
-                            <span>Trademark and brand usage rights included</span>
-                          </div>
-                          <div className="flex items-start space-x-2">
-                            <Shield className="w-4 h-4 text-green-500 mt-0.5" />
-                            <span>Ongoing training and support provided</span>
-                          </div>
-                          <div className="flex items-start space-x-2">
-                            <Shield className="w-4 h-4 text-green-500 mt-0.5" />
-                            <span>Marketing fund contribution: 2% of gross sales</span>
-                          </div>
-                          <div className="flex items-start space-x-2">
-                            <Shield className="w-4 h-4 text-green-500 mt-0.5" />
-                            <span>Quality standards and compliance requirements</span>
-                          </div>
-                        </div>
-
-                        <Button className="w-full mt-4" onClick={() => handleDownload('Franchise Agreement')} disabled={isDownloading === 'Franchise Agreement'}>
-                          {isDownloading === 'Franchise Agreement' ? (
-                            <LoadingSpinner size="sm" className="mr-2" />
-                          ) : (
-                            <Download className="w-4 h-4 mr-2" />
-                          )}
-                          Download Full Contract
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <ContractDetails
+                  contractDetails={contractDetails}
+                  onDownload={handleDownload}
+                  isDownloading={isDownloading === 'Franchise Agreement'}
+                />
               </TabsContent>
 
               <TabsContent value="package">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Package Inclusions</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-4">What's Included</h4>
-                        <div className="space-y-3">
-                          {packageInclusions.map((inclusion, index) => (
-                            <div key={index} className="flex items-center space-x-3">
-                              <CheckCircle className="w-5 h-5 text-green-500" />
-                              <span className="text-sm">{inclusion}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-4">Support Services</h4>
-                        <div className="space-y-3">
-                          <div className="p-3 bg-gray-50 rounded-lg">
-                            <h5 className="font-medium text-sm">Setup Support</h5>
-                            <p className="text-xs text-gray-600">Complete assistance with location setup and equipment installation</p>
-                          </div>
-                          <div className="p-3 bg-gray-50 rounded-lg">
-                            <h5 className="font-medium text-sm">Training Program</h5>
-                            <p className="text-xs text-gray-600">Comprehensive training for you and your staff</p>
-                          </div>
-                          <div className="p-3 bg-gray-50 rounded-lg">
-                            <h5 className="font-medium text-sm">Ongoing Support</h5>
-                            <p className="text-xs text-gray-600">Continuous operational and marketing support</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <PackageInclusions packageInclusions={packageInclusions} />
               </TabsContent>
 
               <TabsContent value="documents">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Contract Documents</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {documents.map((doc, index) => (
-                        <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                          <div className="flex items-center space-x-4">
-                            <FileText className="w-8 h-8 text-blue-500" />
-                            <div>
-                              <h4 className="font-medium">{doc.name}</h4>
-                              <p className="text-sm text-gray-600">{doc.description}</p>
-                              <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
-                                <span>{doc.type}</span>
-                                <span>{doc.size}</span>
-                                <span>Updated: {new Date(doc.lastUpdated).toLocaleDateString()}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <Button size="sm" onClick={() => handleDownload(doc.name)} disabled={isDownloading === doc.name}>
-                            {isDownloading === doc.name ? (
-                              <LoadingSpinner size="sm" />
-                            ) : (
-                              <Download className="w-4 h-4" />
-                            )}
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                <ContractDocuments
+                  documents={documents}
+                  onDownload={handleDownload}
+                  isDownloading={isDownloading}
+                />
               </TabsContent>
 
               <TabsContent value="milestones">
@@ -431,35 +260,11 @@ const ContractPackage = () => {
             </Card>
 
             {/* Upgrade Options */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Upgrade Your Package</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {upgradePackages.map((option, index) => (
-                    <div key={index} className="p-4 border rounded-lg">
-                      <h4 className="font-semibold text-sm mb-2">{option.name}</h4>
-                      <p className="text-lg font-bold text-green-600 mb-2">{option.price}</p>
-                      <p className="text-xs text-green-600 mb-3">{option.savings}</p>
-                      <Button
-                        size="sm"
-                        className="w-full"
-                        onClick={() => handleUpgrade(option.name, option.additionalCost)}
-                        disabled={isUpgrading}
-                      >
-                        {isUpgrading ? (
-                          <LoadingSpinner size="sm" className="mr-2" />
-                        ) : (
-                          <ArrowUp className="w-4 h-4 mr-2" />
-                        )}
-                        Upgrade Now
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <UpgradeOptions
+              upgradePackages={upgradePackages}
+              onUpgrade={handleUpgrade}
+              isUpgrading={isUpgrading}
+            />
           </div>
         </div>
       </main>
