@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import Navigation from '@/components/Navigation';
@@ -11,7 +13,7 @@ import ContractDocuments from '@/components/contract/ContractDocuments';
 import UpgradeOptions from '@/components/contract/UpgradeOptions';
 import { downloadDocument, downloadAllDocuments } from '@/utils/downloadUtils';
 import { upgradePackages, processUpgrade } from '@/services/upgradeService';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, Calendar, LoadingSpinner, Download, Users } from 'lucide-react';
 
 const ContractPackage = () => {
   const [isUpgrading, setIsUpgrading] = useState(false);
@@ -104,6 +106,25 @@ const ContractPackage = () => {
       toast({
         title: "Download Failed",
         description: "There was an error downloading the document.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloading(null);
+    }
+  };
+
+  const handleDownloadAll = async () => {
+    setIsDownloading('all');
+    try {
+      await downloadAllDocuments();
+      toast({
+        title: "Download Started",
+        description: "All documents are being downloaded...",
+      });
+    } catch (error) {
+      toast({
+        title: "Download Failed",
+        description: "There was an error downloading the documents.",
         variant: "destructive",
       });
     } finally {
