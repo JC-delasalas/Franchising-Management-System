@@ -13,7 +13,8 @@ import ContractDocuments from '@/components/contract/ContractDocuments';
 import UpgradeOptions from '@/components/contract/UpgradeOptions';
 import { downloadDocument, downloadAllDocuments } from '@/utils/downloadUtils';
 import { upgradePackages, processUpgrade } from '@/services/upgradeService';
-import { ArrowLeft, CheckCircle, Clock, Calendar, LoadingSpinner, Download, Users } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui/loading';
+import { ArrowLeft, CheckCircle, Clock, Calendar, Download, Users } from 'lucide-react';
 
 const ContractPackage = () => {
   const [isUpgrading, setIsUpgrading] = useState(false);
