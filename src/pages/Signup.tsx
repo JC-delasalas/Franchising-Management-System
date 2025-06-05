@@ -7,16 +7,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LoadingSpinner } from '@/components/ui/loading';
+import { useToast } from '@/hooks/use-toast';
 import Navigation from '@/components/Navigation';
 import FormValidation from '@/components/apply/FormValidation';
 import { validateEmail, validateRequired, validatePhone, validateName, combineValidations } from '@/lib/validation';
-import { Eye, EyeOff, UserPlus } from 'lucide-react';
+import { signupUser } from '@/services/authService';
+import { Eye, EyeOff, UserPlus, Mail } from 'lucide-react';
 
 const Signup = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -73,14 +77,24 @@ const Signup = () => {
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const result = await signupUser(formData);
       
-      // Redirect based on account type
-      if (formData.accountType === 'franchisor') {
-        navigate('/franchisor-dashboard');
+      if (result.success) {
+        if (result.requiresVerification) {
+          setShowEmailVerification(true);
+          toast({
+            title: "Account Created!",
+            description: "Please check your email for verification instructions.",
+          });
+        } else {
+          navigate('/login');
+          toast({
+            title: "Account Created!",
+            description: "You can now sign in to your account.",
+          });
+        }
       } else {
-        navigate('/franchisee-dashboard');
+        setErrors([result.message]);
       }
     } catch (error) {
       setErrors(['Registration failed. Please try again.']);
@@ -88,6 +102,39 @@ const Signup = () => {
       setIsLoading(false);
     }
   };
+
+  if (showEmailVerification) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <main className="py-16">
+          <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8">
+            <Card>
+              <CardHeader className="text-center">
+                <Mail className="w-12 h-12 mx-auto text-blue-600 mb-4" />
+                <CardTitle className="text-2xl">Check Your Email</CardTitle>
+                <p className="text-gray-600">We've sent a verification link to {formData.email}</p>
+              </CardHeader>
+              <CardContent className="text-center space-y-4">
+                <p className="text-sm text-gray-600">
+                  Please click the verification link in your email to activate your account.
+                  This may take a few minutes.
+                </p>
+                <div className="pt-4">
+                  <Button onClick={() => navigate('/login')} className="w-full">
+                    Continue to Login
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500">
+                  For demo purposes, your email will be automatically verified in 3 seconds.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

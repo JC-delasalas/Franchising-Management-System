@@ -5,8 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { LoadingSpinner } from '@/components/ui/loading';
+import { useToast } from '@/hooks/use-toast';
 import Navigation from '@/components/Navigation';
 import SEO from '@/components/SEO';
+import { downloadDocument, downloadAllDocuments } from '@/utils/downloadUtils';
+import { upgradePackages, processUpgrade } from '@/services/upgradeService';
 import {
   FileText,
   Download,
@@ -22,7 +26,9 @@ import {
 } from 'lucide-react';
 
 const ContractPackage = () => {
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [isUpgrading, setIsUpgrading] = useState(false);
+  const [isDownloading, setIsDownloading] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const contractDetails = {
     packageType: 'Package B - Mid Tier',
@@ -44,35 +50,6 @@ const ContractPackage = () => {
     'Initial Inventory Package',
     'Operations Manual',
     'Territory Protection'
-  ];
-
-  const upgradeOptions = [
-    {
-      name: 'Package C - Advanced',
-      price: '₱130,000 additional',
-      features: [
-        'Food Stall Setup (larger space)',
-        'Advanced POS System with Analytics',
-        'Extended Territory Rights',
-        'Priority Customer Support',
-        'Additional Marketing Budget',
-        'Staff Training Program'
-      ],
-      savings: 'Save ₱20,000 vs new franchise'
-    },
-    {
-      name: 'Package D - Premium',
-      price: '₱250,000 additional',
-      features: [
-        'Full Restaurant Setup',
-        'Complete Kitchen Equipment',
-        'Delivery Integration',
-        'Multi-location Rights',
-        'Dedicated Account Manager',
-        'Advanced Analytics Dashboard'
-      ],
-      savings: 'Save ₱50,000 vs new franchise'
-    }
   ];
 
   const documents = [
@@ -127,21 +104,64 @@ const ContractPackage = () => {
     }
   };
 
-  const handleDownload = (docName: string) => {
-    alert(`Downloading ${docName}...`);
+  const handleDownload = async (docName: string) => {
+    setIsDownloading(docName);
+    try {
+      await downloadDocument(docName);
+      toast({
+        title: "Download Started",
+        description: `${docName} is being downloaded...`,
+      });
+    } catch (error) {
+      toast({
+        title: "Download Failed",
+        description: "There was an error downloading the document.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloading(null);
+    }
   };
 
-  const handleUpgrade = (packageName: string, price: string) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to upgrade to ${packageName}?\n\nAdditional Cost: ${price}\n\nOur team will contact you within 24 hours to process your upgrade.`
-    );
+  const handleDownloadAll = async () => {
+    setIsDownloading('all');
+    try {
+      await downloadAllDocuments();
+      toast({
+        title: "Downloads Started",
+        description: "All documents are being downloaded...",
+      });
+    } catch (error) {
+      toast({
+        title: "Download Failed",
+        description: "There was an error downloading the documents.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloading(null);
+    }
+  };
 
-    if (confirmed) {
-      // Simulate API call
-      setTimeout(() => {
-        alert(`✅ Upgrade request submitted successfully!\n\nPackage: ${packageName}\nCost: ${price}\n\nOur team will contact you within 24 hours to complete the upgrade process.`);
-      }, 1000);
-      setShowUpgradeModal(false);
+  const handleUpgrade = async (packageName: string, additionalCost: number) => {
+    setIsUpgrading(true);
+    try {
+      const result = await processUpgrade(packageName, additionalCost);
+      if (result.success) {
+        toast({
+          title: "Upgrade Request Submitted",
+          description: result.message,
+        });
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error) {
+      toast({
+        title: "Upgrade Failed",
+        description: "There was an error processing your upgrade request.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpgrading(false);
     }
   };
 
@@ -170,13 +190,6 @@ const ContractPackage = () => {
               <h1 className="text-3xl font-bold text-gray-900">Contract & Package</h1>
               <p className="text-gray-600">View your franchise agreement and package details</p>
             </div>
-            <Button
-              onClick={() => setShowUpgradeModal(true)}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-            >
-              <ArrowUp className="w-4 h-4 mr-2" />
-              Upgrade Package
-            </Button>
           </div>
         </div>
 
@@ -261,8 +274,12 @@ const ContractPackage = () => {
                           </div>
                         </div>
 
-                        <Button className="w-full mt-4" onClick={() => handleDownload('Franchise Agreement')}>
-                          <Download className="w-4 h-4 mr-2" />
+                        <Button className="w-full mt-4" onClick={() => handleDownload('Franchise Agreement')} disabled={isDownloading === 'Franchise Agreement'}>
+                          {isDownloading === 'Franchise Agreement' ? (
+                            <LoadingSpinner size="sm" className="mr-2" />
+                          ) : (
+                            <Download className="w-4 h-4 mr-2" />
+                          )}
                           Download Full Contract
                         </Button>
                       </div>
@@ -333,8 +350,12 @@ const ContractPackage = () => {
                               </div>
                             </div>
                           </div>
-                          <Button size="sm" onClick={() => handleDownload(doc.name)}>
-                            <Download className="w-4 h-4" />
+                          <Button size="sm" onClick={() => handleDownload(doc.name)} disabled={isDownloading === doc.name}>
+                            {isDownloading === doc.name ? (
+                              <LoadingSpinner size="sm" />
+                            ) : (
+                              <Download className="w-4 h-4" />
+                            )}
                           </Button>
                         </div>
                       ))}
@@ -385,8 +406,17 @@ const ContractPackage = () => {
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start">
-                  <Download className="w-4 h-4 mr-2" />
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={handleDownloadAll}
+                  disabled={isDownloading === 'all'}
+                >
+                  {isDownloading === 'all' ? (
+                    <LoadingSpinner size="sm" className="mr-2" />
+                  ) : (
+                    <Download className="w-4 h-4 mr-2" />
+                  )}
                   Download All Documents
                 </Button>
                 <Button variant="outline" className="w-full justify-start">
@@ -407,7 +437,7 @@ const ContractPackage = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {upgradeOptions.map((option, index) => (
+                  {upgradePackages.map((option, index) => (
                     <div key={index} className="p-4 border rounded-lg">
                       <h4 className="font-semibold text-sm mb-2">{option.name}</h4>
                       <p className="text-lg font-bold text-green-600 mb-2">{option.price}</p>
@@ -415,8 +445,14 @@ const ContractPackage = () => {
                       <Button
                         size="sm"
                         className="w-full"
-                        onClick={() => handleUpgrade(option.name, option.price)}
+                        onClick={() => handleUpgrade(option.name, option.additionalCost)}
+                        disabled={isUpgrading}
                       >
+                        {isUpgrading ? (
+                          <LoadingSpinner size="sm" className="mr-2" />
+                        ) : (
+                          <ArrowUp className="w-4 h-4 mr-2" />
+                        )}
                         Upgrade Now
                       </Button>
                     </div>

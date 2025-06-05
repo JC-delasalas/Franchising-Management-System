@@ -6,13 +6,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LoadingSpinner } from '@/components/ui/loading';
+import { useToast } from '@/hooks/use-toast';
 import Navigation from '@/components/Navigation';
 import FormValidation from '@/components/apply/FormValidation';
 import { validateEmail, validateRequired, combineValidations } from '@/lib/validation';
+import { loginUser } from '@/services/authService';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -44,17 +47,25 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const result = await loginUser(formData);
       
-      // For demo purposes, redirect based on email domain
-      if (formData.email.includes('franchisor')) {
-        navigate('/franchisor-dashboard');
+      if (result.success && result.user) {
+        toast({
+          title: "Login Successful",
+          description: "Welcome back!",
+        });
+        
+        // Redirect based on account type
+        if (result.user.accountType === 'franchisor') {
+          navigate('/franchisor-dashboard');
+        } else {
+          navigate('/franchisee-dashboard');
+        }
       } else {
-        navigate('/franchisee-dashboard');
+        setErrors([result.message]);
       }
     } catch (error) {
-      setErrors(['Login failed. Please check your credentials and try again.']);
+      setErrors(['An unexpected error occurred. Please try again.']);
     } finally {
       setIsLoading(false);
     }
@@ -140,7 +151,7 @@ const Login = () => {
 
                 <div className="mt-6 pt-4 border-t border-gray-200">
                   <p className="text-xs text-gray-500 text-center">
-                    Demo accounts: Use "franchisor@example.com" for franchisor dashboard or "franchisee@example.com" for franchisee dashboard
+                    Demo: Create an account to test the email verification flow
                   </p>
                 </div>
               </form>
