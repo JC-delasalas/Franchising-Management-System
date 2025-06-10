@@ -1,5 +1,5 @@
 
-export { AuthUser, SignupData, LoginData } from './auth/authTypes';
+export type { AuthUser, SignupData, LoginData } from './auth/authTypes';
 import { AuthUser, SignupData, LoginData } from './auth/authTypes';
 import { 
   getUsers, 
