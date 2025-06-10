@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import ChatAssistant from '@/components/ChatAssistant';
 import AccessibleImage from '@/components/AccessibleImage';
 import SkipLink from '@/components/SkipLink';
-import Header from '@/components/layout/Header';
+import Navigation from '@/components/Navigation';
 import Footer from '@/components/layout/Footer';
 import HeroSection from '@/components/home/HeroSection';
 import BrandSelector from '@/components/home/BrandSelector';
@@ -134,7 +135,7 @@ const Index = () => {
       />
       <SkipLink />
 
-      <Header showAuthButtons={true} />
+      <Navigation />
 
       <main id="main-content">
         <HeroSection currentBrand={currentBrand} />
