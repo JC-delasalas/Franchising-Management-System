@@ -12,7 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import Logo from '@/components/Logo';
 import ChatAssistant from '@/components/ChatAssistant';
 import KPICharts from '@/components/analytics/KPICharts';
-import { TrendingUp, Users, Package, DollarSign, Bell, Search, Filter, Download, Plus, Check, X, Clock, MessageCircle, AlertTriangle, ArrowLeft, Eye, Mail, Phone, BarChart3 } from 'lucide-react';
+import { IAMDashboard } from '@/components/iam/IAMDashboard';
+import { TrendingUp, Users, Package, DollarSign, Bell, Search, Filter, Download, Plus, Check, X, Clock, MessageCircle, AlertTriangle, ArrowLeft, Eye, Mail, Phone, BarChart3, Shield } from 'lucide-react';
 
 const mockApplications = [
   { id: 'APP001', name: 'Maria Santos', brand: 'Siomai Shop', package: 'Package B', status: 'Pending', date: '2024-01-15', phone: '+63 912 345 6789', email: 'maria@email.com' },
@@ -184,7 +185,7 @@ const FranchisorDashboard = () => {
         {/* Main Content */}
         <Tabs defaultValue="analytics" className="space-y-6">
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2">
-            <TabsList className="grid w-full grid-cols-5 bg-gray-50 rounded-lg p-1 gap-1">
+            <TabsList className="grid w-full grid-cols-6 bg-gray-50 rounded-lg p-1 gap-1">
               <TabsTrigger
                 value="analytics"
                 className="flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=active]:border data-[state=active]:border-blue-100 hover:bg-white/50"
@@ -224,6 +225,14 @@ const FranchisorDashboard = () => {
                 <TrendingUp className="w-4 h-4 mr-2" />
                 <span className="hidden sm:inline">Franchisees</span>
                 <span className="sm:hidden">Partners</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="iam"
+                className="flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=active]:border data-[state=active]:border-blue-100 hover:bg-white/50"
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Access Control</span>
+                <span className="sm:hidden">IAM</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -706,6 +715,11 @@ const FranchisorDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* New IAM Tab */}
+          <TabsContent value="iam">
+            <IAMDashboard />
+          </TabsContent>
         </Tabs>
       </div>
 
@@ -716,3 +730,5 @@ const FranchisorDashboard = () => {
 };
 
 export default FranchisorDashboard;
+
+</edits_to_apply>
