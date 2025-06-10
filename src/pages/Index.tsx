@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,8 +10,11 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import HeroSection from '@/components/home/HeroSection';
 import BrandSelector from '@/components/home/BrandSelector';
+import BrandCard from '@/components/home/BrandCard';
+import PackageCard from '@/components/home/PackageCard';
 import SEO from '@/components/SEO';
 import { config, isFeatureEnabled } from '@/config/environment';
+import { EnhancedLoadingSpinner, CardSkeleton, PackageSkeleton, TestimonialSkeleton } from '@/components/ui/enhanced-loading';
 import {
   ArrowRight,
   CheckCircle,
@@ -25,6 +27,7 @@ import {
 
 const Index = () => {
   const [selectedBrand, setSelectedBrand] = useState('siomai-shop');
+  const [isLoading, setIsLoading] = useState(false);
 
   // Memoize static data for better performance
   const brands = useMemo(() => [
@@ -142,95 +145,62 @@ const Index = () => {
         />
 
         {/* Brand Overview Cards */}
-        <section className="py-16" aria-labelledby="brand-overview-heading">
+        <section className="py-12 sm:py-16" aria-labelledby="brand-overview-heading">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 id="brand-overview-heading" className="text-3xl font-bold text-gray-900 mb-4">Explore Our Brands</h2>
-              <p className="text-lg text-gray-600">Click on any brand to learn more about the opportunity</p>
+            <div className="text-center mb-8 sm:mb-12">
+              <h2 id="brand-overview-heading" className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Explore Our Brands</h2>
+              <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">Click on any brand to learn more about the opportunity</p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {brands.map((brand) => (
-                <Card key={brand.id} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer">
-                  <Link to={`/brand/${brand.id}`} className="block">
-                    <div className="aspect-video overflow-hidden rounded-t-lg">
-                      <AccessibleImage
-                        src={brand.image}
-                        alt={`${brand.name} franchise opportunity`}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                      />
-                    </div>
-                    <CardContent className="p-6">
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">{brand.name}</h3>
-                      <p className="text-gray-600 mb-4">{brand.tagline}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-blue-600 font-medium">Learn More</span>
-                        <ArrowRight className="w-4 h-4 text-blue-600 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </CardContent>
-                  </Link>
-                </Card>
-              ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {isLoading ? (
+                Array.from({ length: 4 }).map((_, index) => (
+                  <CardSkeleton key={index} showImage={true} lines={2} />
+                ))
+              ) : (
+                brands.map((brand) => (
+                  <BrandCard key={brand.id} brand={brand} />
+                ))
+              )}
             </div>
           </div>
         </section>
 
         {/* Franchise Packages */}
-        <section id="packages" className="py-16" aria-labelledby="packages-heading">
+        <section id="packages" className="py-12 sm:py-16" aria-labelledby="packages-heading">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 id="packages-heading" className="text-3xl font-bold text-gray-900 mb-4">Franchise Packages</h2>
-              <p className="text-lg text-gray-600">Choose the perfect package for your budget and goals</p>
+            <div className="text-center mb-8 sm:mb-12">
+              <h2 id="packages-heading" className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Franchise Packages</h2>
+              <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">Choose the perfect package for your budget and goals</p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {currentPackages.map((pkg, index) => (
-                <Card key={index} className={`relative ${pkg.popular ? 'ring-2 ring-blue-500' : ''}`}>
-                  {pkg.popular && (
-                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600">
-                      Most Popular
-                    </Badge>
-                  )}
-                  <CardHeader className="text-center">
-                    <div className="text-3xl font-bold text-gray-900">{pkg.tier}</div>
-                    <CardTitle className="text-lg">{pkg.name}</CardTitle>
-                    <div className="text-2xl font-bold text-blue-600">{pkg.price}</div>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2 mb-6">
-                      {pkg.inclusions.map((item, i) => (
-                        <li key={i} className="flex items-center space-x-2">
-                          <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                          <span className="text-sm">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <Button
-                      asChild
-                      className="w-full"
-                      variant={pkg.popular ? 'default' : 'outline'}
-                    >
-                      <Link to={`/apply?brand=${selectedBrand}&package=${pkg.tier}`}>
-                        Apply for Package {pkg.tier}
-                      </Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {isLoading ? (
+                Array.from({ length: 4 }).map((_, index) => (
+                  <PackageSkeleton key={index} />
+                ))
+              ) : (
+                currentPackages.map((pkg, index) => (
+                  <PackageCard 
+                    key={index} 
+                    pkg={pkg} 
+                    selectedBrand={selectedBrand} 
+                  />
+                ))
+              )}
             </div>
           </div>
         </section>
 
         {/* How It Works */}
-        <section id="how-it-works" className="py-16 bg-gray-50" aria-labelledby="how-it-works-heading">
+        <section id="how-it-works" className="py-12 sm:py-16 bg-gray-50" aria-labelledby="how-it-works-heading">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 id="how-it-works-heading" className="text-3xl font-bold text-gray-900 mb-4">How It Works</h2>
-              <p className="text-lg text-gray-600">Simple 5-step process to franchise success</p>
+            <div className="text-center mb-8 sm:mb-12">
+              <h2 id="how-it-works-heading" className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">How It Works</h2>
+              <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">Simple 5-step process to franchise success</p>
             </div>
 
-            <div className="grid md:grid-cols-5 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 sm:gap-8">
               {[
                 { step: 1, title: 'Choose Brand', desc: 'Select your preferred franchise brand' },
                 { step: 2, title: 'Select Package', desc: 'Pick the package that fits your budget' },
@@ -239,11 +209,14 @@ const Index = () => {
                 { step: 5, title: 'Start Selling', desc: 'Launch your franchise and earn profits' }
               ].map((item, index) => (
                 <div key={index} className="text-center">
-                  <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                  <div 
+                    className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4"
+                    aria-label={`Step ${item.step}`}
+                  >
                     {item.step}
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
-                  <p className="text-gray-600 text-sm">{item.desc}</p>
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
+                  <p className="text-sm sm:text-base text-gray-600">{item.desc}</p>
                 </div>
               ))}
             </div>
@@ -251,14 +224,14 @@ const Index = () => {
         </section>
 
         {/* Why Franchise With Us */}
-        <section className="py-16" aria-labelledby="why-franchise-heading">
+        <section className="py-12 sm:py-16" aria-labelledby="why-franchise-heading">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 id="why-franchise-heading" className="text-3xl font-bold text-gray-900 mb-4">Why Choose Us</h2>
-              <p className="text-lg text-gray-600">Join thousands of successful franchisees</p>
+            <div className="text-center mb-8 sm:mb-12">
+              <h2 id="why-franchise-heading" className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Why Choose Us</h2>
+              <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">Join thousands of successful franchisees</p>
             </div>
 
-            <div className="grid md:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
               {[
                 { icon: DollarSign, title: 'Low Capital', desc: 'Start from just ₱50,000' },
                 { icon: TrendingUp, title: 'Fast ROI', desc: 'Return on investment in 6-12 months' },
@@ -267,10 +240,10 @@ const Index = () => {
               ].map((item, index) => (
                 <div key={index} className="text-center">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <item.icon className="w-8 h-8 text-blue-600" />
+                    <item.icon className="w-8 h-8 text-blue-600" aria-hidden="true" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
-                  <p className="text-gray-600">{item.desc}</p>
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
+                  <p className="text-sm sm:text-base text-gray-600">{item.desc}</p>
                 </div>
               ))}
             </div>
@@ -278,38 +251,44 @@ const Index = () => {
         </section>
 
         {/* Success Stories */}
-        <section className="py-16 bg-gray-50" aria-labelledby="success-stories-heading">
+        <section className="py-12 sm:py-16 bg-gray-50" aria-labelledby="success-stories-heading">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 id="success-stories-heading" className="text-3xl font-bold text-gray-900 mb-4">Success Stories</h2>
-              <p className="text-lg text-gray-600">Hear from our successful franchisees</p>
+            <div className="text-center mb-8 sm:mb-12">
+              <h2 id="success-stories-heading" className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Success Stories</h2>
+              <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">Hear from our successful franchisees</p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
-              {testimonials.map((testimonial, index) => (
-                <Card key={index}>
-                  <CardContent className="p-6">
-                    <div className="flex items-center space-x-4 mb-4">
-                      <AccessibleImage
-                        src={testimonial.image}
-                        alt={`${testimonial.name} - successful franchisee`}
-                        className="w-12 h-12 rounded-full object-cover"
-                        loading="lazy"
-                      />
-                      <div>
-                        <h4 className="font-semibold">{testimonial.name}</h4>
-                        <p className="text-sm text-gray-600">{testimonial.brand} - {testimonial.location}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {isLoading ? (
+                Array.from({ length: 3 }).map((_, index) => (
+                  <TestimonialSkeleton key={index} />
+                ))
+              ) : (
+                testimonials.map((testimonial, index) => (
+                  <Card key={index}>
+                    <CardContent className="p-4 sm:p-6">
+                      <div className="flex items-center space-x-4 mb-4">
+                        <AccessibleImage
+                          src={testimonial.image}
+                          alt={`${testimonial.name} - successful franchisee`}
+                          className="w-12 h-12 rounded-full object-cover"
+                          loading="lazy"
+                        />
+                        <div>
+                          <h4 className="font-semibold text-sm sm:text-base">{testimonial.name}</h4>
+                          <p className="text-xs sm:text-sm text-gray-600">{testimonial.brand} - {testimonial.location}</p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex mb-3">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                      ))}
-                    </div>
-                    <blockquote className="text-gray-700 italic">"{testimonial.comment}"</blockquote>
-                  </CardContent>
-                </Card>
-              ))}
+                      <div className="flex mb-3" role="img" aria-label={`${testimonial.rating} out of 5 stars`}>
+                        {[...Array(testimonial.rating)].map((_, i) => (
+                          <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" aria-hidden="true" />
+                        ))}
+                      </div>
+                      <blockquote className="text-sm sm:text-base text-gray-700 italic">"{testimonial.comment}"</blockquote>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </div>
         </section>
