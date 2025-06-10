@@ -1,80 +1,17 @@
 
-export interface AuthUser {
-  id: string;
-  email: string;
-  username: string;
-  firstName: string;
-  lastName: string;
-  accountType: 'franchisee' | 'franchisor';
-  isEmailVerified: boolean;
-}
-
-export interface SignupData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  password: string;
-  accountType: string;
-}
-
-export interface LoginData {
-  email: string;
-  password: string;
-}
-
-// Simulate user storage (in real app, this would be handled by backend)
-const USERS_KEY = 'franchise_users';
-const CURRENT_USER_KEY = 'current_user';
-
-// Initialize predefined accounts
-const initializePredefinedAccounts = () => {
-  const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
-  
-  const predefinedAccounts = [
-    {
-      id: 'franchisor-001',
-      email: 'franchisor@example.com',
-      username: 'Franchisor',
-      firstName: 'Admin',
-      lastName: 'Franchisor',
-      accountType: 'franchisor' as const,
-      isEmailVerified: true,
-      password: 'WelcomeAdmin*123'
-    },
-    {
-      id: 'franchisee-001',
-      email: 'franchisee@example.com',
-      username: 'Franchisee',
-      firstName: 'Demo',
-      lastName: 'Franchisee',
-      accountType: 'franchisee' as const,
-      isEmailVerified: true,
-      password: 'Franchisee*123'
-    }
-  ];
-
-  // Check if predefined accounts already exist
-  predefinedAccounts.forEach(account => {
-    const existingUser = users.find((user: any) => 
-      user.username === account.username || user.email === account.email
-    );
-    
-    if (!existingUser) {
-      const { password, ...userWithoutPassword } = account;
-      users.push(userWithoutPassword);
-    }
-  });
-
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-  
-  // Store passwords separately for demo purposes (in real app, these would be hashed)
-  const passwords = JSON.parse(localStorage.getItem('demo_passwords') || '{}');
-  predefinedAccounts.forEach(account => {
-    passwords[account.username] = account.password;
-  });
-  localStorage.setItem('demo_passwords', JSON.stringify(passwords));
-};
+export { AuthUser, SignupData, LoginData } from './auth/authTypes';
+import { AuthUser, SignupData, LoginData } from './auth/authTypes';
+import { 
+  getUsers, 
+  saveUsers, 
+  getPasswords, 
+  getCurrentUserFromStorage, 
+  saveCurrentUser, 
+  removeCurrentUser,
+  findUserByEmail 
+} from './auth/authStorage';
+import { initializePredefinedAccounts } from './auth/predefinedAccounts';
+import { sendVerificationEmail } from './auth/emailVerification';
 
 // Initialize accounts on module load
 initializePredefinedAccounts();
@@ -82,7 +19,7 @@ initializePredefinedAccounts();
 export const signupUser = async (userData: SignupData): Promise<{ success: boolean; message: string; requiresVerification?: boolean }> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+      const users = getUsers();
       
       // Check if user already exists
       const existingUser = users.find((user: AuthUser) => user.email === userData.email);
@@ -106,7 +43,7 @@ export const signupUser = async (userData: SignupData): Promise<{ success: boole
       };
 
       users.push(newUser);
-      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+      saveUsers(users);
 
       // Send verification email (simulated)
       sendVerificationEmail(userData.email);
@@ -123,13 +60,8 @@ export const signupUser = async (userData: SignupData): Promise<{ success: boole
 export const loginUser = async (loginData: LoginData): Promise<{ success: boolean; message: string; user?: AuthUser }> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
-      const passwords = JSON.parse(localStorage.getItem('demo_passwords') || '{}');
-      
-      // Check for username or email login
-      const user = users.find((u: AuthUser) => 
-        u.email === loginData.email || u.username === loginData.email
-      );
+      const passwords = getPasswords();
+      const user = findUserByEmail(loginData.email);
 
       if (!user) {
         resolve({
@@ -160,7 +92,7 @@ export const loginUser = async (loginData: LoginData): Promise<{ success: boolea
         return;
       }
 
-      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+      saveCurrentUser(user);
       
       resolve({
         success: true,
@@ -171,34 +103,12 @@ export const loginUser = async (loginData: LoginData): Promise<{ success: boolea
   });
 };
 
-export const sendVerificationEmail = async (email: string): Promise<boolean> => {
-  // Simulate sending verification email
-  console.log(`Verification email sent to: ${email}`);
-  
-  // For demo purposes, auto-verify after 3 seconds
-  setTimeout(() => {
-    verifyEmail(email);
-  }, 3000);
-  
-  return true;
-};
-
-export const verifyEmail = (email: string): void => {
-  const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
-  const userIndex = users.findIndex((user: AuthUser) => user.email === email);
-  
-  if (userIndex !== -1) {
-    users[userIndex].isEmailVerified = true;
-    localStorage.setItem(USERS_KEY, JSON.stringify(users));
-    console.log(`Email verified for: ${email}`);
-  }
-};
-
 export const getCurrentUser = (): AuthUser | null => {
-  const userStr = localStorage.getItem(CURRENT_USER_KEY);
-  return userStr ? JSON.parse(userStr) : null;
+  return getCurrentUserFromStorage();
 };
 
 export const logoutUser = (): void => {
-  localStorage.removeItem(CURRENT_USER_KEY);
+  removeCurrentUser();
 };
+
+export { sendVerificationEmail, verifyEmail } from './auth/emailVerification';
