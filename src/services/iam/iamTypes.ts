@@ -50,5 +50,5 @@ export interface UpdateUserData {
   firstName?: string;
   lastName?: string;
   roleIds?: string[];
-  status?: 'active' | 'inactive';
+  status?: 'active' | 'inactive' | 'pending';
 }

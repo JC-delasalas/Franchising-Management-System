@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,15 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import { useIAMRoles } from '@/hooks/useIAMRoles';
 import { IAMRole, IAMPermission } from '@/services/iam/iamTypes';
-import { 
-  getIAMRoles, 
-  getAllPermissions, 
-  createCustomRole, 
-  updateRole, 
-  deleteRole 
-} from '@/services/iam/iamService';
-import { useToast } from '@/hooks/use-toast';
 import { 
   Plus, 
   Edit, 
@@ -28,14 +20,19 @@ import {
 } from 'lucide-react';
 
 export const IAMRoleManagement: React.FC = () => {
-  const [roles, setRoles] = useState<IAMRole[]>([]);
-  const [permissions, setPermissions] = useState<IAMPermission[]>([]);
+  const {
+    roles,
+    permissions,
+    isLoading,
+    handleCreateRole,
+    handleUpdateRole,
+    handleDeleteRole
+  } = useIAMRoles();
+
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<IAMRole | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
 
   const [createForm, setCreateForm] = useState({
     name: '',
@@ -48,120 +45,6 @@ export const IAMRoleManagement: React.FC = () => {
     description: '',
     permissions: [] as IAMPermission[]
   });
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = () => {
-    setRoles(getIAMRoles());
-    setPermissions(getAllPermissions());
-  };
-
-  const handleCreateRole = async () => {
-    if (!createForm.name || !createForm.description || createForm.permissions.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please fill in all fields and select at least one permission.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const result = await createCustomRole(createForm);
-      if (result.success) {
-        toast({
-          title: "Success",
-          description: result.message,
-        });
-        setIsCreateDialogOpen(false);
-        setCreateForm({ name: '', description: '', permissions: [] });
-        loadData();
-      } else {
-        toast({
-          title: "Error",
-          description: result.message,
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create role",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleEditRole = async () => {
-    if (!selectedRole) return;
-
-    setIsLoading(true);
-    try {
-      const result = await updateRole(selectedRole.id, {
-        name: editForm.name,
-        description: editForm.description,
-        permissions: editForm.permissions
-      });
-      if (result.success) {
-        toast({
-          title: "Success",
-          description: result.message,
-        });
-        setIsEditDialogOpen(false);
-        setSelectedRole(null);
-        loadData();
-      } else {
-        toast({
-          title: "Error",
-          description: result.message,
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update role",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDeleteRole = async (roleId: string) => {
-    if (!confirm('Are you sure you want to delete this role?')) return;
-
-    setIsLoading(true);
-    try {
-      const result = await deleteRole(roleId);
-      if (result.success) {
-        toast({
-          title: "Success",
-          description: result.message,
-        });
-        loadData();
-      } else {
-        toast({
-          title: "Error",
-          description: result.message,
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete role",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const openEditDialog = (role: IAMRole) => {
     setSelectedRole(role);
@@ -203,6 +86,27 @@ export const IAMRoleManagement: React.FC = () => {
       case 'delete': return 'bg-red-100 text-red-800';
       case 'admin': return 'bg-purple-100 text-purple-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const onCreateRole = async () => {
+    const success = await handleCreateRole(createForm);
+    if (success) {
+      setIsCreateDialogOpen(false);
+      setCreateForm({ name: '', description: '', permissions: [] });
+    }
+  };
+
+  const onEditRole = async () => {
+    if (!selectedRole) return;
+    const success = await handleUpdateRole(selectedRole.id, {
+      name: editForm.name,
+      description: editForm.description,
+      permissions: editForm.permissions
+    });
+    if (success) {
+      setIsEditDialogOpen(false);
+      setSelectedRole(null);
     }
   };
 
@@ -272,7 +176,7 @@ export const IAMRoleManagement: React.FC = () => {
                   <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                     Cancel
                   </Button>
-                  <Button onClick={handleCreateRole} disabled={isLoading}>
+                  <Button onClick={onCreateRole} disabled={isLoading}>
                     {isLoading ? 'Creating...' : 'Create Role'}
                   </Button>
                 </div>
@@ -463,7 +367,7 @@ export const IAMRoleManagement: React.FC = () => {
                   <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                     Cancel
                   </Button>
-                  <Button onClick={handleEditRole} disabled={isLoading || selectedRole.isSystemRole}>
+                  <Button onClick={onEditRole} disabled={isLoading || selectedRole.isSystemRole}>
                     {isLoading ? 'Updating...' : 'Update Role'}
                   </Button>
                 </div>
