@@ -11,6 +11,8 @@ import { useIAMUsers } from '@/hooks/useIAMUsers';
 import { CreateUserForm } from './CreateUserForm';
 import { EditUserForm } from './EditUserForm';
 import { UserStatusBadge } from './UserStatusBadge';
+import { IAMLoadingSkeleton } from './IAMLoadingSkeleton';
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
 import { IAMUser } from '@/services/iam/iamTypes';
 import { 
   UserPlus, 
@@ -26,7 +28,8 @@ export const IAMUserManagement: React.FC = () => {
     isLoading,
     handleCreateUser,
     handleUpdateUser,
-    handleDeleteUser
+    handleDeleteUser,
+    loadData
   } = useIAMUsers();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -34,6 +37,26 @@ export const IAMUserManagement: React.FC = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<IAMUser | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // Handle errors
+  if (error) {
+    return (
+      <ErrorDisplay
+        error={error}
+        onRetry={() => {
+          setError(null);
+          loadData();
+        }}
+        context="user management"
+      />
+    );
+  }
+
+  // Show loading skeleton
+  if (isLoading && users.length === 0) {
+    return <IAMLoadingSkeleton type="users" />;
+  }
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = 
@@ -57,10 +80,11 @@ export const IAMUserManagement: React.FC = () => {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center space-x-2">
             <span>User Management</span>
+            {isLoading && <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />}
           </CardTitle>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button disabled={isLoading}>
                 <UserPlus className="w-4 h-4 mr-2" />
                 Add User
               </Button>
@@ -88,9 +112,10 @@ export const IAMUserManagement: React.FC = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
+              disabled={isLoading}
             />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={setStatusFilter} disabled={isLoading}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
@@ -145,6 +170,7 @@ export const IAMUserManagement: React.FC = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => openEditDialog(user)}
+                      disabled={isLoading}
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
@@ -153,6 +179,7 @@ export const IAMUserManagement: React.FC = () => {
                       size="sm"
                       onClick={() => handleDeleteUser(user.id)}
                       className="text-red-600 hover:text-red-700"
+                      disabled={isLoading}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -162,6 +189,15 @@ export const IAMUserManagement: React.FC = () => {
             ))}
           </TableBody>
         </Table>
+
+        {filteredUsers.length === 0 && !isLoading && (
+          <div className="text-center py-8 text-gray-500">
+            {searchTerm || statusFilter !== 'all' 
+              ? 'No users match your search criteria.' 
+              : 'No users found. Create your first user to get started.'
+            }
+          </div>
+        )}
 
         {/* Edit User Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
