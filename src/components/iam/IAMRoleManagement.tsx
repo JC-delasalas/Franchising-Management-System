@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useIAMRoles } from '@/hooks/useIAMRoles';
 import { CreateRoleForm } from './CreateRoleForm';
 import { EditRoleForm } from './EditRoleForm';
+import { IAMLoadingSkeleton } from './IAMLoadingSkeleton';
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
 import { IAMRole } from '@/services/iam/iamTypes';
 import { 
   Plus, 
@@ -15,7 +17,9 @@ import {
   Trash2, 
   Eye, 
   Shield, 
-  Lock 
+  Lock,
+  RefreshCw,
+  AlertTriangle
 } from 'lucide-react';
 
 export const IAMRoleManagement: React.FC = () => {
@@ -25,13 +29,89 @@ export const IAMRoleManagement: React.FC = () => {
     isLoading,
     handleCreateRole,
     handleUpdateRole,
-    handleDeleteRole
+    handleDeleteRole,
+    loadData
   } = useIAMRoles();
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<IAMRole | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+
+  // Enhanced error recovery
+  const handleRetry = () => {
+    setError(null);
+    setRetryCount(prev => prev + 1);
+    console.log(`Retrying role data load (attempt ${retryCount + 1})`);
+    try {
+      loadData();
+    } catch (err) {
+      console.error('Role retry failed:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load role data');
+    }
+  };
+
+  // Auto-retry for transient errors
+  React.useEffect(() => {
+    if (error && retryCount < 3) {
+      const timer = setTimeout(() => {
+        console.log('Auto-retrying role load after error...');
+        handleRetry();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, retryCount]);
+
+  if (error && retryCount >= 3) {
+    return (
+      <div className="space-y-4">
+        <ErrorDisplay
+          error={error}
+          onRetry={handleRetry}
+          onGoHome={() => window.location.href = '/franchisor-dashboard'}
+          context="role management"
+          showDetails={true}
+        />
+        <div className="text-center">
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              setError(null);
+              setRetryCount(0);
+            }}
+            className="flex items-center space-x-2"
+          >
+            <AlertTriangle className="w-4 h-4" />
+            <span>Reset Error State</span>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading && roles.length === 0) {
+    return (
+      <div className="space-y-4">
+        <IAMLoadingSkeleton type="roles" />
+        <div className="text-center">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => {
+              console.log('Manual role refresh triggered');
+              loadData();
+            }}
+            className="flex items-center space-x-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span>Refresh</span>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const openEditDialog = (role: IAMRole) => {
     setSelectedRole(role);
@@ -60,26 +140,44 @@ export const IAMRoleManagement: React.FC = () => {
           <CardTitle className="flex items-center space-x-2">
             <Shield className="w-5 h-5" />
             <span>Role Management</span>
+            {isLoading && <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />}
+            {retryCount > 0 && retryCount < 3 && (
+              <Badge variant="outline" className="text-xs">
+                Retry {retryCount}/3
+              </Badge>
+            )}
           </CardTitle>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
-                Create Role
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-3xl">
-              <DialogHeader>
-                <DialogTitle>Create New Role</DialogTitle>
-              </DialogHeader>
-              <CreateRoleForm
-                permissions={permissions}
-                onSubmit={handleCreateRole}
-                onCancel={() => setIsCreateDialogOpen(false)}
-                isLoading={isLoading}
-              />
-            </DialogContent>
-          </Dialog>
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleRetry}
+              disabled={isLoading}
+              className="flex items-center space-x-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
+            </Button>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button disabled={isLoading}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Role
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-3xl">
+                <DialogHeader>
+                  <DialogTitle>Create New Role</DialogTitle>
+                </DialogHeader>
+                <CreateRoleForm
+                  permissions={permissions}
+                  onSubmit={handleCreateRole}
+                  onCancel={() => setIsCreateDialogOpen(false)}
+                  isLoading={isLoading}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -133,6 +231,7 @@ export const IAMRoleManagement: React.FC = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => openViewDialog(role)}
+                      disabled={isLoading}
                     >
                       <Eye className="w-4 h-4" />
                     </Button>
@@ -142,6 +241,7 @@ export const IAMRoleManagement: React.FC = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => openEditDialog(role)}
+                          disabled={isLoading}
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
@@ -150,6 +250,7 @@ export const IAMRoleManagement: React.FC = () => {
                           size="sm"
                           onClick={() => handleDeleteRole(role.id)}
                           className="text-red-600 hover:text-red-700"
+                          disabled={isLoading}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -161,6 +262,12 @@ export const IAMRoleManagement: React.FC = () => {
             ))}
           </TableBody>
         </Table>
+
+        {roles.length === 0 && !isLoading && (
+          <div className="text-center py-8 text-gray-500">
+            No roles found. Create your first custom role to get started.
+          </div>
+        )}
 
         {/* View Role Dialog */}
         <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>

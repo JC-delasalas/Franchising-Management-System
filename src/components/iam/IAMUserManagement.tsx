@@ -18,7 +18,9 @@ import {
   UserPlus, 
   Search, 
   Edit, 
-  Trash2 
+  Trash2,
+  RefreshCw,
+  AlertTriangle
 } from 'lucide-react';
 
 export const IAMUserManagement: React.FC = () => {
@@ -38,24 +40,81 @@ export const IAMUserManagement: React.FC = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<IAMUser | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
-  // Handle errors
-  if (error) {
+  // Enhanced error recovery with retry logic
+  const handleRetry = () => {
+    setError(null);
+    setRetryCount(prev => prev + 1);
+    console.log(`Retrying user data load (attempt ${retryCount + 1})`);
+    try {
+      loadData();
+    } catch (err) {
+      console.error('Retry failed:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load user data');
+    }
+  };
+
+  // Auto-retry mechanism for transient errors
+  React.useEffect(() => {
+    if (error && retryCount < 3) {
+      const timer = setTimeout(() => {
+        console.log('Auto-retrying after error...');
+        handleRetry();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, retryCount]);
+
+  // Handle errors with context
+  if (error && retryCount >= 3) {
     return (
-      <ErrorDisplay
-        error={error}
-        onRetry={() => {
-          setError(null);
-          loadData();
-        }}
-        context="user management"
-      />
+      <div className="space-y-4">
+        <ErrorDisplay
+          error={error}
+          onRetry={handleRetry}
+          onGoHome={() => window.location.href = '/franchisor-dashboard'}
+          context="user management"
+          showDetails={true}
+        />
+        <div className="text-center">
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              setError(null);
+              setRetryCount(0);
+            }}
+            className="flex items-center space-x-2"
+          >
+            <AlertTriangle className="w-4 h-4" />
+            <span>Reset Error State</span>
+          </Button>
+        </div>
+      </div>
     );
   }
 
-  // Show loading skeleton
+  // Show loading skeleton with retry option
   if (isLoading && users.length === 0) {
-    return <IAMLoadingSkeleton type="users" />;
+    return (
+      <div className="space-y-4">
+        <IAMLoadingSkeleton type="users" />
+        <div className="text-center">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => {
+              console.log('Manual refresh triggered');
+              loadData();
+            }}
+            className="flex items-center space-x-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span>Refresh</span>
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   const filteredUsers = users.filter(user => {
@@ -74,6 +133,19 @@ export const IAMUserManagement: React.FC = () => {
     setIsEditDialogOpen(true);
   };
 
+  const closeCreateDialog = () => {
+    setIsCreateDialogOpen(false);
+    // Reset any form errors
+    setError(null);
+  };
+
+  const closeEditDialog = () => {
+    setIsEditDialogOpen(false);
+    setSelectedUser(null);
+    // Reset any form errors
+    setError(null);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -81,26 +153,43 @@ export const IAMUserManagement: React.FC = () => {
           <CardTitle className="flex items-center space-x-2">
             <span>User Management</span>
             {isLoading && <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />}
+            {retryCount > 0 && retryCount < 3 && (
+              <Badge variant="outline" className="text-xs">
+                Retry {retryCount}/3
+              </Badge>
+            )}
           </CardTitle>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button disabled={isLoading}>
-                <UserPlus className="w-4 h-4 mr-2" />
-                Add User
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Create New User</DialogTitle>
-              </DialogHeader>
-              <CreateUserForm
-                roles={roles}
-                onSubmit={handleCreateUser}
-                onCancel={() => setIsCreateDialogOpen(false)}
-                isLoading={isLoading}
-              />
-            </DialogContent>
-          </Dialog>
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleRetry}
+              disabled={isLoading}
+              className="flex items-center space-x-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
+            </Button>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button disabled={isLoading}>
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Add User
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Create New User</DialogTitle>
+                </DialogHeader>
+                <CreateUserForm
+                  roles={roles}
+                  onSubmit={handleCreateUser}
+                  onCancel={closeCreateDialog}
+                  isLoading={isLoading}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -210,7 +299,7 @@ export const IAMUserManagement: React.FC = () => {
                 user={selectedUser}
                 roles={roles}
                 onSubmit={handleUpdateUser}
-                onCancel={() => setIsEditDialogOpen(false)}
+                onCancel={closeEditDialog}
                 isLoading={isLoading}
               />
             )}

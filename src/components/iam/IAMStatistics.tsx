@@ -6,7 +6,7 @@ import { useIAMStatistics } from '@/hooks/useIAMStatistics';
 import { 
   Users, 
   UserCheck, 
-  UserClock, 
+  Clock, 
   Shield,
   ShieldCheck,
   TrendingUp 
@@ -41,7 +41,7 @@ export const IAMStatistics: React.FC = () => {
     {
       title: 'Pending Users',
       value: pendingUsers,
-      icon: UserClock,
+      icon: Clock,
       color: 'text-orange-600',
       bgColor: 'bg-orange-100'
     },
