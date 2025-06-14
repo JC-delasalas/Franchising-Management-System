@@ -16,7 +16,8 @@ import {
 
 export const KPICards: React.FC = () => {
   const user = getCurrentUser();
-  const userRole = user?.role || 'franchisee';
+  // Map accountType to role for consistency
+  const userRole = user?.role || user?.accountType || 'franchisee';
   
   const {
     data,

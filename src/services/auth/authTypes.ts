@@ -6,6 +6,7 @@ export interface AuthUser {
   firstName: string;
   lastName: string;
   accountType: 'franchisee' | 'franchisor';
+  role?: 'franchisee' | 'franchisor' | 'admin';
   isEmailVerified: boolean;
 }
 

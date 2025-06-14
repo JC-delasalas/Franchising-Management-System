@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ChatAssistant from '@/components/ChatAssistant';
 import FranchiseeAnalytics from '@/components/analytics/FranchiseeAnalytics';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
-import KPICards from '@/components/dashboard/KPICards';
+import { KPICards } from '@/components/dashboard/KPICards';
 import UpgradeBanner from '@/components/dashboard/UpgradeBanner';
 import {
   Bell,

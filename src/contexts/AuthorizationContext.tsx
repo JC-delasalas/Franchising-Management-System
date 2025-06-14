@@ -37,7 +37,9 @@ export const AuthorizationProvider: React.FC<{ children: React.ReactNode }> = ({
       // Simulate permission check with potential network call
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      const hasIAMAccess = user.role === 'franchisor' || user.role === 'admin';
+      // Map accountType to role for permission checking
+      const userRole = user.role || user.accountType;
+      const hasIAMAccess = userRole === 'franchisor' || userRole === 'admin';
       setCanAccessIAM(hasIAMAccess);
       
       console.log('Permissions checked successfully', { user: user.email, hasIAMAccess });

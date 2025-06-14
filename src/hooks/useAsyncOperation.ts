@@ -35,8 +35,11 @@ export const useAsyncOperation = <T = any>(options: AsyncOperationOptions = {}) 
     }
   }, [handleError, reset, options]);
 
-  const retryOperation = useCallback((operation: () => Promise<T>) => {
-    return retry(() => execute(operation));
+  const retryOperation = useCallback(async (operation: () => Promise<T>) => {
+    const success = await retry(async () => {
+      await execute(operation);
+    });
+    return success;
   }, [retry, execute]);
 
   return {
