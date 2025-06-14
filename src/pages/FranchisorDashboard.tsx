@@ -730,5 +730,3 @@ const FranchisorDashboard = () => {
 };
 
 export default FranchisorDashboard;
-
-</edits_to_apply>
