@@ -4,11 +4,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { IAMUserManagement } from './IAMUserManagement';
 import { IAMRoleManagement } from './IAMRoleManagement';
+import { LoadingSpinner } from '@/components/ui/loading';
 import { Users, Shield, UserCheck, Clock } from 'lucide-react';
 import { useIAMStatistics } from '@/hooks/useIAMStatistics';
 
 export const IAMDashboard: React.FC = () => {
   const stats = useIAMStatistics();
+
+  if (!stats) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -9,6 +9,9 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import AppErrorBoundary from "@/components/AppErrorBoundary";
 import ComponentErrorBoundary from "@/components/ui/ComponentErrorBoundary";
 import { PageLoading } from "@/components/ui/loading";
+import { SessionTimeoutWarning } from "@/components/auth/SessionTimeoutWarning";
+import { useSessionManager } from "@/hooks/useSessionManager";
+import { getCurrentUser } from "@/services/authService";
 import { validateConfig } from "@/config/environment";
 import { AuthorizationProvider } from "@/contexts/AuthorizationContext";
 
@@ -73,53 +76,79 @@ try {
   console.error('Configuration validation failed:', error);
 }
 
+const SessionWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const user = getCurrentUser();
+  const {
+    showWarning,
+    formatTimeRemaining,
+    refreshSession,
+    handleSessionTimeout
+  } = useSessionManager();
+
+  return (
+    <>
+      {children}
+      {user && (
+        <SessionTimeoutWarning
+          timeRemaining={formatTimeRemaining()}
+          onRefreshSession={refreshSession}
+          onLogout={handleSessionTimeout}
+          show={showWarning}
+        />
+      )}
+    </>
+  );
+};
+
 const App = () => (
   <AppErrorBoundary>
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <AuthorizationProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <ComponentErrorBoundary>
-                <Suspense fallback={<PageLoading />}>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/apply" element={<Apply />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/signup" element={<Signup />} />
-                    <Route path="/contact" element={<Contact />} />
-                    <Route path="/blog" element={<Blog />} />
-                    <Route path="/blog/:id" element={<BlogPost />} />
-                    <Route path="/brand/:brandId" element={<BrandMicrosite />} />
-                    
-                    {/* Dashboard Routes */}
-                    <Route path="/franchisor-dashboard" element={<FranchisorDashboard />} />
-                    <Route path="/franchisee-dashboard" element={<FranchiseeDashboard />} />
-                    <Route path="/franchisee-training" element={<FranchiseeTraining />} />
-                    
-                    {/* Analytics Routes */}
-                    <Route path="/franchisor-analytics" element={<FranchisorAnalytics />} />
-                    <Route path="/franchisee-analytics" element={<FranchiseeAnalytics />} />
-                    
-                    {/* IAM Routes */}
-                    <Route path="/iam-management" element={<IAMManagement />} />
-                    
-                    {/* Franchisee Sub-pages */}
-                    <Route path="/franchisee/sales-upload" element={<SalesUpload />} />
-                    <Route path="/franchisee/inventory-order" element={<InventoryOrder />} />
-                    <Route path="/franchisee/marketing-assets" element={<MarketingAssets />} />
-                    <Route path="/franchisee/contract-package" element={<ContractPackage />} />
-                    <Route path="/franchisee/support-requests" element={<SupportRequests />} />
-                    
-                    {/* Catch-all route - MUST be last */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Suspense>
-              </ComponentErrorBoundary>
-            </BrowserRouter>
-          </TooltipProvider>
+          <SessionWrapper>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <ComponentErrorBoundary>
+                  <Suspense fallback={<PageLoading />}>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/apply" element={<Apply />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/signup" element={<Signup />} />
+                      <Route path="/contact" element={<Contact />} />
+                      <Route path="/blog" element={<Blog />} />
+                      <Route path="/blog/:id" element={<BlogPost />} />
+                      <Route path="/brand/:brandId" element={<BrandMicrosite />} />
+                      
+                      {/* Dashboard Routes */}
+                      <Route path="/franchisor-dashboard" element={<FranchisorDashboard />} />
+                      <Route path="/franchisee-dashboard" element={<FranchiseeDashboard />} />
+                      <Route path="/franchisee-training" element={<FranchiseeTraining />} />
+                      
+                      {/* Analytics Routes */}
+                      <Route path="/franchisor-analytics" element={<FranchisorAnalytics />} />
+                      <Route path="/franchisee-analytics" element={<FranchiseeAnalytics />} />
+                      
+                      {/* IAM Routes */}
+                      <Route path="/iam-management" element={<IAMManagement />} />
+                      
+                      {/* Franchisee Sub-pages */}
+                      <Route path="/franchisee/sales-upload" element={<SalesUpload />} />
+                      <Route path="/franchisee/inventory-order" element={<InventoryOrder />} />
+                      <Route path="/franchisee/marketing-assets" element={<MarketingAssets />} />
+                      <Route path="/franchisee/contract-package" element={<ContractPackage />} />
+                      <Route path="/franchisee/support-requests" element={<SupportRequests />} />
+                      
+                      {/* Catch-all route - MUST be last */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Suspense>
+                </ComponentErrorBoundary>
+              </BrowserRouter>
+            </TooltipProvider>
+          </SessionWrapper>
         </AuthorizationProvider>
       </QueryClientProvider>
     </ErrorBoundary>
