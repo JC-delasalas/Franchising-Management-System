@@ -1,73 +1,80 @@
 
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getCurrentUser } from '@/services/authService';
-import { IAMUser, IAMPermission } from '@/services/iam/iamTypes';
+import { useErrorRecovery } from '@/hooks/useErrorRecovery';
 
 interface AuthorizationContextType {
-  currentUser: IAMUser | null;
-  hasPermission: (resource: string, action: string) => boolean;
-  hasRole: (roleName: string) => boolean;
   canAccessIAM: boolean;
+  isLoading: boolean;
+  error: Error | null;
+  retryCount: number;
+  refreshPermissions: () => void;
+  reset: () => void;
 }
 
 const AuthorizationContext = createContext<AuthorizationContextType | undefined>(undefined);
 
 export const AuthorizationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const authUser = getCurrentUser();
+  const [canAccessIAM, setCanAccessIAM] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Mock IAM user data - in real implementation, this would come from IAM service
-  const currentUser: IAMUser | null = useMemo(() => {
-    if (!authUser) return null;
-    
-    return {
-      id: authUser.id,
-      email: authUser.email,
-      firstName: authUser.firstName,
-      lastName: authUser.lastName,
-      roles: authUser.accountType === 'franchisor' ? [
-        {
-          id: 'admin-role',
-          name: 'Administrator',
-          description: 'Full system access',
-          permissions: [
-            { id: '1', name: 'iam.read', description: 'Read IAM', resource: 'iam', action: 'read' },
-            { id: '2', name: 'iam.write', description: 'Write IAM', resource: 'iam', action: 'write' },
-            { id: '3', name: 'iam.delete', description: 'Delete IAM', resource: 'iam', action: 'delete' },
-            { id: '4', name: 'iam.admin', description: 'Admin IAM', resource: 'iam', action: 'admin' }
-          ],
-          isSystemRole: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ] : [],
-      status: 'active',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-  }, [authUser]);
+  const { error, retryCount, handleError, retry, reset } = useErrorRecovery({
+    maxRetries: 3,
+    retryDelay: 1000,
+    onError: (err) => console.error('Authorization error:', err)
+  });
 
-  const hasPermission = (resource: string, action: string): boolean => {
-    if (!currentUser) return false;
-    
-    return currentUser.roles.some(role => 
-      role.permissions.some(permission => 
-        permission.resource === resource && permission.action === action
-      )
-    );
+  const checkPermissions = async () => {
+    try {
+      setIsLoading(true);
+      const user = getCurrentUser();
+      
+      if (!user) {
+        setCanAccessIAM(false);
+        return;
+      }
+
+      // Simulate permission check with potential network call
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const hasIAMAccess = user.role === 'franchisor' || user.role === 'admin';
+      setCanAccessIAM(hasIAMAccess);
+      
+      console.log('Permissions checked successfully', { user: user.email, hasIAMAccess });
+    } catch (err) {
+      handleError(err instanceof Error ? err : new Error('Failed to check permissions'));
+      setCanAccessIAM(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const hasRole = (roleName: string): boolean => {
-    if (!currentUser) return false;
-    return currentUser.roles.some(role => role.name === roleName);
+  const refreshPermissions = () => {
+    retry(checkPermissions);
   };
 
-  const canAccessIAM = hasPermission('iam', 'read') || hasRole('Administrator');
+  useEffect(() => {
+    checkPermissions();
+  }, []);
+
+  // Auto-retry on transient errors
+  useEffect(() => {
+    if (error && retryCount < 3) {
+      const timer = setTimeout(() => {
+        console.log('Auto-retrying permission check...');
+        refreshPermissions();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, retryCount]);
 
   const value = {
-    currentUser,
-    hasPermission,
-    hasRole,
-    canAccessIAM
+    canAccessIAM,
+    isLoading,
+    error,
+    retryCount,
+    refreshPermissions,
+    reset
   };
 
   return (

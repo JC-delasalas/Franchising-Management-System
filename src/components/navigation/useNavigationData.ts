@@ -6,7 +6,7 @@ import { useAuthorization } from '@/contexts/AuthorizationContext';
 export const useNavigationData = () => {
   const location = useLocation();
   const user = getCurrentUser();
-  const { canAccessIAM } = useAuthorization();
+  const { canAccessIAM, isLoading, error } = useAuthorization();
 
   const navigationLinks = [
     { 
@@ -46,8 +46,17 @@ export const useNavigationData = () => {
     { href: '/franchisee/marketing-assets', label: 'Marketing Assets', desc: 'Access marketing materials and assets' },
     { href: '/franchisee/contract-package', label: 'Contract Package', desc: 'View and manage contract packages' },
     { href: '/franchisee/support-requests', label: 'Support Requests', desc: 'Submit and track support requests' },
-    ...(canAccessIAM ? [{ href: '/iam-management', label: 'IAM Management', desc: 'Identity and access management' }] : [])
+    // Only include IAM if user has access and no authorization error
+    ...(canAccessIAM && !error ? [{ href: '/iam-management', label: 'IAM Management', desc: 'Identity and access management' }] : [])
   ];
 
-  return { navigationLinks, devPages };
+  return { 
+    navigationLinks, 
+    devPages, 
+    authorizationStatus: {
+      isLoading,
+      error,
+      hasAccess: canAccessIAM
+    }
+  };
 };
