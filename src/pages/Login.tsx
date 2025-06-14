@@ -13,7 +13,7 @@ import { LoginFormFields } from '@/components/auth/LoginFormFields';
 import { useLoginForm } from '@/components/auth/useLoginForm';
 import { LogIn } from 'lucide-react';
 
-const LoginForm = React.memo(() => {
+const LoginForm = () => {
   const {
     formData,
     isLoading,
@@ -69,7 +69,7 @@ const LoginForm = React.memo(() => {
       </CardContent>
     </Card>
   );
-});
+};
 
 const Login = () => {
   const loginStructuredData = {
