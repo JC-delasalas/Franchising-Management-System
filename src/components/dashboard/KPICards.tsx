@@ -14,7 +14,18 @@ import {
   BarChart3
 } from 'lucide-react';
 
-export const KPICards: React.FC = () => {
+interface SalesData {
+  today: string;
+  thisWeek: string;
+  thisMonth: string;
+  target: string;
+}
+
+interface KPICardsProps {
+  salesData: SalesData;
+}
+
+export const KPICards: React.FC<KPICardsProps> = ({ salesData }) => {
   const user = getCurrentUser();
   // Map accountType to role for consistency
   const userRole = user?.role || user?.accountType || 'franchisee';
@@ -32,7 +43,7 @@ export const KPICards: React.FC = () => {
 
   if (isLoading && !data) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {[...Array(4)].map((_, i) => (
           <Card key={i}>
             <CardHeader>
@@ -52,7 +63,7 @@ export const KPICards: React.FC = () => {
 
   if (error && !data && !canRetry) {
     return (
-      <div className="text-center p-8">
+      <div className="text-center p-8 mb-8">
         <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
         <h3 className="text-lg font-semibold mb-2">Failed to Load KPIs</h3>
         <p className="text-gray-600 mb-4">Unable to fetch analytics data</p>
@@ -64,8 +75,16 @@ export const KPICards: React.FC = () => {
     );
   }
 
+  // Display sales data as KPI cards
+  const kpiData = [
+    { name: "Today's Sales", value: salesData.today, change: '+8.2%', trend: 'up' },
+    { name: "This Week", value: salesData.thisWeek, change: '+12.5%', trend: 'up' },
+    { name: "This Month", value: salesData.thisMonth, change: '+15.3%', trend: 'up' },
+    { name: "Monthly Target", value: salesData.target, change: '137%', trend: 'up' }
+  ];
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 mb-8">
       {/* Header with error state */}
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold flex items-center">
@@ -96,7 +115,7 @@ export const KPICards: React.FC = () => {
 
       {/* KPI Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {data?.kpis.map((kpi, index) => {
+        {kpiData.map((kpi, index) => {
           const isPositive = kpi.trend === 'up';
           const TrendIcon = isPositive ? TrendingUp : TrendingDown;
           
