@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 interface NavigationLink {
@@ -13,8 +13,15 @@ interface NavigationLinksProps {
   onNavClick: (href: string, isRoute: boolean) => void;
 }
 
-export const NavigationLinks: React.FC<NavigationLinksProps> = ({ links, onNavClick }) => {
+export const NavigationLinks: React.FC<NavigationLinksProps> = memo(({ links, onNavClick }) => {
   const location = useLocation();
+
+  const handleClick = useCallback((href: string, isRoute: boolean) => (e: React.MouseEvent) => {
+    if (!isRoute) {
+      e.preventDefault();
+      onNavClick(href, isRoute);
+    }
+  }, [onNavClick]);
 
   return (
     <>
@@ -34,7 +41,7 @@ export const NavigationLinks: React.FC<NavigationLinksProps> = ({ links, onNavCl
           <a
             key={link.href}
             href={link.href}
-            onClick={() => onNavClick(link.href, false)}
+            onClick={handleClick(link.href, false)}
             className="text-gray-600 hover:text-gray-900 transition-colors px-3 py-2 rounded-md text-sm font-medium"
           >
             {link.label}
@@ -43,4 +50,6 @@ export const NavigationLinks: React.FC<NavigationLinksProps> = ({ links, onNavCl
       ))}
     </>
   );
-};
+});
+
+NavigationLinks.displayName = 'NavigationLinks';

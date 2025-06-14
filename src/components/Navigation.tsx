@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Logo from '@/components/Logo';
@@ -8,17 +8,24 @@ import { DevModeMenu } from '@/components/navigation/DevModeMenu';
 import { MobileMenu } from '@/components/navigation/MobileMenu';
 import { useNavigationData } from '@/components/navigation/useNavigationData';
 
-const Navigation = () => {
+const Navigation = React.memo(() => {
   const [devMode, setDevMode] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { navigationLinks, devPages } = useNavigationData();
 
-  const handleNavClick = (href: string, isRoute: boolean) => {
+  const handleNavClick = useCallback((href: string, isRoute: boolean) => {
     if (!isRoute && location.pathname !== '/') {
       window.location.href = `/${href}`;
     }
-  };
+  }, [location.pathname]);
+
+  const handleDevModeChange = useCallback((value: boolean) => {
+    setDevMode(value);
+  }, []);
+
+  const memoizedNavigationLinks = useMemo(() => navigationLinks, [navigationLinks]);
+  const memoizedDevPages = useMemo(() => devPages, [devPages]);
 
   return (
     <nav className="bg-white shadow-sm border-b sticky top-0 z-40" role="navigation" aria-label="Main navigation">
@@ -29,14 +36,14 @@ const Navigation = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6 lg:space-x-8">
             <NavigationLinks 
-              links={navigationLinks}
+              links={memoizedNavigationLinks}
               onNavClick={handleNavClick}
             />
 
             <DevModeMenu 
               devMode={devMode}
-              onDevModeChange={setDevMode}
-              devPages={devPages}
+              onDevModeChange={handleDevModeChange}
+              devPages={memoizedDevPages}
             />
 
             <Button asChild className="bg-blue-600 hover:bg-blue-700 ml-4">
@@ -46,10 +53,10 @@ const Navigation = () => {
 
           {/* Mobile Navigation */}
           <MobileMenu 
-            navigationLinks={navigationLinks}
-            devPages={devPages}
+            navigationLinks={memoizedNavigationLinks}
+            devPages={memoizedDevPages}
             devMode={devMode}
-            onDevModeChange={setDevMode}
+            onDevModeChange={handleDevModeChange}
             onNavClick={handleNavClick}
             mobileMenuOpen={mobileMenuOpen}
             setMobileMenuOpen={setMobileMenuOpen}
@@ -58,6 +65,8 @@ const Navigation = () => {
       </div>
     </nav>
   );
-};
+});
+
+Navigation.displayName = 'Navigation';
 
 export default Navigation;

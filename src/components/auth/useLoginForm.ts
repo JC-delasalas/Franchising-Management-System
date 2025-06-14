@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { validateRequired, combineValidations } from '@/lib/validation';
 import { loginUser } from '@/services/authService';
+import { ROUTES } from '@/constants/routes';
 
 export const useLoginForm = () => {
   const navigate = useNavigate();
@@ -52,12 +53,12 @@ export const useLoginForm = () => {
           description: `Welcome back, ${result.user.firstName}!`,
         });
         
-        // Redirect based on account type
-        if (result.user.accountType === 'franchisor') {
-          navigate('/franchisor-dashboard');
-        } else {
-          navigate('/franchisee-dashboard');
-        }
+        // Use route constants for navigation
+        const redirectPath = result.user.accountType === 'franchisor' 
+          ? ROUTES.FRANCHISOR_DASHBOARD 
+          : ROUTES.FRANCHISEE_DASHBOARD;
+        
+        navigate(redirectPath, { replace: true });
       } else {
         setErrors([result.message]);
       }

@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useMemo } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Logo from '@/components/Logo';
 import {
@@ -14,7 +14,48 @@ import {
   ArrowLeft
 } from 'lucide-react';
 
-const DashboardSidebar = () => {
+const DashboardSidebar = React.memo(() => {
+  const location = useLocation();
+
+  const navigationItems = useMemo(() => [
+    {
+      href: '/franchisee-dashboard',
+      label: 'Overview',
+      icon: TrendingUp,
+      isActive: location.pathname === '/franchisee-dashboard'
+    },
+    {
+      href: '/franchisee/sales-upload',
+      label: 'Upload Sales',
+      icon: DollarSign,
+      isActive: location.pathname === '/franchisee/sales-upload'
+    },
+    {
+      href: '/franchisee/inventory-order',
+      label: 'Order Inventory',
+      icon: Package,
+      isActive: location.pathname === '/franchisee/inventory-order'
+    },
+    {
+      href: '/franchisee/marketing-assets',
+      label: 'Marketing Assets',
+      icon: ImageIcon,
+      isActive: location.pathname === '/franchisee/marketing-assets'
+    },
+    {
+      href: '/franchisee/contract-package',
+      label: 'Contract & Package',
+      icon: FileText,
+      isActive: location.pathname === '/franchisee/contract-package'
+    },
+    {
+      href: '/franchisee/support-requests',
+      label: 'Support & Requests',
+      icon: Phone,
+      isActive: location.pathname === '/franchisee/support-requests'
+    }
+  ], [location.pathname]);
+
   return (
     <div className="w-64 bg-white shadow-lg h-screen sticky top-0">
       <div className="p-6">
@@ -28,40 +69,37 @@ const DashboardSidebar = () => {
         </div>
 
         <nav className="space-y-2">
-          <div className="flex items-center space-x-3 text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
-            <TrendingUp className="w-5 h-5" />
-            <span>Overview</span>
-          </div>
-          <Link to="/franchisee/sales-upload" className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
-            <DollarSign className="w-5 h-5" />
-            <span>Upload Sales</span>
-          </Link>
-          <Link to="/franchisee/inventory-order" className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
-            <Package className="w-5 h-5" />
-            <span>Order Inventory</span>
-          </Link>
-          <Link to="/franchisee/marketing-assets" className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
-            <ImageIcon className="w-5 h-5" />
-            <span>Marketing Assets</span>
-          </Link>
-          <Link to="/franchisee/contract-package" className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
-            <FileText className="w-5 h-5" />
-            <span>Contract & Package</span>
-          </Link>
+          {navigationItems.map((item) => {
+            const IconComponent = item.icon;
+            return (
+              <Link
+                key={item.href}
+                to={item.href}
+                className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                  item.isActive 
+                    ? 'text-blue-600 bg-blue-50' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+                aria-current={item.isActive ? 'page' : undefined}
+              >
+                <IconComponent className="w-5 h-5" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+          
           <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 mt-4">
             <Link to="/franchisee-training">
               <BookOpen className="w-4 h-4 mr-2" />
               Training
             </Link>
           </Button>
-          <Link to="/franchisee/support-requests" className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
-            <Phone className="w-5 h-5" />
-            <span>Support & Requests</span>
-          </Link>
         </nav>
       </div>
     </div>
   );
-};
+});
+
+DashboardSidebar.displayName = 'DashboardSidebar';
 
 export default DashboardSidebar;

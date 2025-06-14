@@ -1,3 +1,4 @@
+
 import React, { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -14,6 +15,7 @@ import { useSessionManager } from "@/hooks/useSessionManager";
 import { getCurrentUser } from "@/services/authService";
 import { validateConfig } from "@/config/environment";
 import { AuthorizationProvider } from "@/contexts/AuthorizationContext";
+import { AuthGuard, RequireAuth, GuestOnly } from "@/components/auth/AuthGuard";
 
 // Lazy load pages for better performance
 const Index = React.lazy(() => import("./pages/Index"));
@@ -56,15 +58,15 @@ const queryClient = new QueryClient({
           const status = (error as any).status;
           if (status >= 400 && status < 500) return false;
         }
-        return failureCount < 2; // Reduced from 3 to 2 for faster failure detection
+        return failureCount < 2;
       },
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
     },
     mutations: {
-      retry: 1, // Only retry mutations once
+      retry: 1,
     },
   },
 });
@@ -114,33 +116,92 @@ const App = () => (
                   <ComponentErrorBoundary>
                     <Suspense fallback={<PageLoading />}>
                       <Routes>
+                        {/* Public Routes */}
                         <Route path="/" element={<Index />} />
-                        <Route path="/apply" element={<Apply />} />
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/signup" element={<Signup />} />
                         <Route path="/contact" element={<Contact />} />
                         <Route path="/blog" element={<Blog />} />
                         <Route path="/blog/:id" element={<BlogPost />} />
                         <Route path="/brand/:brandId" element={<BrandMicrosite />} />
                         
-                        {/* Dashboard Routes */}
-                        <Route path="/franchisor-dashboard" element={<FranchisorDashboard />} />
-                        <Route path="/franchisee-dashboard" element={<FranchiseeDashboard />} />
-                        <Route path="/franchisee-training" element={<FranchiseeTraining />} />
+                        {/* Guest Only Routes (redirect if logged in) */}
+                        <Route path="/login" element={
+                          <GuestOnly>
+                            <Login />
+                          </GuestOnly>
+                        } />
+                        <Route path="/signup" element={
+                          <GuestOnly>
+                            <Signup />
+                          </GuestOnly>
+                        } />
+                        <Route path="/apply" element={
+                          <GuestOnly>
+                            <Apply />
+                          </GuestOnly>
+                        } />
                         
-                        {/* Analytics Routes */}
-                        <Route path="/franchisor-analytics" element={<FranchisorAnalytics />} />
-                        <Route path="/franchisee-analytics" element={<FranchiseeAnalytics />} />
+                        {/* Protected Franchisor Routes */}
+                        <Route path="/franchisor-dashboard" element={
+                          <RequireAuth role="franchisor">
+                            <FranchisorDashboard />
+                          </RequireAuth>
+                        } />
+                        <Route path="/franchisor-analytics" element={
+                          <RequireAuth role="franchisor">
+                            <FranchisorAnalytics />
+                          </RequireAuth>
+                        } />
                         
-                        {/* IAM Routes */}
-                        <Route path="/iam-management" element={<IAMManagement />} />
+                        {/* Protected Franchisee Routes */}
+                        <Route path="/franchisee-dashboard" element={
+                          <RequireAuth role="franchisee">
+                            <FranchiseeDashboard />
+                          </RequireAuth>
+                        } />
+                        <Route path="/franchisee-analytics" element={
+                          <RequireAuth role="franchisee">
+                            <FranchiseeAnalytics />
+                          </RequireAuth>
+                        } />
+                        <Route path="/franchisee-training" element={
+                          <RequireAuth role="franchisee">
+                            <FranchiseeTraining />
+                          </RequireAuth>
+                        } />
                         
-                        {/* Franchisee Sub-pages */}
-                        <Route path="/franchisee/sales-upload" element={<SalesUpload />} />
-                        <Route path="/franchisee/inventory-order" element={<InventoryOrder />} />
-                        <Route path="/franchisee/marketing-assets" element={<MarketingAssets />} />
-                        <Route path="/franchisee/contract-package" element={<ContractPackage />} />
-                        <Route path="/franchisee/support-requests" element={<SupportRequests />} />
+                        {/* Protected Franchisee Sub-pages */}
+                        <Route path="/franchisee/sales-upload" element={
+                          <RequireAuth role="franchisee">
+                            <SalesUpload />
+                          </RequireAuth>
+                        } />
+                        <Route path="/franchisee/inventory-order" element={
+                          <RequireAuth role="franchisee">
+                            <InventoryOrder />
+                          </RequireAuth>
+                        } />
+                        <Route path="/franchisee/marketing-assets" element={
+                          <RequireAuth role="franchisee">
+                            <MarketingAssets />
+                          </RequireAuth>
+                        } />
+                        <Route path="/franchisee/contract-package" element={
+                          <RequireAuth role="franchisee">
+                            <ContractPackage />
+                          </RequireAuth>
+                        } />
+                        <Route path="/franchisee/support-requests" element={
+                          <RequireAuth role="franchisee">
+                            <SupportRequests />
+                          </RequireAuth>
+                        } />
+                        
+                        {/* Protected IAM Routes (requires special permissions) */}
+                        <Route path="/iam-management" element={
+                          <RequireAuth>
+                            <IAMManagement />
+                          </RequireAuth>
+                        } />
                         
                         {/* Catch-all route - MUST be last */}
                         <Route path="*" element={<NotFound />} />
