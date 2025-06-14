@@ -5,8 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { IAMUserManagement } from './IAMUserManagement';
 import { IAMRoleManagement } from './IAMRoleManagement';
 import { Users, Shield, UserCheck, Clock } from 'lucide-react';
+import { useIAMStatistics } from '@/hooks/useIAMStatistics';
 
 export const IAMDashboard: React.FC = () => {
+  const stats = useIAMStatistics();
+
   return (
     <div className="space-y-6">
       {/* IAM Overview Cards */}
@@ -17,8 +20,10 @@ export const IAMDashboard: React.FC = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">+2 this month</p>
+            <div className="text-2xl font-bold">{stats.totalUsers}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.pendingUsers > 0 ? `+${stats.pendingUsers} pending` : 'All verified'}
+            </p>
           </CardContent>
         </Card>
 
@@ -28,8 +33,10 @@ export const IAMDashboard: React.FC = () => {
             <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">9</div>
-            <p className="text-xs text-muted-foreground">75% of total users</p>
+            <div className="text-2xl font-bold">{stats.activeUsers}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.activeUserPercentage}% of total users
+            </p>
           </CardContent>
         </Card>
 
@@ -39,19 +46,23 @@ export const IAMDashboard: React.FC = () => {
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">+4 system roles</p>
+            <div className="text-2xl font-bold">{stats.customRoles}</div>
+            <p className="text-xs text-muted-foreground">
+              +{stats.systemRoles} system roles
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Invites</CardTitle>
+            <CardTitle className="text-sm font-medium">Pending Users</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2</div>
-            <p className="text-xs text-muted-foreground">Awaiting response</p>
+            <div className="text-2xl font-bold">{stats.pendingUsers}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.pendingUsers === 0 ? 'No pending users' : 'Awaiting activation'}
+            </p>
           </CardContent>
         </Card>
       </div>

@@ -1,3 +1,4 @@
+
 import React, { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -9,6 +10,7 @@ import AppErrorBoundary from "@/components/AppErrorBoundary";
 import ComponentErrorBoundary from "@/components/ui/ComponentErrorBoundary";
 import { PageLoading } from "@/components/ui/loading";
 import { validateConfig } from "@/config/environment";
+import { AuthorizationProvider } from "@/contexts/AuthorizationContext";
 
 // Lazy load pages for better performance
 const Index = React.lazy(() => import("./pages/Index"));
@@ -28,6 +30,9 @@ const FranchiseeTraining = React.lazy(() => import("./pages/FranchiseeTraining")
 // Analytics pages
 const FranchisorAnalytics = React.lazy(() => import("./pages/FranchisorAnalytics"));
 const FranchiseeAnalytics = React.lazy(() => import("./pages/FranchiseeAnalytics"));
+
+// IAM pages
+const IAMManagement = React.lazy(() => import("./pages/IAMManagement"));
 
 // Franchisee sub-pages
 const SalesUpload = React.lazy(() => import("./pages/franchisee/SalesUpload"));
@@ -72,45 +77,50 @@ const App = () => (
   <AppErrorBoundary>
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <ComponentErrorBoundary>
-              <Suspense fallback={<PageLoading />}>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/apply" element={<Apply />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<Signup />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/blog" element={<Blog />} />
-                  <Route path="/blog/:id" element={<BlogPost />} />
-                  <Route path="/brand/:brandId" element={<BrandMicrosite />} />
-                  
-                  {/* Dashboard Routes */}
-                  <Route path="/franchisor-dashboard" element={<FranchisorDashboard />} />
-                  <Route path="/franchisee-dashboard" element={<FranchiseeDashboard />} />
-                  <Route path="/franchisee-training" element={<FranchiseeTraining />} />
-                  
-                  {/* Analytics Routes */}
-                  <Route path="/franchisor-analytics" element={<FranchisorAnalytics />} />
-                  <Route path="/franchisee-analytics" element={<FranchiseeAnalytics />} />
-                  
-                  {/* Franchisee Sub-pages */}
-                  <Route path="/franchisee/sales-upload" element={<SalesUpload />} />
-                  <Route path="/franchisee/inventory-order" element={<InventoryOrder />} />
-                  <Route path="/franchisee/marketing-assets" element={<MarketingAssets />} />
-                  <Route path="/franchisee/contract-package" element={<ContractPackage />} />
-                  <Route path="/franchisee/support-requests" element={<SupportRequests />} />
-                  
-                  {/* Catch-all route - MUST be last */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
-            </ComponentErrorBoundary>
-          </BrowserRouter>
-        </TooltipProvider>
+        <AuthorizationProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <ComponentErrorBoundary>
+                <Suspense fallback={<PageLoading />}>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/apply" element={<Apply />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/blog" element={<Blog />} />
+                    <Route path="/blog/:id" element={<BlogPost />} />
+                    <Route path="/brand/:brandId" element={<BrandMicrosite />} />
+                    
+                    {/* Dashboard Routes */}
+                    <Route path="/franchisor-dashboard" element={<FranchisorDashboard />} />
+                    <Route path="/franchisee-dashboard" element={<FranchiseeDashboard />} />
+                    <Route path="/franchisee-training" element={<FranchiseeTraining />} />
+                    
+                    {/* Analytics Routes */}
+                    <Route path="/franchisor-analytics" element={<FranchisorAnalytics />} />
+                    <Route path="/franchisee-analytics" element={<FranchiseeAnalytics />} />
+                    
+                    {/* IAM Routes */}
+                    <Route path="/iam-management" element={<IAMManagement />} />
+                    
+                    {/* Franchisee Sub-pages */}
+                    <Route path="/franchisee/sales-upload" element={<SalesUpload />} />
+                    <Route path="/franchisee/inventory-order" element={<InventoryOrder />} />
+                    <Route path="/franchisee/marketing-assets" element={<MarketingAssets />} />
+                    <Route path="/franchisee/contract-package" element={<ContractPackage />} />
+                    <Route path="/franchisee/support-requests" element={<SupportRequests />} />
+                    
+                    {/* Catch-all route - MUST be last */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </ComponentErrorBoundary>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthorizationProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   </AppErrorBoundary>
