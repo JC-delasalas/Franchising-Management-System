@@ -33,9 +33,9 @@ const Logo: React.FC<LogoProps> = ({
   const logoContent = (
     <div className={`flex items-center space-x-2 ${clickable ? 'hover:opacity-80 transition-opacity' : ''}`}>
       <img
-        src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏪</text></svg>"
+        src="/lovable-uploads/0d3593a7-8ba8-4f74-9248-6fb0f7bac354.png"
         alt={`${config.app.name} Logo`}
-        className={sizeClasses[size]}
+        className={`${sizeClasses[size]} object-contain`}
       />
       {showText && (
         <span className={`font-bold ${className?.includes('text-white') ? 'text-white' : 'text-gray-900'} ${textSizeClasses[size]}`}>
