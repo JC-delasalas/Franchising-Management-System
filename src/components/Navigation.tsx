@@ -4,15 +4,13 @@ import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Logo from '@/components/Logo';
 import { NavigationLinks } from '@/components/navigation/NavigationLinks';
-import { DevModeMenu } from '@/components/navigation/DevModeMenu';
 import { MobileMenu } from '@/components/navigation/MobileMenu';
 import { useNavigationData } from '@/components/navigation/useNavigationData';
 
 const Navigation = React.memo(() => {
-  const [devMode, setDevMode] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const { navigationLinks, devPages } = useNavigationData();
+  const { navigationLinks } = useNavigationData();
 
   const handleNavClick = useCallback((href: string, isRoute: boolean) => {
     if (!isRoute && location.pathname !== '/') {
@@ -20,12 +18,7 @@ const Navigation = React.memo(() => {
     }
   }, [location.pathname]);
 
-  const handleDevModeChange = useCallback((value: boolean) => {
-    setDevMode(value);
-  }, []);
-
   const memoizedNavigationLinks = useMemo(() => navigationLinks, [navigationLinks]);
-  const memoizedDevPages = useMemo(() => devPages, [devPages]);
 
   return (
     <nav className="bg-white shadow-sm border-b sticky top-0 z-40" role="navigation" aria-label="Main navigation">
@@ -40,12 +33,6 @@ const Navigation = React.memo(() => {
               onNavClick={handleNavClick}
             />
 
-            <DevModeMenu 
-              devMode={devMode}
-              onDevModeChange={handleDevModeChange}
-              devPages={memoizedDevPages}
-            />
-
             <Button asChild className="bg-blue-600 hover:bg-blue-700 ml-4">
               <Link to="/apply">Apply Now</Link>
             </Button>
@@ -54,9 +41,6 @@ const Navigation = React.memo(() => {
           {/* Mobile Navigation */}
           <MobileMenu 
             navigationLinks={memoizedNavigationLinks}
-            devPages={memoizedDevPages}
-            devMode={devMode}
-            onDevModeChange={handleDevModeChange}
             onNavClick={handleNavClick}
             mobileMenuOpen={mobileMenuOpen}
             setMobileMenuOpen={setMobileMenuOpen}
