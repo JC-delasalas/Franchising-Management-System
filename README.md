@@ -1,3 +1,4 @@
+
 # FranchiseHub - Multi-Brand Franchising Platform
 
 A comprehensive franchise management system built with modern web technologies, designed to connect franchisors with potential franchisees in the Philippines.
@@ -32,10 +33,10 @@ A comprehensive franchise management system built with modern web technologies, 
 
 ```bash
 # Clone the repository
-git clone https://github.com/JC-delasalas/franchise-front-runner-portal.git
+git clone https://github.com/your-username/franchisehub.git
 
 # Navigate to project directory
-cd franchise-front-runner-portal
+cd franchisehub
 
 # Install dependencies
 npm install
@@ -110,30 +111,19 @@ See `DATABASE_RECOMMENDATIONS.md` for complete setup instructions and schema.
 
 ## 🚀 Deployment
 
-### Vercel (Recommended)
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel
-```
-
-### Netlify
-```bash
-# Build the project
-npm run build
-
-# Deploy the dist folder to Netlify
-```
-
-### Manual Deployment
+### Production Build
 ```bash
 # Build for production
 npm run build
 
-# The dist folder contains the built application
+# Preview production build
+npm run preview
 ```
+
+### Deployment Platforms
+- **Vercel**: Connect your repository for automatic deployments
+- **Netlify**: Deploy the `dist` folder after building
+- **Manual**: Upload the `dist` folder to any static hosting service
 
 ## 📁 Project Structure
 
@@ -187,7 +177,7 @@ npm run type-check   # Run TypeScript checks
 - **TypeScript**: Full type safety
 - **ESLint**: Code linting and formatting
 - **Prettier**: Code formatting
-- **Husky**: Git hooks for quality checks
+- **Git Hooks**: Quality checks on commit
 
 ## 📈 Performance
 
@@ -213,7 +203,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 For support and questions:
 - Email: info@franchisehub.ph
 - Phone: +63 2 8123 4567
-- Documentation: See `DATABASE_RECOMMENDATIONS.md` and `IMPROVEMENTS.md`
+- Documentation: See `DATABASE_RECOMMENDATIONS.md` for setup instructions
 
 ## 🎉 Acknowledgments
 
