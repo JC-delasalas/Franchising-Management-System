@@ -1,10 +1,12 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ShoppingCart } from 'lucide-react';
+import { ROUTES } from '@/constants/routes';
 
 const inventoryItems = [
   { name: 'Siomai Mix', stock: 45, unit: 'pcs', reorderLevel: 20, status: 'Good' },
@@ -49,7 +51,9 @@ export const InventoryTab: React.FC = () => {
                     {item.status}
                   </Badge>
                   {item.status !== 'Good' && (
-                    <Button size="sm" className="ml-2">Order</Button>
+                    <Button size="sm" className="ml-2" asChild>
+                      <Link to={ROUTES.FRANCHISEE.INVENTORY_ORDER}>Order</Link>
+                    </Button>
                   )}
                 </div>
               </div>
@@ -70,17 +74,21 @@ export const InventoryTab: React.FC = () => {
                   <p className="font-medium">{product.name}</p>
                   <p className="text-sm text-gray-600">{product.price}</p>
                 </div>
-                <Button size="sm" variant="outline">
-                  <ShoppingCart className="w-4 h-4 mr-1" />
-                  Add
+                <Button size="sm" variant="outline" asChild>
+                  <Link to={ROUTES.FRANCHISEE.INVENTORY_ORDER}>
+                    <ShoppingCart className="w-4 h-4 mr-1" />
+                    Add
+                  </Link>
                 </Button>
               </div>
             ))}
           </div>
           <Separator className="my-4" />
-          <Button className="w-full">
-            <ShoppingCart className="w-4 h-4 mr-2" />
-            View Full Catalog
+          <Button className="w-full" asChild>
+            <Link to={ROUTES.FRANCHISEE.INVENTORY_ORDER}>
+              <ShoppingCart className="w-4 h-4 mr-2" />
+              View Full Catalog
+            </Link>
           </Button>
         </CardContent>
       </Card>

@@ -15,6 +15,7 @@ export const ROUTES = {
   // Franchisor routes
   FRANCHISOR_DASHBOARD: '/franchisor-dashboard',
   FRANCHISOR_ANALYTICS: '/franchisor-analytics',
+  FRANCHISOR_ORDER_MANAGEMENT: '/franchisor/order-management',
   
   // Franchisee routes
   FRANCHISEE_DASHBOARD: '/franchisee-dashboard',
@@ -57,6 +58,7 @@ export const ROUTE_GROUPS = {
   FRANCHISOR: [
     ROUTES.FRANCHISOR_DASHBOARD,
     ROUTES.FRANCHISOR_ANALYTICS,
+    ROUTES.FRANCHISOR_ORDER_MANAGEMENT,
   ],
   FRANCHISEE: [
     ROUTES.FRANCHISEE_DASHBOARD,
