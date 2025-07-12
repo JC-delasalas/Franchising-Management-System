@@ -29,6 +29,8 @@ const FranchisorAnalytics = lazy(() => import("./pages/FranchisorAnalytics"));
 const FranchiseeTraining = lazy(() => import("./pages/FranchiseeTraining"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const IAMManagement = lazy(() => import("./pages/IAMManagement"));
+const SupabaseTest = lazy(() => import("./pages/SupabaseTest"));
+const Diagnostic = lazy(() => import("./pages/Diagnostic"));
 
 // Franchisee pages
 const ContractPackage = lazy(() => import("./pages/franchisee/ContractPackage"));
@@ -80,6 +82,10 @@ function App() {
                         <Route path="/brand/:brandId" element={<BrandMicrosite />} />
                         <Route path="/brands/:brandSlug" element={<BrandMicrosite />} />
                         <Route path="/contact" element={<Contact />} />
+
+                        {/* Test routes */}
+                        <Route path="/test" element={<SupabaseTest />} />
+                        <Route path="/diagnostic" element={<Diagnostic />} />
 
                         {/* Legacy auth routes (keep for existing users) */}
                         <Route path="/login" element={
