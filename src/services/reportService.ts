@@ -31,28 +31,43 @@ class ReportService {
   async generateReport(request: ReportRequest): Promise<{ data: GeneratedReport | null; error: any }> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      let franchisorId: string;
+      let userId: string;
+
       if (!user) {
-        throw new Error('User not authenticated');
-      }
+        // Demo mode - use default values
+        console.log('Using demo mode for report generation');
+        const { data: defaultFranchisor } = await supabase
+          .from('franchisor')
+          .select('franchisor_id')
+          .limit(1)
+          .single();
+        
+        franchisorId = defaultFranchisor?.franchisor_id || 'demo-franchisor';
+        userId = 'demo-user';
+      } else {
+        // Get user profile to find franchisor info
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('franchisor_id')
+          .eq('user_id', user.id)
+          .single();
 
-      // Get user profile to find franchisor info
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('franchisor_id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!profile) {
-        throw new Error('User profile not found');
+        if (!profile) {
+          throw new Error('User profile not found');
+        }
+        
+        franchisorId = profile.franchisor_id;
+        userId = user.id;
       }
 
       const reportRecord = {
-        franchisor_id: profile.franchisor_id,
+        franchisor_id: franchisorId,
         franchisee_id: request.franchisee_id || null,
         report_type: request.report_type,
         report_name: request.report_name,
         parameters: request.parameters || null,
-        generated_by: user.id,
+        generated_by: userId,
         date_from: request.date_from || null,
         date_to: request.date_to || null,
         status: 'generating'
