@@ -27,42 +27,76 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+        
         console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Handle email confirmation
+        // Handle specific auth events
         if (event === 'SIGNED_IN' && session?.user) {
           console.log('User signed in successfully:', session.user.email);
         }
         
+        if (event === 'SIGNED_OUT') {
+          console.log('User signed out');
+          setSession(null);
+          setUser(null);
+        }
+
         if (event === 'TOKEN_REFRESHED' && session) {
           console.log('Token refreshed for:', session.user?.email);
+        }
+
+        if (event === 'USER_UPDATED' && session) {
+          console.log('User updated:', session.user?.email);
         }
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', session?.user?.email);
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    const getInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Error getting session:', error);
+        } else {
+          console.log('Initial session check:', session?.user?.email || 'No session');
+          if (mounted) {
+            setSession(session);
+            setUser(session?.user ?? null);
+            setLoading(false);
+          }
+        }
+      } catch (error) {
+        console.error('Unexpected error getting session:', error);
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
 
-    return () => subscription.unsubscribe();
+    getInitialSession();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, userData: SignupUserData) => {
     try {
+      console.log('Attempting signup for:', email);
+      
       // Use the current site URL for redirect
       const redirectUrl = `${window.location.origin}/supabase-login?message=account-created`;
       
-      console.log('Attempting signup for:', email);
       console.log('Redirect URL:', redirectUrl);
       
       const { data, error } = await supabase.auth.signUp({
@@ -75,7 +109,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             last_name: userData.lastName,
             phone: userData.phone,
             account_type: userData.accountType,
-            role: userData.accountType
+            role: userData.accountType,
+            franchisor_id: crypto.randomUUID() // Generate a franchisor ID for demo purposes
           }
         }
       });
@@ -86,6 +121,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       console.log('Signup successful:', data);
+      
+      // Check if email confirmation is required
+      if (data.user && !data.session) {
+        console.log('Email confirmation required for:', email);
+      }
+      
       return { error: null };
       
     } catch (error) {
@@ -105,6 +146,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (error) {
         console.error('Signin error:', error);
+        
+        // Provide more helpful error messages
+        if (error.message.includes('Invalid login credentials')) {
+          return { error: { ...error, message: 'Invalid email or password. Please check your credentials.' } };
+        } else if (error.message.includes('Email not confirmed')) {
+          return { error: { ...error, message: 'Please verify your email address before signing in.' } };
+        } else if (error.message.includes('User not found')) {
+          return { error: { ...error, message: 'No account found with this email address.' } };
+        }
+        
         return { error };
       }
 

@@ -31,12 +31,10 @@ const SupabaseSignupForm: React.FC<SupabaseSignupFormProps> = ({ onVerificationR
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
-  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setErrors([]);
-    setShowSuccess(false);
   };
 
   const validateForm = () => {
@@ -71,7 +69,6 @@ const SupabaseSignupForm: React.FC<SupabaseSignupFormProps> = ({ onVerificationR
     if (!validateForm()) return;
     
     setIsLoading(true);
-    setShowSuccess(false);
 
     try {
       console.log('Starting signup process for:', formData.email);
@@ -85,20 +82,22 @@ const SupabaseSignupForm: React.FC<SupabaseSignupFormProps> = ({ onVerificationR
       
       if (error) {
         console.error('Signup error:', error);
+        
         if (error.message.includes('User already registered')) {
           setErrors(['An account with this email already exists. Please sign in instead.']);
         } else if (error.message.includes('Invalid email')) {
           setErrors(['Please enter a valid email address.']);
         } else if (error.message.includes('Password')) {
           setErrors(['Password must be at least 6 characters long.']);
+        } else if (error.message.includes('rate limit')) {
+          setErrors(['Too many signup attempts. Please wait a moment before trying again.']);
         } else {
           setErrors([error.message || 'Failed to create account. Please try again.']);
         }
         return;
       }
 
-      console.log('Signup successful, showing success message');
-      setShowSuccess(true);
+      console.log('Signup successful, notifying parent component');
       
       toast({
         title: "Account Created Successfully!",
@@ -114,30 +113,6 @@ const SupabaseSignupForm: React.FC<SupabaseSignupFormProps> = ({ onVerificationR
       setIsLoading(false);
     }
   };
-
-  if (showSuccess) {
-    return (
-      <Card className="max-w-md mx-auto">
-        <CardHeader className="text-center">
-          <CheckCircle className="w-12 h-12 mx-auto text-green-600 mb-4" />
-          <CardTitle className="text-2xl text-green-600">Account Created!</CardTitle>
-          <p className="text-gray-600">We've sent a verification link to {formData.email}</p>
-        </CardHeader>
-        <CardContent className="text-center space-y-4">
-          <p className="text-sm text-gray-600">
-            Please check your email and click the verification link to activate your account.
-            You may need to check your spam folder.
-          </p>
-          <Button 
-            onClick={() => window.location.href = '/supabase-login'}
-            className="w-full"
-          >
-            Go to Sign In
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card className="max-w-md mx-auto">
@@ -199,7 +174,7 @@ const SupabaseSignupForm: React.FC<SupabaseSignupFormProps> = ({ onVerificationR
 
           <div>
             <Label htmlFor="accountType">Account Type *</Label>
-            <Select value={formData.accountType} onValueChange={(value) => handleInputChange('accountType', value)}>
+            <Select value={formData.accountType} onValueChange={(value) => handleInputChange('accountType', value)} disabled={isLoading}>
               <SelectTrigger>
                 <SelectValue placeholder="Select account type" />
               </SelectTrigger>
@@ -218,7 +193,7 @@ const SupabaseSignupForm: React.FC<SupabaseSignupFormProps> = ({ onVerificationR
                 type={showPassword ? 'text' : 'password'}
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
-                placeholder="Enter password"
+                placeholder="Enter password (min. 6 characters)"
                 required
                 disabled={isLoading}
               />
@@ -287,6 +262,13 @@ const SupabaseSignupForm: React.FC<SupabaseSignupFormProps> = ({ onVerificationR
             )}
           </Button>
         </form>
+        
+        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+          <p className="text-sm text-blue-800">
+            <CheckCircle className="w-4 h-4 inline mr-1" />
+            After signing up, you'll receive a verification email. Please click the link to activate your account.
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
