@@ -34,6 +34,27 @@ export interface Order {
 }
 
 class InventoryService {
+  private readonly ORDERS_KEY = 'inventory_orders';
+
+  // Helper method to store orders in localStorage
+  private getStoredOrders(): Order[] {
+    try {
+      const stored = localStorage.getItem(this.ORDERS_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.error('Error parsing stored orders:', error);
+      return [];
+    }
+  }
+
+  private saveOrders(orders: Order[]): void {
+    try {
+      localStorage.setItem(this.ORDERS_KEY, JSON.stringify(orders));
+    } catch (error) {
+      console.error('Error saving orders:', error);
+    }
+  }
+
   async getInventoryItems(): Promise<InventoryItem[]> {
     try {
       console.log('Fetching inventory items from database...');
@@ -193,7 +214,6 @@ class InventoryService {
     try {
       const user = getCurrentUser();
       if (!user) {
-        // Allow demo mode for testing
         console.log('Using demo mode for order creation');
       }
 
@@ -201,8 +221,6 @@ class InventoryService {
 
       const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-      // For now, we'll use a mock order creation since we need proper authentication setup
-      // In production, this would create records in inventory_order and inventory_order_item tables
       const order: Order = {
         id: `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         franchiseeId: user?.id || 'demo-user',
@@ -214,7 +232,12 @@ class InventoryService {
         notes
       };
 
-      console.log('Order created:', order);
+      // Store the order in localStorage so it can be retrieved
+      const existingOrders = this.getStoredOrders();
+      existingOrders.unshift(order); // Add to beginning of array (most recent first)
+      this.saveOrders(existingOrders);
+
+      console.log('Order created and stored:', order);
 
       // Simulate API delay for realistic behavior
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -235,8 +258,11 @@ class InventoryService {
 
       console.log('Fetching recent orders...');
 
-      // For now, return mock data. In production, this would query the database
-      const mockOrders: Order[] = [
+      // Get stored orders first
+      const storedOrders = this.getStoredOrders();
+      
+      // Default mock orders for initial state
+      const defaultOrders: Order[] = [
         {
           id: 'ORD-2024-001',
           franchiseeId: user?.id || 'demo-user',
@@ -275,8 +301,25 @@ class InventoryService {
         }
       ];
 
-      console.log(`Fetched ${mockOrders.length} recent orders`);
-      return mockOrders;
+      // Combine stored orders with default orders, stored orders first
+      const allOrders = [...storedOrders, ...defaultOrders];
+      
+      // Remove duplicates by ID and limit to recent orders
+      const uniqueOrders = allOrders.reduce((acc, current) => {
+        const existing = acc.find(order => order.id === current.id);
+        if (!existing) {
+          acc.push(current);
+        }
+        return acc;
+      }, [] as Order[]);
+
+      // Sort by order date (most recent first) and limit to 10
+      const recentOrders = uniqueOrders
+        .sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime())
+        .slice(0, 10);
+
+      console.log(`Fetched ${recentOrders.length} recent orders (${storedOrders.length} newly created)`);
+      return recentOrders;
     } catch (error) {
       console.error('Failed to fetch recent orders:', error);
       return [];
