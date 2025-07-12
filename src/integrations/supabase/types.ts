@@ -56,6 +56,13 @@ export type Database = {
             foreignKeyName: "audit_logs_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "user_dashboard_view"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["user_id"]
           },
@@ -104,6 +111,13 @@ export type Database = {
             columns: ["franchisor_id"]
             isOneToOne: false
             referencedRelation: "franchisor"
+            referencedColumns: ["franchisor_id"]
+          },
+          {
+            foreignKeyName: "brand_franchisor_id_fkey"
+            columns: ["franchisor_id"]
+            isOneToOne: false
+            referencedRelation: "user_dashboard_view"
             referencedColumns: ["franchisor_id"]
           },
         ]
@@ -156,6 +170,13 @@ export type Database = {
             foreignKeyName: "contract_franchisee_id_fkey"
             columns: ["franchisee_id"]
             isOneToOne: false
+            referencedRelation: "franchise_overview"
+            referencedColumns: ["franchisee_id"]
+          },
+          {
+            foreignKeyName: "contract_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
             referencedRelation: "franchisee"
             referencedColumns: ["franchisee_id"]
           },
@@ -163,7 +184,21 @@ export type Database = {
             foreignKeyName: "contract_franchisee_signer_id_fkey"
             columns: ["franchisee_signer_id"]
             isOneToOne: false
+            referencedRelation: "user_dashboard_view"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "contract_franchisee_signer_id_fkey"
+            columns: ["franchisee_signer_id"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "contract_franchisor_signer_id_fkey"
+            columns: ["franchisor_signer_id"]
+            isOneToOne: false
+            referencedRelation: "user_dashboard_view"
             referencedColumns: ["user_id"]
           },
           {
@@ -210,6 +245,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "contract"
             referencedColumns: ["contract_id"]
+          },
+          {
+            foreignKeyName: "contract_version_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_dashboard_view"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "contract_version_created_by_user_id_fkey"
@@ -262,6 +304,13 @@ export type Database = {
             referencedRelation: "franchisor"
             referencedColumns: ["franchisor_id"]
           },
+          {
+            foreignKeyName: "customer_franchisor_id_fkey"
+            columns: ["franchisor_id"]
+            isOneToOne: false
+            referencedRelation: "user_dashboard_view"
+            referencedColumns: ["franchisor_id"]
+          },
         ]
       }
       daily_sales_report: {
@@ -312,6 +361,13 @@ export type Database = {
             foreignKeyName: "daily_sales_report_franchisee_id_fkey"
             columns: ["franchisee_id"]
             isOneToOne: false
+            referencedRelation: "franchise_overview"
+            referencedColumns: ["franchisee_id"]
+          },
+          {
+            foreignKeyName: "daily_sales_report_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
             referencedRelation: "franchisee"
             referencedColumns: ["franchisee_id"]
           },
@@ -321,6 +377,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "location"
             referencedColumns: ["location_id"]
+          },
+          {
+            foreignKeyName: "daily_sales_report_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "user_dashboard_view"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "daily_sales_report_submitted_by_fkey"
@@ -382,6 +445,13 @@ export type Database = {
             foreignKeyName: "file_maintenance_franchisee_id_fkey"
             columns: ["franchisee_id"]
             isOneToOne: false
+            referencedRelation: "franchise_overview"
+            referencedColumns: ["franchisee_id"]
+          },
+          {
+            foreignKeyName: "file_maintenance_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
             referencedRelation: "franchisee"
             referencedColumns: ["franchisee_id"]
           },
@@ -391,6 +461,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "franchisor"
             referencedColumns: ["franchisor_id"]
+          },
+          {
+            foreignKeyName: "file_maintenance_franchisor_id_fkey"
+            columns: ["franchisor_id"]
+            isOneToOne: false
+            referencedRelation: "user_dashboard_view"
+            referencedColumns: ["franchisor_id"]
+          },
+          {
+            foreignKeyName: "file_maintenance_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "user_dashboard_view"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "file_maintenance_uploaded_by_fkey"
@@ -562,6 +646,13 @@ export type Database = {
             foreignKeyName: "generated_reports_franchisee_id_fkey"
             columns: ["franchisee_id"]
             isOneToOne: false
+            referencedRelation: "franchise_overview"
+            referencedColumns: ["franchisee_id"]
+          },
+          {
+            foreignKeyName: "generated_reports_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
             referencedRelation: "franchisee"
             referencedColumns: ["franchisee_id"]
           },
@@ -571,6 +662,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "franchisor"
             referencedColumns: ["franchisor_id"]
+          },
+          {
+            foreignKeyName: "generated_reports_franchisor_id_fkey"
+            columns: ["franchisor_id"]
+            isOneToOne: false
+            referencedRelation: "user_dashboard_view"
+            referencedColumns: ["franchisor_id"]
+          },
+          {
+            foreignKeyName: "generated_reports_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "user_dashboard_view"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "generated_reports_generated_by_fkey"
@@ -658,6 +763,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "inventory_order_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchise_overview"
+            referencedColumns: ["franchisee_id"]
+          },
           {
             foreignKeyName: "inventory_order_franchisee_id_fkey"
             columns: ["franchisee_id"]
@@ -754,6 +866,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "invoice_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchise_overview"
+            referencedColumns: ["franchisee_id"]
+          },
           {
             foreignKeyName: "invoice_franchisee_id_fkey"
             columns: ["franchisee_id"]
@@ -912,6 +1031,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "location_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchise_overview"
+            referencedColumns: ["franchisee_id"]
+          },
           {
             foreignKeyName: "location_franchisee_id_fkey"
             columns: ["franchisee_id"]
@@ -1175,6 +1301,13 @@ export type Database = {
             foreignKeyName: "purchase_order_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "user_dashboard_view"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "purchase_order_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["user_id"]
           },
@@ -1250,6 +1383,13 @@ export type Database = {
             columns: ["franchisor_id"]
             isOneToOne: false
             referencedRelation: "franchisor"
+            referencedColumns: ["franchisor_id"]
+          },
+          {
+            foreignKeyName: "role_franchisor_id_fkey"
+            columns: ["franchisor_id"]
+            isOneToOne: false
+            referencedRelation: "user_dashboard_view"
             referencedColumns: ["franchisor_id"]
           },
         ]
@@ -1388,6 +1528,13 @@ export type Database = {
             foreignKeyName: "sales_transaction_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "user_dashboard_view"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "sales_transaction_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["user_id"]
           },
@@ -1500,6 +1647,13 @@ export type Database = {
             foreignKeyName: "subscription_franchisee_id_fkey"
             columns: ["franchisee_id"]
             isOneToOne: false
+            referencedRelation: "franchise_overview"
+            referencedColumns: ["franchisee_id"]
+          },
+          {
+            foreignKeyName: "subscription_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
             referencedRelation: "franchisee"
             referencedColumns: ["franchisee_id"]
           },
@@ -1570,6 +1724,13 @@ export type Database = {
             columns: ["franchisor_id"]
             isOneToOne: false
             referencedRelation: "franchisor"
+            referencedColumns: ["franchisor_id"]
+          },
+          {
+            foreignKeyName: "supplier_franchisor_id_fkey"
+            columns: ["franchisor_id"]
+            isOneToOne: false
+            referencedRelation: "user_dashboard_view"
             referencedColumns: ["franchisor_id"]
           },
         ]
@@ -1666,6 +1827,13 @@ export type Database = {
             referencedRelation: "franchisor"
             referencedColumns: ["franchisor_id"]
           },
+          {
+            foreignKeyName: "user_profiles_franchisor_id_fkey"
+            columns: ["franchisor_id"]
+            isOneToOne: false
+            referencedRelation: "user_dashboard_view"
+            referencedColumns: ["franchisor_id"]
+          },
         ]
       }
       user_role: {
@@ -1698,6 +1866,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "role"
             referencedColumns: ["role_id"]
+          },
+          {
+            foreignKeyName: "user_role_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_dashboard_view"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "user_role_user_id_fkey"
@@ -1742,6 +1917,13 @@ export type Database = {
             foreignKeyName: "user_training_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "user_dashboard_view"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_training_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["user_id"]
           },
@@ -1749,7 +1931,66 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      franchise_overview: {
+        Row: {
+          brand_logo: string | null
+          brand_name: string | null
+          brand_tagline: string | null
+          contact_email: string | null
+          franchisee_id: string | null
+          legal_name: string | null
+          location_count: number | null
+          metadata: Json | null
+          onboarding_status: string | null
+          operating_name: string | null
+          status: Database["public"]["Enums"]["user_status_enum"] | null
+          total_sales: number | null
+        }
+        Relationships: []
+      }
+      sales_analytics_view: {
+        Row: {
+          avg_transaction_value: number | null
+          brand_nm: string | null
+          franchise_name: string | null
+          franchisee_id: string | null
+          period: string | null
+          total_items_sold: number | null
+          total_sales: number | null
+          transaction_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "location_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchise_overview"
+            referencedColumns: ["franchisee_id"]
+          },
+          {
+            foreignKeyName: "location_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchisee"
+            referencedColumns: ["franchisee_id"]
+          },
+        ]
+      }
+      user_dashboard_view: {
+        Row: {
+          avatar_url: string | null
+          first_nm: string | null
+          franchisor_id: string | null
+          franchisor_name: string | null
+          last_nm: string | null
+          metadata: Json | null
+          phone_no: string | null
+          preferences: Json | null
+          status: Database["public"]["Enums"]["user_status_enum"] | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_my_franchisor_id: {

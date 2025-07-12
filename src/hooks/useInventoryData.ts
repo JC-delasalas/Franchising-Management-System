@@ -1,19 +1,24 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { inventoryService, InventoryItem, Order } from '@/services/inventoryService';
+import { inventoryDataService } from '@/services/dataService';
 import { useDebounce } from './usePerformanceOptimization';
 
 interface UseInventoryDataReturn {
-  inventoryItems: InventoryItem[];
-  recentOrders: Order[];
+  inventoryItems: any[];
+  recentOrders: any[];
+  products: any[];
+  lowStockItems: any[];
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+  createOrder: (orderData: any) => Promise<void>;
 }
 
-export const useInventoryData = (): UseInventoryDataReturn => {
-  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
-  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+export const useInventoryData = (locationId?: string): UseInventoryDataReturn => {
+  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+  const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [lowStockItems, setLowStockItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,15 +30,29 @@ export const useInventoryData = (): UseInventoryDataReturn => {
       console.log('Fetching inventory data...');
       
       // Fetch data in parallel for better performance
-      const [itemsResult, ordersResult] = await Promise.allSettled([
-        inventoryService.getInventoryItems(),
-        inventoryService.getRecentOrders()
+      const [productsResult, inventoryResult, ordersResult] = await Promise.allSettled([
+        inventoryDataService.getProducts(),
+        inventoryDataService.getInventory(locationId),
+        inventoryDataService.getInventoryOrders()
       ]);
 
-      if (itemsResult.status === 'fulfilled') {
-        setInventoryItems(itemsResult.value);
+      if (productsResult.status === 'fulfilled') {
+        setProducts(productsResult.value);
       } else {
-        console.error('Failed to fetch inventory items:', itemsResult.reason);
+        console.error('Failed to fetch products:', productsResult.reason);
+      }
+
+      if (inventoryResult.status === 'fulfilled') {
+        const inventory = inventoryResult.value;
+        setInventoryItems(inventory);
+        
+        // Filter low stock items
+        const lowStock = inventory.filter(item => 
+          item.current_stock <= item.min_stock_level
+        );
+        setLowStockItems(lowStock);
+      } else {
+        console.error('Failed to fetch inventory items:', inventoryResult.reason);
       }
 
       if (ordersResult.status === 'fulfilled') {
@@ -50,7 +69,7 @@ export const useInventoryData = (): UseInventoryDataReturn => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [locationId]);
 
   // Debounced refetch to prevent excessive API calls
   const debouncedFetch = useDebounce(fetchData, 300);
@@ -63,11 +82,26 @@ export const useInventoryData = (): UseInventoryDataReturn => {
     await debouncedFetch();
   }, [debouncedFetch]);
 
+  const createOrder = useCallback(async (orderData: any) => {
+    try {
+      await inventoryDataService.createInventoryOrder(orderData);
+      // Refresh data after creating order
+      await fetchData();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create order';
+      console.error('Error creating order:', err);
+      throw new Error(errorMessage);
+    }
+  }, [fetchData]);
+
   return {
     inventoryItems,
     recentOrders,
+    products,
+    lowStockItems,
     isLoading,
     error,
-    refetch
+    refetch,
+    createOrder
   };
 };
