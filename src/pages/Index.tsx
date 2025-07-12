@@ -6,10 +6,10 @@ import { ArrowRight, CheckCircle, Star, Users, MapPin, TrendingUp } from 'lucide
 import Navigation from '@/components/Navigation';
 import HeroSection from '@/components/home/HeroSection';
 import BrandSelector from '@/components/home/BrandSelector';
-import HowItWorksSection from '@/components/home/HowItWorksSection';
-import WhyChooseUsSection from '@/components/home/WhyChooseUsSection';
-import SuccessStoriesSection from '@/components/home/SuccessStoriesSection';
-import { Footer } from '@/components/layout/Footer';
+import { HowItWorksSection } from '@/components/home/HowItWorksSection';
+import { WhyChooseUsSection } from '@/components/home/WhyChooseUsSection';
+import { SuccessStoriesSection } from '@/components/home/SuccessStoriesSection';
+import Footer from '@/components/layout/Footer';
 import SEO from '@/components/SEO';
 
 const Index = () => {
@@ -27,6 +27,41 @@ const Index = () => {
     }
   };
 
+  // Sample data for components
+  const sampleBrand = {
+    id: "1",
+    name: "FoodCorp",
+    tagline: "Delicious food, proven success",
+    color: "from-orange-500 to-red-600",
+    image: "/placeholder.svg"
+  };
+
+  const sampleBrands = [
+    sampleBrand,
+    { id: "2", name: "RetailPlus", tagline: "Retail made simple", color: "from-blue-500 to-purple-600", image: "/placeholder.svg" },
+    { id: "3", name: "ServiceMax", tagline: "Service excellence", color: "from-green-500 to-teal-600", image: "/placeholder.svg" },
+    { id: "4", name: "TechFlow", tagline: "Technology solutions", color: "from-purple-500 to-pink-600", image: "/placeholder.svg" }
+  ];
+
+  const sampleTestimonials = [
+    {
+      name: "Maria Santos",
+      location: "Manila, Philippines",
+      brand: "FoodCorp",
+      rating: 5,
+      comment: "Best decision I ever made. The support is incredible!",
+      image: "/placeholder.svg"
+    },
+    {
+      name: "Juan Dela Cruz",
+      location: "Cebu, Philippines", 
+      brand: "RetailPlus",
+      rating: 5,
+      comment: "ROI exceeded expectations within 8 months.",
+      image: "/placeholder.svg"
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-white">
       <SEO
@@ -37,7 +72,7 @@ const Index = () => {
       <Navigation />
       
       <main>
-        <HeroSection />
+        <HeroSection currentBrand={sampleBrand} />
         
         {/* CTA Section */}
         <section className="py-16 bg-blue-600 text-white">
@@ -60,10 +95,14 @@ const Index = () => {
           </div>
         </section>
 
-        <BrandSelector />
+        <BrandSelector 
+          brands={sampleBrands} 
+          selectedBrand="1" 
+          onBrandChange={() => {}} 
+        />
         <HowItWorksSection />
         <WhyChooseUsSection />
-        <SuccessStoriesSection />
+        <SuccessStoriesSection testimonials={sampleTestimonials} isLoading={false} />
       </main>
 
       <Footer />

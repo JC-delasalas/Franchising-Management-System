@@ -8,7 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { AuthorizationProvider } from "@/contexts/AuthorizationContext";
 import { RequireSupabaseAuth, GuestOnlySupabase } from "@/components/auth/SupabaseAuthGuard";
 import { HelmetProvider } from 'react-helmet-async';
-import GlobalErrorBoundary from "@/components/GlobalErrorBoundary";
+import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 import { LoadingSpinner } from "@/components/ui/loading";
 
 const Index = lazy(() => import("./pages/Index"));

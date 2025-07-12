@@ -21,13 +21,14 @@ interface ProfileFormData {
 
 interface UserProfile {
   user_id: string;
-  first_name: string;
-  last_name: string;
+  first_nm: string;
+  last_nm: string;
   phone_no: string | null;
   avatar_url: string | null;
-  account_type: string;
-  role: string | null;
+  franchisor_id: string;
   status: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface SupabaseUserProfileProps {
@@ -79,8 +80,8 @@ const SupabaseUserProfile: React.FC<SupabaseUserProfileProps> = ({ onLogout }) =
       setProfile(data);
       setProfileImage(data.avatar_url || '');
       form.reset({
-        firstName: data.first_name || '',
-        lastName: data.last_name || '',
+        firstName: data.first_nm || '',
+        lastName: data.last_nm || '',
         phone: data.phone_no || '',
       });
     } catch (error) {
@@ -109,8 +110,8 @@ const SupabaseUserProfile: React.FC<SupabaseUserProfileProps> = ({ onLogout }) =
       const { error } = await supabase
         .from('user_profiles')
         .update({
-          first_name: data.firstName,
-          last_name: data.lastName,
+          first_nm: data.firstName,
+          last_nm: data.lastName,
           phone_no: data.phone,
           avatar_url: profileImage || null,
         })
@@ -123,8 +124,8 @@ const SupabaseUserProfile: React.FC<SupabaseUserProfileProps> = ({ onLogout }) =
       // Update local state
       setProfile({
         ...profile,
-        first_name: data.firstName,
-        last_name: data.lastName,
+        first_nm: data.firstName,
+        last_nm: data.lastName,
         phone_no: data.phone,
         avatar_url: profileImage || null,
       });
@@ -187,9 +188,9 @@ const SupabaseUserProfile: React.FC<SupabaseUserProfileProps> = ({ onLogout }) =
         <div className="flex items-center space-x-4">
           <div className="relative">
             <Avatar className="w-20 h-20">
-              <AvatarImage src={profileImage} alt={`${profile.first_name} ${profile.last_name}`} />
+              <AvatarImage src={profileImage} alt={`${profile.first_nm} ${profile.last_nm}`} />
               <AvatarFallback className="bg-blue-100 text-blue-600 text-lg">
-                {profile.first_name.charAt(0)}{profile.last_name.charAt(0)}
+                {profile.first_nm.charAt(0)}{profile.last_nm.charAt(0)}
               </AvatarFallback>
             </Avatar>
             {isEditing && (
@@ -205,8 +206,8 @@ const SupabaseUserProfile: React.FC<SupabaseUserProfileProps> = ({ onLogout }) =
             )}
           </div>
           <div>
-            <h3 className="font-semibold text-lg">{profile.first_name} {profile.last_name}</h3>
-            <p className="text-gray-600 capitalize">{profile.account_type}</p>
+            <h3 className="font-semibold text-lg">{profile.first_nm} {profile.last_nm}</h3>
+            <p className="text-gray-600 capitalize">{profile.status}</p>
             <p className="text-sm text-gray-500">{user.email}</p>
           </div>
         </div>
