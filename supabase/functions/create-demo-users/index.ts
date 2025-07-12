@@ -25,7 +25,7 @@ serve(async (req) => {
       }
     });
 
-    // Create demo users
+    // Create demo users with proper franchisor_id
     const demoUsers = [
       {
         email: 'demo@franchisee.com',
@@ -33,8 +33,10 @@ serve(async (req) => {
         userData: {
           first_name: 'Demo',
           last_name: 'Franchisee',
+          phone: '+1-555-0100',
           account_type: 'franchisee',
-          role: 'franchisee'
+          role: 'franchisee',
+          franchisor_id: 'f2c98ac4-438e-4902-a232-3a7479242cf1'
         }
       },
       {
@@ -43,8 +45,10 @@ serve(async (req) => {
         userData: {
           first_name: 'Demo',
           last_name: 'Franchisor',
+          phone: '+1-555-0101',
           account_type: 'franchisor',
-          role: 'franchisor'
+          role: 'franchisor',
+          franchisor_id: 'f2c98ac4-438e-4902-a232-3a7479242cf1'
         }
       }
     ];
