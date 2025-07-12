@@ -1,227 +1,176 @@
-import React, { Suspense, useEffect } from "react";
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import ErrorBoundary from "@/components/ErrorBoundary";
-import AppErrorBoundary from "@/components/AppErrorBoundary";
-import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
-import ComponentErrorBoundary from "@/components/ui/ComponentErrorBoundary";
-import { PageLoading } from "@/components/ui/loading";
-import { SessionTimeoutWarning } from "@/components/auth/SessionTimeoutWarning";
-import { useSessionManager } from "@/hooks/useSessionManager";
-import { getCurrentUser } from "@/services/authService";
-import { validateConfig } from "@/config/environment";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
 import { AuthorizationProvider } from "@/contexts/AuthorizationContext";
-import { AuthGuard, RequireAuth, GuestOnly } from "@/components/auth/AuthGuard";
-import { performanceService } from '@/services/performanceService';
+import { RequireSupabaseAuth, GuestOnlySupabase } from "@/components/auth/SupabaseAuthGuard";
+import { HelmetProvider } from 'react-helmet-async';
+import GlobalErrorBoundary from "@/components/GlobalErrorBoundary";
+import { LoadingSpinner } from "@/components/ui/loading";
 
-// Lazy load pages for better performance
-const Index = React.lazy(() => import("./pages/Index"));
-const Apply = React.lazy(() => import("./pages/Apply"));
-const Login = React.lazy(() => import("./pages/Login"));
-const Signup = React.lazy(() => import("./pages/Signup"));
-const Contact = React.lazy(() => import("./pages/Contact"));
-const Blog = React.lazy(() => import("./pages/Blog"));
-const BlogPost = React.lazy(() => import("./pages/BlogPost"));
-const BrandMicrosite = React.lazy(() => import("./pages/BrandMicrosite"));
+const Index = lazy(() => import("./pages/Index"));
+const Apply = lazy(() => import("./pages/Apply"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
+const BrandMicrosite = lazy(() => import("./pages/BrandMicrosite"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Login = lazy(() => import("./pages/Login"));
+const Signup = lazy(() => import("./pages/Signup"));
+const SupabaseLogin = lazy(() => import("./pages/SupabaseLogin"));
+const SupabaseSignup = lazy(() => import("./pages/SupabaseSignup"));
+const FranchiseeDashboard = lazy(() => import("./pages/FranchiseeDashboard"));
+const FranchisorDashboard = lazy(() => import("./pages/FranchisorDashboard"));
+const FranchiseeAnalytics = lazy(() => import("./pages/FranchiseeAnalytics"));
+const FranchisorAnalytics = lazy(() => import("./pages/FranchisorAnalytics"));
+const FranchiseeTraining = lazy(() => import("./pages/FranchiseeTraining"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const IAMManagement = lazy(() => import("./pages/IAMManagement"));
 
-// Dashboard pages
-const FranchisorDashboard = React.lazy(() => import("./pages/FranchisorDashboard"));
-const FranchiseeDashboard = React.lazy(() => import("./pages/FranchiseeDashboard"));
-const FranchiseeTraining = React.lazy(() => import("./pages/FranchiseeTraining"));
+// Franchisee pages
+const ContractPackage = lazy(() => import("./pages/franchisee/ContractPackage"));
+const InventoryOrder = lazy(() => import("./pages/franchisee/InventoryOrder"));
+const MarketingAssets = lazy(() => import("./pages/franchisee/MarketingAssets"));
+const SalesUpload = lazy(() => import("./pages/franchisee/SalesUpload"));
+const SupportRequests = lazy(() => import("./pages/franchisee/SupportRequests"));
 
-// Analytics pages
-const FranchisorAnalytics = React.lazy(() => import("./pages/FranchisorAnalytics"));
-const FranchiseeAnalytics = React.lazy(() => import("./pages/FranchiseeAnalytics"));
+// Franchisor pages
+const OrderManagement = lazy(() => import("./pages/franchisor/OrderManagement"));
 
-// IAM pages
-const IAMManagement = React.lazy(() => import("./pages/IAMManagement"));
-
-// Franchisee sub-pages
-const SalesUpload = React.lazy(() => import("./pages/franchisee/SalesUpload"));
-const InventoryOrder = React.lazy(() => import("./pages/franchisee/InventoryOrder"));
-const MarketingAssets = React.lazy(() => import("./pages/franchisee/MarketingAssets"));
-const ContractPackage = React.lazy(() => import("./pages/franchisee/ContractPackage"));
-const SupportRequests = React.lazy(() => import("./pages/franchisee/SupportRequests"));
-
-// 404 page
-const NotFound = React.lazy(() => import("./pages/NotFound"));
-
-// Optimized React Query configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: (failureCount, error) => {
-        if (error && typeof error === 'object' && 'status' in error) {
-          const status = (error as any).status;
-          if (status >= 400 && status < 500) return false;
-        }
-        return failureCount < 2;
-      },
-      staleTime: 5 * 60 * 1000,
-      gcTime: 10 * 60 * 1000,
+      staleTime: 1000 * 60 * 5, // 5 minutes
       refetchOnWindowFocus: false,
-      refetchOnReconnect: true,
-    },
-    mutations: {
-      retry: 1,
     },
   },
 });
 
-// Validate configuration on app start
-try {
-  validateConfig();
-} catch (error) {
-  console.error('Configuration validation failed:', error);
-}
-
-const SessionWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const user = getCurrentUser();
-  const {
-    showWarning,
-    formatTimeRemaining,
-    refreshSession,
-    handleSessionTimeout
-  } = useSessionManager();
-
-  return (
-    <>
-      {children}
-      {user && (
-        <SessionTimeoutWarning
-          timeRemaining={formatTimeRemaining()}
-          onRefreshSession={refreshSession}
-          onLogout={handleSessionTimeout}
-          show={showWarning}
-        />
-      )}
-    </>
-  );
-};
-
 function App() {
-  useEffect(() => {
-    // Initialize performance optimizations
-    performanceService.init();
-  }, []);
-
   return (
-    <GlobalErrorBoundary>
-      <AppErrorBoundary>
-        <ErrorBoundary>
-          <QueryClientProvider client={queryClient}>
+    <HelmetProvider>
+      <GlobalErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
             <AuthorizationProvider>
-              <SessionWrapper>
-                <TooltipProvider>
-                  <Toaster />
-                  <Sonner />
-                  <BrowserRouter>
-                    <ComponentErrorBoundary>
-                      <Suspense fallback={<PageLoading />}>
-                        <Routes>
-                          {/* Public Routes */}
-                          <Route path="/" element={<Index />} />
-                          <Route path="/contact" element={<Contact />} />
-                          <Route path="/blog" element={<Blog />} />
-                          <Route path="/blog/:id" element={<BlogPost />} />
-                          <Route path="/brand/:brandId" element={<BrandMicrosite />} />
-                          
-                          {/* Guest Only Routes (redirect if logged in) */}
-                          <Route path="/login" element={
-                            <GuestOnly>
-                              <Login />
-                            </GuestOnly>
-                          } />
-                          <Route path="/signup" element={
-                            <GuestOnly>
-                              <Signup />
-                            </GuestOnly>
-                          } />
-                          <Route path="/apply" element={
-                            <GuestOnly>
-                              <Apply />
-                            </GuestOnly>
-                          } />
-                          
-                          {/* Protected Franchisor Routes */}
-                          <Route path="/franchisor-dashboard" element={
-                            <RequireAuth role="franchisor">
-                              <FranchisorDashboard />
-                            </RequireAuth>
-                          } />
-                          <Route path="/franchisor-analytics" element={
-                            <RequireAuth role="franchisor">
-                              <FranchisorAnalytics />
-                            </RequireAuth>
-                          } />
-                          
-                          {/* Protected Franchisee Routes */}
-                          <Route path="/franchisee-dashboard" element={
-                            <RequireAuth role="franchisee">
-                              <FranchiseeDashboard />
-                            </RequireAuth>
-                          } />
-                          <Route path="/franchisee-analytics" element={
-                            <RequireAuth role="franchisee">
-                              <FranchiseeAnalytics />
-                            </RequireAuth>
-                          } />
-                          <Route path="/franchisee-training" element={
-                            <RequireAuth role="franchisee">
-                              <FranchiseeTraining />
-                            </RequireAuth>
-                          } />
-                          
-                          {/* Protected Franchisee Sub-pages */}
-                          <Route path="/franchisee/sales-upload" element={
-                            <RequireAuth role="franchisee">
-                              <SalesUpload />
-                            </RequireAuth>
-                          } />
-                          <Route path="/franchisee/inventory-order" element={
-                            <RequireAuth role="franchisee">
-                              <InventoryOrder />
-                            </RequireAuth>
-                          } />
-                          <Route path="/franchisee/marketing-assets" element={
-                            <RequireAuth role="franchisee">
-                              <MarketingAssets />
-                            </RequireAuth>
-                          } />
-                          <Route path="/franchisee/contract-package" element={
-                            <RequireAuth role="franchisee">
-                              <ContractPackage />
-                            </RequireAuth>
-                          } />
-                          <Route path="/franchisee/support-requests" element={
-                            <RequireAuth role="franchisee">
-                              <SupportRequests />
-                            </RequireAuth>
-                          } />
-                          
-                          {/* Protected IAM Routes (requires special permissions) */}
-                          <Route path="/iam-management" element={
-                            <RequireAuth>
-                              <IAMManagement />
-                            </RequireAuth>
-                          } />
-                          
-                          {/* Catch-all route - MUST be last */}
-                          <Route path="*" element={<NotFound />} />
-                        </Routes>
-                      </Suspense>
-                    </ComponentErrorBoundary>
-                  </BrowserRouter>
-                </TooltipProvider>
-              </SessionWrapper>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <div className="min-h-screen bg-background">
+                    <Suspense fallback={
+                      <div className="min-h-screen flex items-center justify-center">
+                        <LoadingSpinner size="lg" />
+                      </div>
+                    }>
+                      <Routes>
+                        {/* Public routes */}
+                        <Route path="/" element={<Index />} />
+                        <Route path="/apply" element={<Apply />} />
+                        <Route path="/blog" element={<Blog />} />
+                        <Route path="/blog/:slug" element={<BlogPost />} />
+                        <Route path="/brands/:brandSlug" element={<BrandMicrosite />} />
+                        <Route path="/contact" element={<Contact />} />
+
+                        {/* Legacy auth routes (keep for existing users) */}
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/signup" element={<Signup />} />
+
+                        {/* New Supabase auth routes */}
+                        <Route path="/supabase-login" element={
+                          <GuestOnlySupabase>
+                            <SupabaseLogin />
+                          </GuestOnlySupabase>
+                        } />
+                        <Route path="/supabase-signup" element={
+                          <GuestOnlySupabase>
+                            <SupabaseSignup />
+                          </GuestOnlySupabase>
+                        } />
+
+                        {/* Protected routes */}
+                        <Route path="/franchisee-dashboard" element={
+                          <RequireSupabaseAuth>
+                            <FranchiseeDashboard />
+                          </RequireSupabaseAuth>
+                        } />
+                        <Route path="/franchisor-dashboard" element={
+                          <RequireSupabaseAuth>
+                            <FranchisorDashboard />
+                          </RequireSupabaseAuth>
+                        } />
+                        <Route path="/franchisee-analytics" element={
+                          <RequireSupabaseAuth>
+                            <FranchiseeAnalytics />
+                          </RequireSupabaseAuth>
+                        } />
+                        <Route path="/franchisor-analytics" element={
+                          <RequireSupabaseAuth>
+                            <FranchisorAnalytics />
+                          </RequireSupabaseAuth>
+                        } />
+                        <Route path="/franchisee-training" element={
+                          <RequireSupabaseAuth>
+                            <FranchiseeTraining />
+                          </RequireSupabaseAuth>
+                        } />
+                        <Route path="/iam-management" element={
+                          <RequireSupabaseAuth>
+                            <IAMManagement />
+                          </RequireSupabaseAuth>
+                        } />
+
+                        {/* Franchisee specific routes */}
+                        <Route path="/franchisee/contract-package" element={
+                          <RequireSupabaseAuth>
+                            <ContractPackage />
+                          </RequireSupabaseAuth>
+                        } />
+                        <Route path="/franchisee/inventory-order" element={
+                          <RequireSupabaseAuth>
+                            <InventoryOrder />
+                          </RequireSupabaseAuth>
+                        } />
+                        <Route path="/franchisee/marketing-assets" element={
+                          <RequireSupabaseAuth>
+                            <MarketingAssets />
+                          </RequireSupabaseAuth>
+                        } />
+                        <Route path="/franchisee/sales-upload" element={
+                          <RequireSupabaseAuth>
+                            <SalesUpload />
+                          </RequireSupabaseAuth>
+                        } />
+                        <Route path="/franchisee/support-requests" element={
+                          <RequireSupabaseAuth>
+                            <SupportRequests />
+                          </RequireSupabaseAuth>
+                        } />
+
+                        {/* Franchisor specific routes */}
+                        <Route path="/franchisor/order-management" element={
+                          <RequireSupabaseAuth>
+                            <OrderManagement />
+                          </RequireSupabaseAuth>
+                        } />
+
+                        {/* Redirect old auth to new auth */}
+                        <Route path="/auth" element={<Navigate to="/supabase-login" replace />} />
+
+                        {/* Catch all */}
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Suspense>
+                  </div>
+                </BrowserRouter>
+              </TooltipProvider>
             </AuthorizationProvider>
-          </QueryClientProvider>
-        </ErrorBoundary>
-      </AppErrorBoundary>
-    </GlobalErrorBoundary>
+          </AuthProvider>
+        </QueryClientProvider>
+      </GlobalErrorBoundary>
+    </HelmetProvider>
   );
 }
 
