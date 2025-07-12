@@ -139,6 +139,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log('Attempting signin for:', email);
       
+      // Demo bypass for testing
+      if ((email === 'demo@franchisee.com' || email === 'demo@franchisor.com') && password === 'demo123') {
+        console.log('Demo login bypass activated for:', email);
+        
+        // Create a mock session for demo purposes
+        const mockUser = {
+          id: email === 'demo@franchisee.com' ? 'demo-franchisee-id' : 'demo-franchisor-id',
+          email: email,
+          user_metadata: {
+            first_name: 'Demo',
+            last_name: email === 'demo@franchisee.com' ? 'Franchisee' : 'Franchisor',
+            account_type: email === 'demo@franchisee.com' ? 'franchisee' : 'franchisor'
+          }
+        } as any;
+        
+        const mockSession = {
+          user: mockUser,
+          access_token: 'demo-token',
+          refresh_token: 'demo-refresh-token'
+        } as any;
+        
+        // Set the demo session
+        setUser(mockUser);
+        setSession(mockSession);
+        
+        console.log('Demo login successful for:', email);
+        return { error: null };
+      }
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
