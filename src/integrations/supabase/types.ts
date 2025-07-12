@@ -252,6 +252,143 @@ export type Database = {
           },
         ]
       }
+      daily_sales_report: {
+        Row: {
+          created_at: string
+          file_path: string | null
+          franchisee_id: string
+          location_id: string
+          notes: string | null
+          report_date: string
+          report_id: string
+          status: string
+          submitted_by: string | null
+          total_sales: number
+          total_transactions: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          file_path?: string | null
+          franchisee_id: string
+          location_id: string
+          notes?: string | null
+          report_date: string
+          report_id?: string
+          status?: string
+          submitted_by?: string | null
+          total_sales?: number
+          total_transactions?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          file_path?: string | null
+          franchisee_id?: string
+          location_id?: string
+          notes?: string | null
+          report_date?: string
+          report_id?: string
+          status?: string
+          submitted_by?: string | null
+          total_sales?: number
+          total_transactions?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_sales_report_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchisee"
+            referencedColumns: ["franchisee_id"]
+          },
+          {
+            foreignKeyName: "daily_sales_report_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "location"
+            referencedColumns: ["location_id"]
+          },
+          {
+            foreignKeyName: "daily_sales_report_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      file_maintenance: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          file_id: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string
+          franchisee_id: string | null
+          franchisor_id: string
+          status: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          file_id?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type: string
+          franchisee_id?: string | null
+          franchisor_id: string
+          status?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          file_id?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          franchisee_id?: string | null
+          franchisor_id?: string
+          status?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_maintenance_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchisee"
+            referencedColumns: ["franchisee_id"]
+          },
+          {
+            foreignKeyName: "file_maintenance_franchisor_id_fkey"
+            columns: ["franchisor_id"]
+            isOneToOne: false
+            referencedRelation: "franchisor"
+            referencedColumns: ["franchisor_id"]
+          },
+          {
+            foreignKeyName: "file_maintenance_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       franchisee: {
         Row: {
           brand_id: string
@@ -352,6 +489,79 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      generated_reports: {
+        Row: {
+          created_at: string
+          date_from: string | null
+          date_to: string | null
+          file_path: string | null
+          file_size: number | null
+          franchisee_id: string | null
+          franchisor_id: string
+          generated_by: string | null
+          parameters: Json | null
+          report_id: string
+          report_name: string
+          report_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date_from?: string | null
+          date_to?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          franchisee_id?: string | null
+          franchisor_id: string
+          generated_by?: string | null
+          parameters?: Json | null
+          report_id?: string
+          report_name: string
+          report_type: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date_from?: string | null
+          date_to?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          franchisee_id?: string | null
+          franchisor_id?: string
+          generated_by?: string | null
+          parameters?: Json | null
+          report_id?: string
+          report_name?: string
+          report_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generated_reports_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchisee"
+            referencedColumns: ["franchisee_id"]
+          },
+          {
+            foreignKeyName: "generated_reports_franchisor_id_fkey"
+            columns: ["franchisor_id"]
+            isOneToOne: false
+            referencedRelation: "franchisor"
+            referencedColumns: ["franchisor_id"]
+          },
+          {
+            foreignKeyName: "generated_reports_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       inventory: {
         Row: {
