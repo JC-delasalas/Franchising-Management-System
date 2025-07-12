@@ -15,7 +15,7 @@ export const SupabaseAuthGuard: React.FC<SupabaseAuthGuardProps> = ({
   children,
   requireAuth = true,
   requiredRole,
-  redirectTo = '/login'
+  redirectTo = '/supabase-login'
 }) => {
   const location = useLocation();
   const { user, loading } = useAuth();
@@ -31,12 +31,31 @@ export const SupabaseAuthGuard: React.FC<SupabaseAuthGuardProps> = ({
 
   // If authentication is not required but user is logged in (e.g., login page)
   if (!requireAuth && user) {
-    // We'll need to get user profile to determine dashboard route
-    return <Navigate to="/franchisee-dashboard" replace />;
+    // Get account type from user metadata or default to franchisee
+    const accountType = user.user_metadata?.account_type || user.user_metadata?.role || 'franchisee';
+    const dashboardRoute = accountType === 'franchisor' 
+      ? '/franchisor-dashboard' 
+      : '/franchisee-dashboard';
+    
+    // Check if coming from a previous location
+    const from = location.state?.from?.pathname;
+    const redirectTo = from && from !== '/supabase-login' && from !== '/supabase-signup' 
+      ? from 
+      : dashboardRoute;
+    
+    return <Navigate to={redirectTo} replace />;
   }
 
-  // For role-based access, we'll need to check user profile data
-  // This will be handled by individual dashboard components
+  // For role-based access, check user metadata
+  if (requiredRole && user) {
+    const userRole = user.user_metadata?.account_type || user.user_metadata?.role;
+    if (userRole !== requiredRole) {
+      const unauthorizedRoute = userRole === 'franchisor' 
+        ? '/franchisor-dashboard' 
+        : '/franchisee-dashboard';
+      return <Navigate to={unauthorizedRoute} replace />;
+    }
+  }
 
   return <>{children}</>;
 };

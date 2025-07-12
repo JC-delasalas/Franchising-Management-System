@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { LoadingSpinner } from '@/components/ui/loading';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { UserPlus, Eye, EyeOff } from 'lucide-react';
+import { UserPlus, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface SupabaseSignupFormProps {
   onVerificationRequired: (email: string) => void;
@@ -31,10 +31,12 @@ const SupabaseSignupForm: React.FC<SupabaseSignupFormProps> = ({ onVerificationR
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setErrors([]);
+    setShowSuccess(false);
   };
 
   const validateForm = () => {
@@ -69,6 +71,7 @@ const SupabaseSignupForm: React.FC<SupabaseSignupFormProps> = ({ onVerificationR
     if (!validateForm()) return;
     
     setIsLoading(true);
+    setShowSuccess(false);
 
     try {
       const { error } = await signUp(formData.email, formData.password, {
@@ -81,26 +84,58 @@ const SupabaseSignupForm: React.FC<SupabaseSignupFormProps> = ({ onVerificationR
       if (error) {
         if (error.message.includes('User already registered')) {
           setErrors(['An account with this email already exists. Please sign in instead.']);
+        } else if (error.message.includes('Invalid email')) {
+          setErrors(['Please enter a valid email address.']);
+        } else if (error.message.includes('Password')) {
+          setErrors(['Password must be at least 6 characters long.']);
         } else {
-          setErrors([error.message]);
+          setErrors([error.message || 'Failed to create account. Please try again.']);
         }
         return;
       }
 
+      // Show success message
+      setShowSuccess(true);
+      
       toast({
         title: "Account Created Successfully!",
         description: "Please check your email to verify your account before signing in.",
       });
       
+      // Call the verification required callback
       onVerificationRequired(formData.email);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Signup error:', error);
       setErrors(['An unexpected error occurred. Please try again.']);
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (showSuccess) {
+    return (
+      <Card className="max-w-md mx-auto">
+        <CardHeader className="text-center">
+          <CheckCircle className="w-12 h-12 mx-auto text-green-600 mb-4" />
+          <CardTitle className="text-2xl text-green-600">Account Created!</CardTitle>
+          <p className="text-gray-600">We've sent a verification link to {formData.email}</p>
+        </CardHeader>
+        <CardContent className="text-center space-y-4">
+          <p className="text-sm text-gray-600">
+            Please check your email and click the verification link to activate your account.
+            You may need to check your spam folder.
+          </p>
+          <Button 
+            onClick={() => window.location.href = '/supabase-login'}
+            className="w-full"
+          >
+            Go to Sign In
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="max-w-md mx-auto">
@@ -225,9 +260,14 @@ const SupabaseSignupForm: React.FC<SupabaseSignupFormProps> = ({ onVerificationR
 
           {errors.length > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-md p-3">
-              {errors.map((error, index) => (
-                <p key={index} className="text-red-600 text-sm">{error}</p>
-              ))}
+              <div className="flex items-start">
+                <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 mr-2 flex-shrink-0" />
+                <div>
+                  {errors.map((error, index) => (
+                    <p key={index} className="text-red-600 text-sm">{error}</p>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 

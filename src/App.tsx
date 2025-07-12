@@ -71,12 +71,21 @@ function App() {
                         <Route path="/apply" element={<Apply />} />
                         <Route path="/blog" element={<Blog />} />
                         <Route path="/blog/:slug" element={<BlogPost />} />
+                        <Route path="/brand/:brandId" element={<BrandMicrosite />} />
                         <Route path="/brands/:brandSlug" element={<BrandMicrosite />} />
                         <Route path="/contact" element={<Contact />} />
 
                         {/* Legacy auth routes (keep for existing users) */}
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/signup" element={<Signup />} />
+                        <Route path="/login" element={
+                          <GuestOnlySupabase>
+                            <Login />
+                          </GuestOnlySupabase>
+                        } />
+                        <Route path="/signup" element={
+                          <GuestOnlySupabase>
+                            <Signup />
+                          </GuestOnlySupabase>
+                        } />
 
                         {/* New Supabase auth routes */}
                         <Route path="/supabase-login" element={
@@ -156,8 +165,10 @@ function App() {
                           </RequireSupabaseAuth>
                         } />
 
-                        {/* Redirect old auth to new auth */}
+                        {/* Redirect patterns */}
                         <Route path="/auth" element={<Navigate to="/supabase-login" replace />} />
+                        <Route path="/auth/login" element={<Navigate to="/supabase-login" replace />} />
+                        <Route path="/auth/signup" element={<Navigate to="/supabase-signup" replace />} />
 
                         {/* Catch all */}
                         <Route path="*" element={<NotFound />} />
