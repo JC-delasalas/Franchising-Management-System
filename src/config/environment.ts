@@ -47,6 +47,13 @@ export const config = {
     googleAnalyticsId: import.meta.env.VITE_GOOGLE_ANALYTICS_ID || '',
   },
 
+  // Supabase Configuration
+  supabase: {
+    url: import.meta.env.VITE_SUPABASE_URL || '',
+    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+    serviceRoleKey: import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || '',
+  },
+
   // Security
   security: {
     maxFileUploadSize: parseInt(import.meta.env.VITE_MAX_FILE_UPLOAD_SIZE || '5242880'), // 5MB

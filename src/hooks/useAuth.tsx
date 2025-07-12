@@ -1,14 +1,20 @@
 
 import { useState, useEffect, useContext, createContext, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/integrations/supabase/types';
+
+type UserProfile = Database['public']['Tables']['user_profiles']['Row'];
 
 interface AuthContextType {
   user: User | null;
+  userProfile: UserProfile | null;
   session: Session | null;
   signUp: (email: string, password: string, userData: SignupUserData) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
+  resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
+  updateProfile: (updates: Partial<UserProfile>) => Promise<{ error: any }>;
   loading: boolean;
 }
 
@@ -23,6 +29,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -33,21 +40,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
-        
+
         console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
+
+        // Fetch user profile when signed in
+        if (session?.user) {
+          await fetchUserProfile(session.user.id);
+        } else {
+          setUserProfile(null);
+        }
+
         setLoading(false);
 
         // Handle specific auth events
         if (event === 'SIGNED_IN' && session?.user) {
           console.log('User signed in successfully:', session.user.email);
         }
-        
+
         if (event === 'SIGNED_OUT') {
           console.log('User signed out');
           setSession(null);
           setUser(null);
+          setUserProfile(null);
         }
 
         if (event === 'TOKEN_REFRESHED' && session) {
@@ -71,6 +87,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (mounted) {
             setSession(session);
             setUser(session?.user ?? null);
+
+            if (session?.user) {
+              await fetchUserProfile(session.user.id);
+            }
+
             setLoading(false);
           }
         }
@@ -89,6 +110,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       subscription.unsubscribe();
     };
   }, []);
+
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return;
+      }
+
+      setUserProfile(data);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   const signUp = async (email: string, password: string, userData: SignupUserData) => {
     try {
@@ -200,29 +240,58 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = async () => {
     try {
       console.log('Signing out user:', user?.email);
-      
+
       const { error } = await supabase.auth.signOut();
-      
+
       if (error) {
         console.error('Signout error:', error);
         return { error };
       }
 
+      // Clear user profile on signout
+      setUserProfile(null);
       console.log('Signout successful');
       return { error: null };
-      
+
     } catch (error) {
       console.error('Unexpected signout error:', error);
       return { error };
     }
   };
 
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    return { error };
+  };
+
+  const updateProfile = async (updates: Partial<UserProfile>) => {
+    if (!user) {
+      return { error: new Error('No user logged in') };
+    }
+
+    const { error } = await supabase
+      .from('user_profiles')
+      .update(updates)
+      .eq('user_id', user.id);
+
+    if (!error) {
+      setUserProfile(prev => prev ? { ...prev, ...updates } : null);
+    }
+
+    return { error };
+  };
+
   const value = {
     user,
+    userProfile,
     session,
     signUp,
     signIn,
     signOut,
+    resetPassword,
+    updateProfile,
     loading
   };
 
