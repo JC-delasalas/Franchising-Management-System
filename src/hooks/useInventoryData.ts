@@ -75,16 +75,13 @@ export const useInventoryData = (locationId?: string): UseInventoryDataReturn =>
     }
   }, [locationId]);
 
-  // Debounced refetch to prevent excessive API calls
-  const debouncedFetch = useDebounce(fetchData, 300);
-
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
   const refetch = useCallback(async () => {
-    await debouncedFetch();
-  }, [debouncedFetch]);
+    await fetchData();
+  }, [fetchData]);
 
   const createOrder = useCallback(async (orderData: any) => {
     try {
