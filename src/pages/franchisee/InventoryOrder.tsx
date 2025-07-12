@@ -1,55 +1,45 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Navigation from '@/components/Navigation';
 import SEO from '@/components/SEO';
-import { getCurrentUser } from '@/services/authService';
-import { ordersService, OrderItem } from '@/services/ordersService';
-import { cacheService } from '@/services/cacheService';
+import { inventoryService } from '@/services/inventoryService';
+import { useInventoryData } from '@/hooks/useInventoryData';
 import { InventoryHeader } from '@/components/inventory/InventoryHeader';
 import { InventorySearchFilter } from '@/components/inventory/InventorySearchFilter';
 import { InventoryItemsList } from '@/components/inventory/InventoryItemsList';
 import { ShoppingCart, CartItem } from '@/components/inventory/ShoppingCart';
 import { RecentOrdersSection } from '@/components/inventory/RecentOrdersSection';
-import { InventoryItem } from '@/components/inventory/InventoryItemCard';
+import { InventoryItem } from '@/services/inventoryService';
+import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const InventoryOrder = () => {
+  const { toast } = useToast();
+  const { inventoryItems, recentOrders, isLoading, error, refetch } = useInventoryData();
+  
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [orderNotes, setOrderNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [recentOrders, setRecentOrders] = useState(() => {
-    const user = getCurrentUser();
-    if (user) {
-      const cachedOrders = cacheService.get(`orders_${user.id}`);
-      if (cachedOrders) {
-        return cachedOrders;
-      }
-      const orders = ordersService.getOrdersByFranchisee(user.id);
-      cacheService.set(`orders_${user.id}`, orders);
-      return orders.slice(0, 3); // Show only recent 3
-    }
-    return [];
-  });
 
-  const inventoryItems: InventoryItem[] = [
-    { id: '1', name: 'Siomai Mix (500pcs)', currentStock: 45, unit: 'pcs', reorderLevel: 20, status: 'Good', price: 2500, category: 'Food' },
-    { id: '2', name: 'Sauce Packets (100pcs)', currentStock: 12, unit: 'boxes', reorderLevel: 15, status: 'Low', price: 450, category: 'Condiments' },
-    { id: '3', name: 'Disposable Containers (200pcs)', currentStock: 156, unit: 'pcs', reorderLevel: 50, status: 'Good', price: 1200, category: 'Packaging' },
-    { id: '4', name: 'Paper Bags (50 bundles)', currentStock: 8, unit: 'bundles', reorderLevel: 10, status: 'Critical', price: 800, category: 'Packaging' },
-    { id: '5', name: 'Chili Oil (1L)', currentStock: 5, unit: 'bottles', reorderLevel: 8, status: 'Critical', price: 350, category: 'Condiments' },
-    { id: '6', name: 'Soy Sauce (500ml)', currentStock: 25, unit: 'bottles', reorderLevel: 12, status: 'Good', price: 180, category: 'Condiments' },
-    { id: '7', name: 'Napkins (1000pcs)', currentStock: 3, unit: 'packs', reorderLevel: 5, status: 'Low', price: 250, category: 'Supplies' },
-    { id: '8', name: 'Plastic Spoons (500pcs)', currentStock: 45, unit: 'packs', reorderLevel: 20, status: 'Good', price: 320, category: 'Supplies' }
-  ];
+  // Memoized categories for performance
+  const categories = useMemo(() => {
+    const uniqueCategories = [...new Set(inventoryItems.map(item => item.category))];
+    return ['All', ...uniqueCategories];
+  }, [inventoryItems]);
 
-  const categories = ['All', 'Food', 'Condiments', 'Packaging', 'Supplies'];
-
-  const filteredItems = inventoryItems.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  // Memoized filtered items for performance
+  const filteredItems = useMemo(() => {
+    return inventoryItems.filter(item => {
+      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [inventoryItems, searchTerm, selectedCategory]);
 
   const addToCart = (item: InventoryItem) => {
     const existingItem = cart.find(cartItem => cartItem.id === item.id);
@@ -62,6 +52,11 @@ const InventoryOrder = () => {
     } else {
       setCart([...cart, { ...item, quantity: 1 }]);
     }
+
+    toast({
+      title: "Item added to cart",
+      description: `${item.name} has been added to your cart.`,
+    });
   };
 
   const updateQuantity = (id: string, quantity: number) => {
@@ -91,23 +86,20 @@ const InventoryOrder = () => {
   };
 
   const handleCheckout = async () => {
-    const user = getCurrentUser();
-    if (!user) {
-      alert('Please log in to place an order');
-      return;
-    }
-
     const validationErrors = validateOrder();
     if (validationErrors.length > 0) {
-      alert('Please fix the following errors:\n' + validationErrors.join('\n'));
+      toast({
+        title: "Order validation failed",
+        description: validationErrors.join(', '),
+        variant: "destructive"
+      });
       return;
     }
 
     setIsSubmitting(true);
     
     try {
-      // Convert cart items to order items
-      const orderItems: OrderItem[] = cart.map(item => ({
+      const orderItems = cart.map(item => ({
         id: item.id,
         name: item.name,
         quantity: item.quantity,
@@ -115,32 +107,89 @@ const InventoryOrder = () => {
         unit: item.unit
       }));
 
-      // Create the order
-      const order = ordersService.createOrder(
-        user.id,
-        `${user.firstName} ${user.lastName}`,
-        orderItems,
-        orderNotes.trim() || undefined
-      );
-
-      // Clear cache and update recent orders
-      cacheService.invalidate(`orders_${user.id}`);
-      const updatedOrders = ordersService.getOrdersByFranchisee(user.id);
-      cacheService.set(`orders_${user.id}`, updatedOrders);
-      setRecentOrders(updatedOrders.slice(0, 3));
+      const order = await inventoryService.createOrder(orderItems, orderNotes.trim() || undefined);
 
       // Clear form
       setCart([]);
       setOrderNotes('');
 
-      alert(`✅ Order placed successfully!\n\nOrder ID: ${order.id}\nTotal: ₱${order.totalAmount.toLocaleString()}\nItems: ${order.items.length}\n\nYour order is now being processed and will be delivered in 3-5 business days.`);
+      // Refresh data
+      await refetch();
+
+      toast({
+        title: "Order placed successfully!",
+        description: `Order ${order.id} has been submitted for processing. Total: ₱${order.totalAmount.toLocaleString()}`,
+      });
     } catch (error) {
       console.error('Error placing order:', error);
-      alert('Failed to place order. Please try again.');
+      toast({
+        title: "Failed to place order",
+        description: "Please try again or contact support if the problem persists.",
+        variant: "destructive"
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <SEO
+          title="Inventory Order - Franchisee Dashboard"
+          description="Order inventory items and manage stock levels for your franchise"
+          noIndex={true}
+        />
+        <Navigation />
+
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <InventoryHeader />
+          
+          <div className="grid lg:grid-cols-4 gap-8">
+            <div className="lg:col-span-3 space-y-6">
+              <Skeleton className="h-20 w-full" />
+              <div className="grid md:grid-cols-2 gap-4">
+                {[...Array(6)].map((_, i) => (
+                  <Skeleton key={i} className="h-40 w-full" />
+                ))}
+              </div>
+            </div>
+            <div>
+              <Skeleton className="h-96 w-full" />
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <SEO
+          title="Inventory Order - Franchisee Dashboard"
+          description="Order inventory items and manage stock levels for your franchise"
+          noIndex={true}
+        />
+        <Navigation />
+
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <InventoryHeader />
+          
+          <Alert variant="destructive" className="mb-6">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription className="flex items-center justify-between">
+              <span>Failed to load inventory data: {error}</span>
+              <Button variant="outline" size="sm" onClick={refetch}>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Retry
+              </Button>
+            </AlertDescription>
+          </Alert>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

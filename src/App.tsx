@@ -1,5 +1,4 @@
-
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,6 +15,7 @@ import { getCurrentUser } from "@/services/authService";
 import { validateConfig } from "@/config/environment";
 import { AuthorizationProvider } from "@/contexts/AuthorizationContext";
 import { AuthGuard, RequireAuth, GuestOnly } from "@/components/auth/AuthGuard";
+import { performanceService } from '@/services/performanceService';
 
 // Lazy load pages for better performance
 const Index = React.lazy(() => import("./pages/Index"));
@@ -102,120 +102,127 @@ const SessionWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =
   );
 };
 
-const App = () => (
-  <GlobalErrorBoundary>
-    <AppErrorBoundary>
-      <ErrorBoundary>
-        <QueryClientProvider client={queryClient}>
-          <AuthorizationProvider>
-            <SessionWrapper>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
-                  <ComponentErrorBoundary>
-                    <Suspense fallback={<PageLoading />}>
-                      <Routes>
-                        {/* Public Routes */}
-                        <Route path="/" element={<Index />} />
-                        <Route path="/contact" element={<Contact />} />
-                        <Route path="/blog" element={<Blog />} />
-                        <Route path="/blog/:id" element={<BlogPost />} />
-                        <Route path="/brand/:brandId" element={<BrandMicrosite />} />
-                        
-                        {/* Guest Only Routes (redirect if logged in) */}
-                        <Route path="/login" element={
-                          <GuestOnly>
-                            <Login />
-                          </GuestOnly>
-                        } />
-                        <Route path="/signup" element={
-                          <GuestOnly>
-                            <Signup />
-                          </GuestOnly>
-                        } />
-                        <Route path="/apply" element={
-                          <GuestOnly>
-                            <Apply />
-                          </GuestOnly>
-                        } />
-                        
-                        {/* Protected Franchisor Routes */}
-                        <Route path="/franchisor-dashboard" element={
-                          <RequireAuth role="franchisor">
-                            <FranchisorDashboard />
-                          </RequireAuth>
-                        } />
-                        <Route path="/franchisor-analytics" element={
-                          <RequireAuth role="franchisor">
-                            <FranchisorAnalytics />
-                          </RequireAuth>
-                        } />
-                        
-                        {/* Protected Franchisee Routes */}
-                        <Route path="/franchisee-dashboard" element={
-                          <RequireAuth role="franchisee">
-                            <FranchiseeDashboard />
-                          </RequireAuth>
-                        } />
-                        <Route path="/franchisee-analytics" element={
-                          <RequireAuth role="franchisee">
-                            <FranchiseeAnalytics />
-                          </RequireAuth>
-                        } />
-                        <Route path="/franchisee-training" element={
-                          <RequireAuth role="franchisee">
-                            <FranchiseeTraining />
-                          </RequireAuth>
-                        } />
-                        
-                        {/* Protected Franchisee Sub-pages */}
-                        <Route path="/franchisee/sales-upload" element={
-                          <RequireAuth role="franchisee">
-                            <SalesUpload />
-                          </RequireAuth>
-                        } />
-                        <Route path="/franchisee/inventory-order" element={
-                          <RequireAuth role="franchisee">
-                            <InventoryOrder />
-                          </RequireAuth>
-                        } />
-                        <Route path="/franchisee/marketing-assets" element={
-                          <RequireAuth role="franchisee">
-                            <MarketingAssets />
-                          </RequireAuth>
-                        } />
-                        <Route path="/franchisee/contract-package" element={
-                          <RequireAuth role="franchisee">
-                            <ContractPackage />
-                          </RequireAuth>
-                        } />
-                        <Route path="/franchisee/support-requests" element={
-                          <RequireAuth role="franchisee">
-                            <SupportRequests />
-                          </RequireAuth>
-                        } />
-                        
-                        {/* Protected IAM Routes (requires special permissions) */}
-                        <Route path="/iam-management" element={
-                          <RequireAuth>
-                            <IAMManagement />
-                          </RequireAuth>
-                        } />
-                        
-                        {/* Catch-all route - MUST be last */}
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </Suspense>
-                  </ComponentErrorBoundary>
-                </BrowserRouter>
-              </TooltipProvider>
-            </SessionWrapper>
-          </AuthorizationProvider>
-        </QueryClientProvider>
-      </ErrorBoundary>
-    </AppErrorBoundary>
-  </GlobalErrorBoundary>
-);
+function App() {
+  useEffect(() => {
+    // Initialize performance optimizations
+    performanceService.init();
+  }, []);
+
+  return (
+    <GlobalErrorBoundary>
+      <AppErrorBoundary>
+        <ErrorBoundary>
+          <QueryClientProvider client={queryClient}>
+            <AuthorizationProvider>
+              <SessionWrapper>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
+                    <ComponentErrorBoundary>
+                      <Suspense fallback={<PageLoading />}>
+                        <Routes>
+                          {/* Public Routes */}
+                          <Route path="/" element={<Index />} />
+                          <Route path="/contact" element={<Contact />} />
+                          <Route path="/blog" element={<Blog />} />
+                          <Route path="/blog/:id" element={<BlogPost />} />
+                          <Route path="/brand/:brandId" element={<BrandMicrosite />} />
+                          
+                          {/* Guest Only Routes (redirect if logged in) */}
+                          <Route path="/login" element={
+                            <GuestOnly>
+                              <Login />
+                            </GuestOnly>
+                          } />
+                          <Route path="/signup" element={
+                            <GuestOnly>
+                              <Signup />
+                            </GuestOnly>
+                          } />
+                          <Route path="/apply" element={
+                            <GuestOnly>
+                              <Apply />
+                            </GuestOnly>
+                          } />
+                          
+                          {/* Protected Franchisor Routes */}
+                          <Route path="/franchisor-dashboard" element={
+                            <RequireAuth role="franchisor">
+                              <FranchisorDashboard />
+                            </RequireAuth>
+                          } />
+                          <Route path="/franchisor-analytics" element={
+                            <RequireAuth role="franchisor">
+                              <FranchisorAnalytics />
+                            </RequireAuth>
+                          } />
+                          
+                          {/* Protected Franchisee Routes */}
+                          <Route path="/franchisee-dashboard" element={
+                            <RequireAuth role="franchisee">
+                              <FranchiseeDashboard />
+                            </RequireAuth>
+                          } />
+                          <Route path="/franchisee-analytics" element={
+                            <RequireAuth role="franchisee">
+                              <FranchiseeAnalytics />
+                            </RequireAuth>
+                          } />
+                          <Route path="/franchisee-training" element={
+                            <RequireAuth role="franchisee">
+                              <FranchiseeTraining />
+                            </RequireAuth>
+                          } />
+                          
+                          {/* Protected Franchisee Sub-pages */}
+                          <Route path="/franchisee/sales-upload" element={
+                            <RequireAuth role="franchisee">
+                              <SalesUpload />
+                            </RequireAuth>
+                          } />
+                          <Route path="/franchisee/inventory-order" element={
+                            <RequireAuth role="franchisee">
+                              <InventoryOrder />
+                            </RequireAuth>
+                          } />
+                          <Route path="/franchisee/marketing-assets" element={
+                            <RequireAuth role="franchisee">
+                              <MarketingAssets />
+                            </RequireAuth>
+                          } />
+                          <Route path="/franchisee/contract-package" element={
+                            <RequireAuth role="franchisee">
+                              <ContractPackage />
+                            </RequireAuth>
+                          } />
+                          <Route path="/franchisee/support-requests" element={
+                            <RequireAuth role="franchisee">
+                              <SupportRequests />
+                            </RequireAuth>
+                          } />
+                          
+                          {/* Protected IAM Routes (requires special permissions) */}
+                          <Route path="/iam-management" element={
+                            <RequireAuth>
+                              <IAMManagement />
+                            </RequireAuth>
+                          } />
+                          
+                          {/* Catch-all route - MUST be last */}
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </Suspense>
+                    </ComponentErrorBoundary>
+                  </BrowserRouter>
+                </TooltipProvider>
+              </SessionWrapper>
+            </AuthorizationProvider>
+          </QueryClientProvider>
+        </ErrorBoundary>
+      </AppErrorBoundary>
+    </GlobalErrorBoundary>
+  );
+}
 
 export default App;

@@ -2,6 +2,7 @@
 import React, { useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { BackButton } from '@/components/ui/BackButton';
 import Logo from '@/components/Logo';
 import {
   TrendingUp,
@@ -10,8 +11,7 @@ import {
   BookOpen,
   Phone,
   FileText,
-  Image as ImageIcon,
-  ArrowLeft
+  Image as ImageIcon
 } from 'lucide-react';
 
 const DashboardSidebar = React.memo(() => {
@@ -61,11 +61,13 @@ const DashboardSidebar = React.memo(() => {
       <div className="p-6">
         <div className="flex items-center justify-between mb-8">
           <Logo size="md" />
-          <Button variant="ghost" asChild size="sm" className="text-gray-900 hover:text-gray-700 p-1">
-            <Link to="/">
-              <ArrowLeft className="w-4 h-4" />
-            </Link>
-          </Button>
+          <BackButton 
+            to="/" 
+            label=""
+            variant="ghost"
+            size="sm"
+            className="text-gray-900 hover:text-gray-700 p-1"
+          />
         </div>
 
         <nav className="space-y-2">

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ShoppingCart } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
+import { useInventoryData } from '@/hooks/useInventoryData';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const inventoryItems = [
   { name: 'Siomai Mix', stock: 45, unit: 'pcs', reorderLevel: 20, status: 'Good' },
@@ -31,7 +33,51 @@ const getStockStatus = (status: string) => {
   }
 };
 
-export const InventoryTab: React.FC = () => {
+const InventoryTabComponent: React.FC = () => {
+  const { inventoryItems: realInventoryItems, isLoading } = useInventoryData();
+
+  // Use real data if available, otherwise fallback to mock data
+  const displayItems = realInventoryItems.length > 0 ? 
+    realInventoryItems.slice(0, 4).map(item => ({
+      name: item.name,
+      stock: item.currentStock,
+      unit: item.unit,
+      reorderLevel: item.reorderLevel,
+      status: item.status
+    })) : 
+    inventoryItems;
+
+  if (isLoading) {
+    return (
+      <div className="grid md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Current Inventory</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[...Array(4)].map((_, index) => (
+                <Skeleton key={index} className="h-16 w-full" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Order</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[...Array(4)].map((_, index) => (
+                <Skeleton key={index} className="h-16 w-full" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="grid md:grid-cols-2 gap-6">
       <Card>
@@ -40,7 +86,7 @@ export const InventoryTab: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {inventoryItems.map((item, index) => (
+            {displayItems.map((item, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
                   <p className="font-medium">{item.name}</p>
@@ -95,3 +141,5 @@ export const InventoryTab: React.FC = () => {
     </div>
   );
 };
+
+export const InventoryTab = memo(InventoryTabComponent);
