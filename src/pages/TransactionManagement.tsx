@@ -21,13 +21,15 @@ interface Transaction {
   metadata: any;
 }
 
+type TransactionStatus = 'pending' | 'completed' | 'failed' | 'refunded';
+
 const TransactionManagement = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [dateFilter, setDateFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | TransactionStatus>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -44,7 +46,7 @@ const TransactionManagement = () => {
         .order('txn_date', { ascending: false });
 
       if (statusFilter !== 'all') {
-        query = query.eq('status', statusFilter);
+        query = query.eq('status', statusFilter as TransactionStatus);
       }
 
       if (dateFilter !== 'all') {
@@ -202,7 +204,7 @@ const TransactionManagement = () => {
                 
                 <div>
                   <label className="block text-sm font-medium mb-2">Status</label>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <Select value={statusFilter} onValueChange={(value: 'all' | TransactionStatus) => setStatusFilter(value)}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
