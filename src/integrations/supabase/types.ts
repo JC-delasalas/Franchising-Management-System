@@ -17,31 +17,37 @@ export type Database = {
       audit_logs: {
         Row: {
           action_type: string
+          custom_fields: Json | null
           details: Json | null
           entity_id: string | null
           entity_type: string
           ip_address: unknown | null
           log_id: number
+          metadata: Json | null
           timestamp: string
           user_id: string | null
         }
         Insert: {
           action_type: string
+          custom_fields?: Json | null
           details?: Json | null
           entity_id?: string | null
           entity_type: string
           ip_address?: unknown | null
           log_id?: number
+          metadata?: Json | null
           timestamp?: string
           user_id?: string | null
         }
         Update: {
           action_type?: string
+          custom_fields?: Json | null
           details?: Json | null
           entity_id?: string | null
           entity_type?: string
           ip_address?: unknown | null
           log_id?: number
+          metadata?: Json | null
           timestamp?: string
           user_id?: string | null
         }
@@ -63,6 +69,8 @@ export type Database = {
           details: string | null
           franchisor_id: string
           logo_url: string | null
+          marketing_data: Json | null
+          metadata: Json | null
           tagline: string | null
           updated_at: string
         }
@@ -73,6 +81,8 @@ export type Database = {
           details?: string | null
           franchisor_id: string
           logo_url?: string | null
+          marketing_data?: Json | null
+          metadata?: Json | null
           tagline?: string | null
           updated_at?: string
         }
@@ -83,6 +93,8 @@ export type Database = {
           details?: string | null
           franchisor_id?: string
           logo_url?: string | null
+          marketing_data?: Json | null
+          metadata?: Json | null
           tagline?: string | null
           updated_at?: string
         }
@@ -398,9 +410,11 @@ export type Database = {
           created_at: string
           franchisee_id: string
           legal_nm: string | null
+          metadata: Json | null
           onboarding_status: string
           op_nm: string
           phone_no: string | null
+          preferences: Json | null
           status: Database["public"]["Enums"]["user_status_enum"]
           updated_at: string
         }
@@ -412,9 +426,11 @@ export type Database = {
           created_at?: string
           franchisee_id?: string
           legal_nm?: string | null
+          metadata?: Json | null
           onboarding_status?: string
           op_nm: string
           phone_no?: string | null
+          preferences?: Json | null
           status?: Database["public"]["Enums"]["user_status_enum"]
           updated_at?: string
         }
@@ -426,9 +442,11 @@ export type Database = {
           created_at?: string
           franchisee_id?: string
           legal_nm?: string | null
+          metadata?: Json | null
           onboarding_status?: string
           op_nm?: string
           phone_no?: string | null
+          preferences?: Json | null
           status?: Database["public"]["Enums"]["user_status_enum"]
           updated_at?: string
         }
@@ -844,7 +862,9 @@ export type Database = {
           franchisee_id: string
           location_id: string
           location_nm: string
+          metadata: Json | null
           opening_date: string | null
+          operating_hours: Json | null
           phone_no: string | null
           postal_code: string | null
           region: string | null
@@ -861,7 +881,9 @@ export type Database = {
           franchisee_id: string
           location_id?: string
           location_nm: string
+          metadata?: Json | null
           opening_date?: string | null
+          operating_hours?: Json | null
           phone_no?: string | null
           postal_code?: string | null
           region?: string | null
@@ -878,7 +900,9 @@ export type Database = {
           franchisee_id?: string
           location_id?: string
           location_nm?: string
+          metadata?: Json | null
           opening_date?: string | null
+          operating_hours?: Json | null
           phone_no?: string | null
           postal_code?: string | null
           region?: string | null
@@ -1008,8 +1032,10 @@ export type Database = {
           brand_id: string
           category_id: string | null
           created_at: string
+          custom_attributes: Json | null
           details: string | null
           is_active: boolean
+          metadata: Json | null
           product_id: string
           product_nm: string
           sku: string
@@ -1020,8 +1046,10 @@ export type Database = {
           brand_id: string
           category_id?: string | null
           created_at?: string
+          custom_attributes?: Json | null
           details?: string | null
           is_active?: boolean
+          metadata?: Json | null
           product_id?: string
           product_nm: string
           sku: string
@@ -1032,8 +1060,10 @@ export type Database = {
           brand_id?: string
           category_id?: string | null
           created_at?: string
+          custom_attributes?: Json | null
           details?: string | null
           is_active?: boolean
+          metadata?: Json | null
           product_id?: string
           product_nm?: string
           sku?: string
@@ -1299,8 +1329,10 @@ export type Database = {
       sales_transaction: {
         Row: {
           created_at: string
+          custom_data: Json | null
           customer_id: string | null
           location_id: string
+          metadata: Json | null
           payment_method: string | null
           status: Database["public"]["Enums"]["transaction_status_enum"]
           total_amt: number
@@ -1311,8 +1343,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          custom_data?: Json | null
           customer_id?: string | null
           location_id: string
+          metadata?: Json | null
           payment_method?: string | null
           status?: Database["public"]["Enums"]["transaction_status_enum"]
           total_amt: number
@@ -1323,8 +1357,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          custom_data?: Json | null
           customer_id?: string | null
           location_id?: string
+          metadata?: Json | null
           payment_method?: string | null
           status?: Database["public"]["Enums"]["transaction_status_enum"]
           total_amt?: number
@@ -1589,7 +1625,9 @@ export type Database = {
           first_nm: string
           franchisor_id: string
           last_nm: string
+          metadata: Json | null
           phone_no: string | null
+          preferences: Json | null
           status: Database["public"]["Enums"]["user_status_enum"]
           updated_at: string
           user_id: string
@@ -1600,7 +1638,9 @@ export type Database = {
           first_nm: string
           franchisor_id: string
           last_nm: string
+          metadata?: Json | null
           phone_no?: string | null
+          preferences?: Json | null
           status?: Database["public"]["Enums"]["user_status_enum"]
           updated_at?: string
           user_id: string
@@ -1611,7 +1651,9 @@ export type Database = {
           first_nm?: string
           franchisor_id?: string
           last_nm?: string
+          metadata?: Json | null
           phone_no?: string | null
+          preferences?: Json | null
           status?: Database["public"]["Enums"]["user_status_enum"]
           updated_at?: string
           user_id?: string
