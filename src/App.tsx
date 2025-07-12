@@ -1,3 +1,4 @@
+
 import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -38,6 +39,11 @@ const SupportRequests = lazy(() => import("./pages/franchisee/SupportRequests"))
 
 // Franchisor pages
 const OrderManagement = lazy(() => import("./pages/franchisor/OrderManagement"));
+
+// New management pages
+const FileManagement = lazy(() => import("./pages/FileManagement"));
+const TransactionManagement = lazy(() => import("./pages/TransactionManagement"));
+const ReportGeneration = lazy(() => import("./pages/ReportGeneration"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -128,6 +134,23 @@ function App() {
                         <Route path="/iam-management" element={
                           <RequireSupabaseAuth>
                             <IAMManagement />
+                          </RequireSupabaseAuth>
+                        } />
+
+                        {/* New Management Routes */}
+                        <Route path="/file-management" element={
+                          <RequireSupabaseAuth>
+                            <FileManagement />
+                          </RequireSupabaseAuth>
+                        } />
+                        <Route path="/transaction-management" element={
+                          <RequireSupabaseAuth>
+                            <TransactionManagement />
+                          </RequireSupabaseAuth>
+                        } />
+                        <Route path="/report-generation" element={
+                          <RequireSupabaseAuth>
+                            <ReportGeneration />
                           </RequireSupabaseAuth>
                         } />
 

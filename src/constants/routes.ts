@@ -10,7 +10,14 @@ export const ROUTES = {
   // Auth routes
   LOGIN: '/login',
   SIGNUP: '/signup',
+  SUPABASE_LOGIN: '/supabase-login',
+  SUPABASE_SIGNUP: '/supabase-signup',
   APPLY: '/apply',
+  
+  // Management routes
+  FILE_MANAGEMENT: '/file-management',
+  TRANSACTION_MANAGEMENT: '/transaction-management',
+  REPORT_GENERATION: '/report-generation',
   
   // Franchisor routes
   FRANCHISOR_DASHBOARD: '/franchisor-dashboard',
@@ -53,7 +60,14 @@ export const ROUTE_GROUPS = {
   AUTH: [
     ROUTES.LOGIN,
     ROUTES.SIGNUP,
+    ROUTES.SUPABASE_LOGIN,
+    ROUTES.SUPABASE_SIGNUP,
     ROUTES.APPLY,
+  ],
+  MANAGEMENT: [
+    ROUTES.FILE_MANAGEMENT,
+    ROUTES.TRANSACTION_MANAGEMENT,
+    ROUTES.REPORT_GENERATION,
   ],
   FRANCHISOR: [
     ROUTES.FRANCHISOR_DASHBOARD,
@@ -68,5 +82,9 @@ export const ROUTE_GROUPS = {
   ],
   PROTECTED: [
     ROUTES.IAM_MANAGEMENT,
+    ...Object.values(ROUTES.FRANCHISEE),
+    ROUTES.FRANCHISOR_DASHBOARD,
+    ROUTES.FRANCHISOR_ANALYTICS,
+    ROUTES.FRANCHISOR_ORDER_MANAGEMENT,
   ],
 } as const;

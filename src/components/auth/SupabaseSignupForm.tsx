@@ -74,6 +74,8 @@ const SupabaseSignupForm: React.FC<SupabaseSignupFormProps> = ({ onVerificationR
     setShowSuccess(false);
 
     try {
+      console.log('Starting signup process for:', formData.email);
+      
       const { error } = await signUp(formData.email, formData.password, {
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -82,6 +84,7 @@ const SupabaseSignupForm: React.FC<SupabaseSignupFormProps> = ({ onVerificationR
       });
       
       if (error) {
+        console.error('Signup error:', error);
         if (error.message.includes('User already registered')) {
           setErrors(['An account with this email already exists. Please sign in instead.']);
         } else if (error.message.includes('Invalid email')) {
@@ -94,7 +97,7 @@ const SupabaseSignupForm: React.FC<SupabaseSignupFormProps> = ({ onVerificationR
         return;
       }
 
-      // Show success message
+      console.log('Signup successful, showing success message');
       setShowSuccess(true);
       
       toast({
@@ -102,11 +105,10 @@ const SupabaseSignupForm: React.FC<SupabaseSignupFormProps> = ({ onVerificationR
         description: "Please check your email to verify your account before signing in.",
       });
       
-      // Call the verification required callback
       onVerificationRequired(formData.email);
       
     } catch (error: any) {
-      console.error('Signup error:', error);
+      console.error('Unexpected signup error:', error);
       setErrors(['An unexpected error occurred. Please try again.']);
     } finally {
       setIsLoading(false);
