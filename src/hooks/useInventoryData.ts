@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { inventoryDataService } from '@/services/dataService';
+import { inventoryService } from '@/services/inventoryService';
 import { useDebounce } from './usePerformanceOptimization';
 
 interface UseInventoryDataReturn {
@@ -29,36 +30,35 @@ export const useInventoryData = (locationId?: string): UseInventoryDataReturn =>
       
       console.log('Fetching inventory data...');
       
-      // Fetch data in parallel for better performance
-      const [productsResult, inventoryResult, ordersResult] = await Promise.allSettled([
-        inventoryDataService.getProducts(),
-        inventoryDataService.getInventory(locationId),
-        inventoryDataService.getInventoryOrders()
+      // Use the inventory service to get properly formatted data
+      const [inventoryItemsResult, ordersResult] = await Promise.allSettled([
+        inventoryService.getInventoryItems(), // This returns properly formatted data
+        inventoryService.getRecentOrders()
       ]);
 
-      if (productsResult.status === 'fulfilled') {
-        setProducts(productsResult.value);
-      } else {
-        console.error('Failed to fetch products:', productsResult.reason);
-      }
-
-      if (inventoryResult.status === 'fulfilled') {
-        const inventory = inventoryResult.value;
-        setInventoryItems(inventory);
+      if (inventoryItemsResult.status === 'fulfilled') {
+        const items = inventoryItemsResult.value;
+        console.log(`Fetched ${items.length} inventory items`);
+        setInventoryItems(items);
+        setProducts(items); // Also set as products for compatibility
         
         // Filter low stock items
-        const lowStock = inventory.filter(item => 
-          item.current_stock <= item.min_stock_level
+        const lowStock = items.filter(item => 
+          item.status === 'Low' || item.status === 'Critical'
         );
         setLowStockItems(lowStock);
       } else {
-        console.error('Failed to fetch inventory items:', inventoryResult.reason);
+        console.error('Failed to fetch inventory items:', inventoryItemsResult.reason);
+        setInventoryItems([]);
+        setProducts([]);
+        setLowStockItems([]);
       }
 
       if (ordersResult.status === 'fulfilled') {
         setRecentOrders(ordersResult.value);
       } else {
         console.error('Failed to fetch recent orders:', ordersResult.reason);
+        setRecentOrders([]);
       }
 
       console.log('Inventory data fetched successfully');
@@ -66,6 +66,10 @@ export const useInventoryData = (locationId?: string): UseInventoryDataReturn =>
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch inventory data';
       console.error('Error fetching inventory data:', err);
       setError(errorMessage);
+      setInventoryItems([]);
+      setProducts([]);
+      setLowStockItems([]);
+      setRecentOrders([]);
     } finally {
       setIsLoading(false);
     }

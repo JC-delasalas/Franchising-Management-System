@@ -60,7 +60,7 @@ class InventoryService {
       }
 
       if (!inventory || inventory.length === 0) {
-        console.warn('No inventory found, returning fallback data');
+        console.log('No inventory found in database, using fallback data for testing');
         return this.getFallbackInventoryItems();
       }
 
