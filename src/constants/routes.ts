@@ -40,6 +40,11 @@ export const ROUTES = {
   
   // IAM routes
   IAM_MANAGEMENT: '/iam-management',
+
+  // New module routes
+  ONBOARDING: '/onboarding',
+  POS_SYSTEM: '/pos',
+  ADMIN_PORTAL: '/admin',
 } as const;
 
 // Helper function to generate dynamic routes

@@ -39,28 +39,63 @@ const SupabaseSignupForm: React.FC<SupabaseSignupFormProps> = ({ onVerificationR
 
   const validateForm = () => {
     const newErrors: string[] = [];
-    
+
     if (!formData.firstName.trim()) newErrors.push('First name is required');
     if (!formData.lastName.trim()) newErrors.push('Last name is required');
     if (!formData.email.trim()) newErrors.push('Email is required');
     if (!formData.password) newErrors.push('Password is required');
     if (!formData.confirmPassword) newErrors.push('Please confirm your password');
     if (!formData.accountType) newErrors.push('Please select an account type');
-    
-    if (formData.password && formData.password.length < 6) {
-      newErrors.push('Password must be at least 6 characters long');
+
+    if (formData.password && formData.password.length < 8) {
+      newErrors.push('Password must be at least 8 characters long');
     }
-    
+
     if (formData.password !== formData.confirmPassword) {
       newErrors.push('Passwords do not match');
     }
-    
-    if (formData.email && !formData.email.includes('@')) {
+
+    // Enhanced email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (formData.email && !emailRegex.test(formData.email)) {
       newErrors.push('Please enter a valid email address');
     }
-    
+
+    // Phone validation if provided
+    if (formData.phone && formData.phone.length > 0) {
+      const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+      if (!phoneRegex.test(formData.phone.replace(/[\s\-\(\)]/g, ''))) {
+        newErrors.push('Please enter a valid phone number');
+      }
+    }
+
     setErrors(newErrors);
     return newErrors.length === 0;
+  };
+
+  // Real-time email validation
+  const validateEmailRealTime = async (email: string) => {
+    if (!email || !email.includes('@')) return;
+
+    try {
+      // Check if email already exists
+      const { data } = await supabase
+        .from('user_profiles')
+        .select('user_id')
+        .eq('contact_id', supabase
+          .from('contact_info')
+          .select('contact_id')
+          .eq('email', email)
+          .single()
+        )
+        .single();
+
+      if (data) {
+        setErrors(prev => [...prev.filter(e => !e.includes('email')), 'An account with this email already exists']);
+      }
+    } catch (error) {
+      // Email doesn't exist, which is good for signup
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

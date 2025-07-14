@@ -47,6 +47,11 @@ const FileManagement = lazy(() => import("./pages/FileManagement"));
 const TransactionManagement = lazy(() => import("./pages/TransactionManagement"));
 const ReportGeneration = lazy(() => import("./pages/ReportGeneration"));
 
+// New module pages
+const FranchiseOnboarding = lazy(() => import("./pages/FranchiseOnboarding"));
+const POSSystem = lazy(() => import("./pages/POSSystem"));
+const AdminPortal = lazy(() => import("./pages/AdminPortal"));
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -191,6 +196,23 @@ function App() {
                         <Route path="/franchisor/order-management" element={
                           <RequireSupabaseAuth>
                             <OrderManagement />
+                          </RequireSupabaseAuth>
+                        } />
+
+                        {/* New Module Routes */}
+                        <Route path="/onboarding" element={
+                          <RequireSupabaseAuth>
+                            <FranchiseOnboarding userRole="admin" />
+                          </RequireSupabaseAuth>
+                        } />
+                        <Route path="/pos" element={
+                          <RequireSupabaseAuth>
+                            <POSSystem />
+                          </RequireSupabaseAuth>
+                        } />
+                        <Route path="/admin" element={
+                          <RequireSupabaseAuth>
+                            <AdminPortal />
                           </RequireSupabaseAuth>
                         } />
 

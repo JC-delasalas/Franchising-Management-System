@@ -130,6 +130,104 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const createUserProfile = async (userId: string, userData: SignupUserData) => {
+    try {
+      console.log('Creating user profile for:', userId);
+
+      // Create contact info if phone is provided
+      let contactId = null;
+      if (userData.phone) {
+        const { data: contactData, error: contactError } = await supabase
+          .from('contact_info')
+          .insert({
+            phone: userData.phone,
+            email: userData.email || null
+          })
+          .select()
+          .single();
+
+        if (!contactError && contactData) {
+          contactId = contactData.contact_id;
+        }
+      }
+
+      // Find or create franchisor if account type is franchisor
+      let franchisorId = null;
+      if (userData.accountType === 'franchisor') {
+        // Create address for franchisor if needed
+        let addressId = null;
+        if (userData.companyAddress) {
+          const { data: addressData, error: addressError } = await supabase
+            .from('address')
+            .insert({
+              street_address: userData.companyAddress.street || 'TBD',
+              city: userData.companyAddress.city || 'TBD',
+              state_province: userData.companyAddress.state,
+              postal_code: userData.companyAddress.postal,
+              country: userData.companyAddress.country || 'Philippines'
+            })
+            .select()
+            .single();
+
+          if (!addressError && addressData) {
+            addressId = addressData.address_id;
+          }
+        }
+
+        // Create franchisor
+        const { data: franchData, error: franchError } = await supabase
+          .from('franchisor')
+          .insert({
+            company_name: userData.companyName || `${userData.firstName} ${userData.lastName} Company`,
+            legal_name: userData.companyName || `${userData.firstName} ${userData.lastName} Company`,
+            address_id: addressId,
+            contact_id: contactId,
+            status: 'active'
+          })
+          .select()
+          .single();
+
+        if (!franchError && franchData) {
+          franchisorId = franchData.franchisor_id;
+        }
+      } else {
+        // For franchisees, assign to a default franchisor
+        const { data: defaultFranchisor } = await supabase
+          .from('franchisor')
+          .select('franchisor_id')
+          .eq('company_name', 'Demo Coffee Masters')
+          .single();
+
+        if (defaultFranchisor) {
+          franchisorId = defaultFranchisor.franchisor_id;
+        }
+      }
+
+      // Create user profile with normalized structure
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .insert({
+          user_id: userId,
+          first_name: userData.firstName,
+          last_name: userData.lastName,
+          account_type: userData.accountType,
+          franchisor_id: franchisorId,
+          contact_id: contactId,
+          status: 'active'
+        });
+
+      if (profileError) {
+        console.error('Error creating user profile:', profileError);
+        throw profileError;
+      } else {
+        console.log('User profile created successfully');
+      }
+    } catch (error) {
+      console.error('Error in createUserProfile:', error);
+      throw error;
+    }
+  };
+
   const signUp = async (email: string, password: string, userData: SignupUserData) => {
     try {
       console.log('Attempting signup for:', email);
@@ -161,12 +259,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       console.log('Signup successful:', data);
-      
-      // Check if email confirmation is required
-      if (data.user && !data.session) {
-        console.log('Email confirmation required for:', email);
+
+      // User profile will be created automatically by the database trigger
+      if (data.user) {
+        console.log('User created with ID:', data.user.id);
+        console.log('Profile will be created automatically by trigger');
       }
-      
+
       return { error: null };
       
     } catch (error) {
