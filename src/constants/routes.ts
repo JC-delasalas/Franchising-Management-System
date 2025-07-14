@@ -10,19 +10,11 @@ export const ROUTES = {
   // Auth routes
   LOGIN: '/login',
   SIGNUP: '/signup',
-  SUPABASE_LOGIN: '/supabase-login',
-  SUPABASE_SIGNUP: '/supabase-signup',
   APPLY: '/apply',
-  
-  // Management routes
-  FILE_MANAGEMENT: '/file-management',
-  TRANSACTION_MANAGEMENT: '/transaction-management',
-  REPORT_GENERATION: '/report-generation',
   
   // Franchisor routes
   FRANCHISOR_DASHBOARD: '/franchisor-dashboard',
   FRANCHISOR_ANALYTICS: '/franchisor-analytics',
-  FRANCHISOR_ORDER_MANAGEMENT: '/franchisor/order-management',
   
   // Franchisee routes
   FRANCHISEE_DASHBOARD: '/franchisee-dashboard',
@@ -40,11 +32,6 @@ export const ROUTES = {
   
   // IAM routes
   IAM_MANAGEMENT: '/iam-management',
-
-  // New module routes
-  ONBOARDING: '/onboarding',
-  POS_SYSTEM: '/pos',
-  ADMIN_PORTAL: '/admin',
 } as const;
 
 // Helper function to generate dynamic routes
@@ -65,19 +52,11 @@ export const ROUTE_GROUPS = {
   AUTH: [
     ROUTES.LOGIN,
     ROUTES.SIGNUP,
-    ROUTES.SUPABASE_LOGIN,
-    ROUTES.SUPABASE_SIGNUP,
     ROUTES.APPLY,
-  ],
-  MANAGEMENT: [
-    ROUTES.FILE_MANAGEMENT,
-    ROUTES.TRANSACTION_MANAGEMENT,
-    ROUTES.REPORT_GENERATION,
   ],
   FRANCHISOR: [
     ROUTES.FRANCHISOR_DASHBOARD,
     ROUTES.FRANCHISOR_ANALYTICS,
-    ROUTES.FRANCHISOR_ORDER_MANAGEMENT,
   ],
   FRANCHISEE: [
     ROUTES.FRANCHISEE_DASHBOARD,
@@ -87,9 +66,5 @@ export const ROUTE_GROUPS = {
   ],
   PROTECTED: [
     ROUTES.IAM_MANAGEMENT,
-    ...Object.values(ROUTES.FRANCHISEE),
-    ROUTES.FRANCHISOR_DASHBOARD,
-    ROUTES.FRANCHISOR_ANALYTICS,
-    ROUTES.FRANCHISOR_ORDER_MANAGEMENT,
   ],
 } as const;

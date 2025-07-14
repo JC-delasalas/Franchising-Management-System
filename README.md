@@ -1,57 +1,28 @@
 
-# Franchise Management System
+# FranchiseHub - Multi-Brand Franchising Platform
 
-A comprehensive multi-tenant franchise management platform built with modern web technologies, designed to support franchise operations across multiple brands and networks. The system implements 10 primary objectives to ensure scalable, secure, and efficient franchise management.
+A comprehensive franchise management system built with modern web technologies, designed to connect franchisors with potential franchisees in the Philippines.
 
-## 🎯 Primary Objectives
+## 🚀 Features
 
-1. **Centralized Brand & Product Management** - Maintain brand consistency and control product catalogs
-2. **Scalable Multi-Tenant Architecture** - Securely host multiple independent franchisor networks
-3. **Secure Role-Based Access Control** - Granular permissions and user management
-4. **Efficient Inventory & Supply Chain Monitoring** - Real-time visibility and optimization
-5. **Data-Driven Performance Analytics** - Transform operational data into business intelligence
-6. **Automated Financial Management & Billing** - Complete revenue cycle automation
-7. **Comprehensive Franchisee Lifecycle Management** - End-to-end franchisee journey management
-8. **Standardized Training & Development** - Consistent, high-quality training programs
-9. **Streamlined Customer Relationship Management** - Centralized customer data and loyalty programs
-10. **Robust Auditing & System Integrity** - Complete audit trail for security and compliance
-
-## 🚀 Key Features
-
-- **Multi-Tenant Architecture**: Complete data isolation between franchisors
-- **Brand Management**: Support for multiple brands per franchisor
-- **Role-Based Access Control**: Granular permissions and security
-- **Real-time Analytics**: Performance dashboards and KPI tracking
-- **Inventory Management**: Supply chain optimization and tracking
-- **Training Platform**: Comprehensive learning management system
-- **Contract Management**: Digital agreements and lifecycle tracking
-- **Financial Management**: Automated billing and subscription management
-- **Audit Logging**: Complete security and compliance tracking
-- **API-First Design**: RESTful APIs with real-time capabilities
+- **Multi-Brand Platform**: Support for multiple franchise brands
+- **Complete Application System**: Multi-step franchise application process
+- **Franchisee Dashboard**: Comprehensive management tools for franchisees
+- **Franchisor Dashboard**: Analytics and application management
+- **Blog System**: SEO-optimized content management
+- **Responsive Design**: Mobile-first approach with excellent UX
+- **Real-time Features**: Live updates and notifications
+- **Database Ready**: Complete schema and integration guide
 
 ## 🛠️ Technology Stack
 
-### Frontend
-- **React 18** with TypeScript for type-safe development
-- **Tailwind CSS** with shadcn/ui components for modern UI
-- **React Router v6** for client-side routing
-- **TanStack Query** for server state management
-- **React Hook Form** with Zod validation
-- **Lucide React** for consistent iconography
-
-### Backend & Database
-- **Supabase** for backend-as-a-service
-- **PostgreSQL** with advanced features (JSONB, RLS, etc.)
-- **Row-Level Security (RLS)** for multi-tenant data isolation
-- **Real-time subscriptions** for live updates
-- **Edge Functions** for serverless computing
-
-### Development & Deployment
-- **Vite** for fast development and building
-- **TypeScript** for type safety across the stack
-- **ESLint & Prettier** for code quality
-- **Supabase CLI** for database management
-- **Vercel/Netlify** ready deployment
+- **Frontend**: React 18 with TypeScript
+- **Styling**: Tailwind CSS with shadcn/ui components
+- **Build Tool**: Vite for fast development and building
+- **Routing**: React Router for client-side navigation
+- **State Management**: React hooks and context
+- **Database**: Supabase (PostgreSQL) recommended
+- **Deployment**: Vercel/Netlify ready
 
 ## 📦 Installation
 

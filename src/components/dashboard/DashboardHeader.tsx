@@ -1,11 +1,8 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Bell, PlusCircle, ArrowUp, User } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useSimpleAuth } from '@/hooks/useSimpleAuth';
-import SimpleUserProfile from '@/components/profile/SimpleUserProfile';
+import { Bell, PlusCircle, ArrowUp } from 'lucide-react';
 
 interface DashboardHeaderProps {
   showUpgrade: boolean;
@@ -16,35 +13,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   showUpgrade,
   onToggleUpgrade
 }) => {
-  const [showProfile, setShowProfile] = useState(false);
-  const { user } = useSimpleAuth();
-
   return (
     <div className="flex items-center justify-between mb-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">
-          Welcome back, {user ? `${user.first_name}!` : 'User!'}
-        </h1>
-        <p className="text-gray-600">
-          {user?.account_type === 'franchisor' ? 'Franchise Management Portal' : 'Franchise Dashboard'}
-        </p>
+        <h1 className="text-3xl font-bold text-gray-900">Welcome back, Robert!</h1>
+        <p className="text-gray-600">Siomai Shop - Makati Branch (Package B)</p>
       </div>
       <div className="flex items-center space-x-4">
-        <Dialog open={showProfile} onOpenChange={setShowProfile}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm">
-              <User className="w-4 h-4 mr-2" />
-              Profile
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-3xl">
-            <DialogHeader>
-              <DialogTitle>User Profile</DialogTitle>
-            </DialogHeader>
-            <SimpleUserProfile onLogout={() => setShowProfile(false)} />
-          </DialogContent>
-        </Dialog>
-
         <Button
           variant="outline"
           size="sm"

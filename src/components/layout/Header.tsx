@@ -18,10 +18,16 @@ const Header = ({ showAuthButtons = true }: HeaderProps) => {
           
           {showAuthButtons && (
             <div className="flex items-center space-x-4">
+              <Button asChild variant="outline" size="sm">
+                <Link to="/login">
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Sign In
+                </Link>
+              </Button>
               <Button asChild size="sm" className="bg-blue-600 hover:bg-blue-700">
-                <Link to="/register">
+                <Link to="/signup">
                   <UserCircle className="w-4 h-4 mr-2" />
-                  Join Now - Free Access
+                  Sign Up
                 </Link>
               </Button>
             </div>

@@ -1,14 +1,10 @@
 
-import React, { memo } from 'react';
-import { Link } from 'react-router-dom';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ShoppingCart } from 'lucide-react';
-import { ROUTES } from '@/constants/routes';
-import { useInventoryData } from '@/hooks/useInventoryData';
-import { Skeleton } from '@/components/ui/skeleton';
 
 const inventoryItems = [
   { name: 'Siomai Mix', stock: 45, unit: 'pcs', reorderLevel: 20, status: 'Good' },
@@ -33,51 +29,7 @@ const getStockStatus = (status: string) => {
   }
 };
 
-const InventoryTabComponent: React.FC = () => {
-  const { inventoryItems: realInventoryItems, isLoading } = useInventoryData();
-
-  // Use real data if available, otherwise fallback to mock data
-  const displayItems = realInventoryItems.length > 0 ? 
-    realInventoryItems.slice(0, 4).map(item => ({
-      name: item.name,
-      stock: item.currentStock,
-      unit: item.unit,
-      reorderLevel: item.reorderLevel,
-      status: item.status
-    })) : 
-    inventoryItems;
-
-  if (isLoading) {
-    return (
-      <div className="grid md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Current Inventory</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[...Array(4)].map((_, index) => (
-                <Skeleton key={index} className="h-16 w-full" />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Order</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[...Array(4)].map((_, index) => (
-                <Skeleton key={index} className="h-16 w-full" />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
+export const InventoryTab: React.FC = () => {
   return (
     <div className="grid md:grid-cols-2 gap-6">
       <Card>
@@ -86,7 +38,7 @@ const InventoryTabComponent: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {displayItems.map((item, index) => (
+            {inventoryItems.map((item, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
                   <p className="font-medium">{item.name}</p>
@@ -97,9 +49,7 @@ const InventoryTabComponent: React.FC = () => {
                     {item.status}
                   </Badge>
                   {item.status !== 'Good' && (
-                    <Button size="sm" className="ml-2" asChild>
-                      <Link to={ROUTES.FRANCHISEE.INVENTORY_ORDER}>Order</Link>
-                    </Button>
+                    <Button size="sm" className="ml-2">Order</Button>
                   )}
                 </div>
               </div>
@@ -120,26 +70,20 @@ const InventoryTabComponent: React.FC = () => {
                   <p className="font-medium">{product.name}</p>
                   <p className="text-sm text-gray-600">{product.price}</p>
                 </div>
-                <Button size="sm" variant="outline" asChild>
-                  <Link to={ROUTES.FRANCHISEE.INVENTORY_ORDER}>
-                    <ShoppingCart className="w-4 h-4 mr-1" />
-                    Add
-                  </Link>
+                <Button size="sm" variant="outline">
+                  <ShoppingCart className="w-4 h-4 mr-1" />
+                  Add
                 </Button>
               </div>
             ))}
           </div>
           <Separator className="my-4" />
-          <Button className="w-full" asChild>
-            <Link to={ROUTES.FRANCHISEE.INVENTORY_ORDER}>
-              <ShoppingCart className="w-4 h-4 mr-2" />
-              View Full Catalog
-            </Link>
+          <Button className="w-full">
+            <ShoppingCart className="w-4 h-4 mr-2" />
+            View Full Catalog
           </Button>
         </CardContent>
       </Card>
     </div>
   );
 };
-
-export const InventoryTab = memo(InventoryTabComponent);

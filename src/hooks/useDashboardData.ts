@@ -2,7 +2,12 @@
 import { useState, useEffect } from 'react';
 import { useAsyncOperation } from './useAsyncOperation';
 import { useToast } from './use-toast';
-import { dashboardDataService, DashboardData } from '@/services/dataService';
+
+interface DashboardData {
+  metrics: any[];
+  recentActivity: any[];
+  notifications: any[];
+}
 
 export const useDashboardData = () => {
   const { toast } = useToast();
@@ -36,7 +41,28 @@ export const useDashboardData = () => {
   });
 
   const loadDashboardData = async (): Promise<DashboardData> => {
-    return await dashboardDataService.getDashboardData();
+    // Simulate API call with potential failure
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    if (Math.random() < 0.1) { // 10% chance of simulated error
+      throw new Error('Network error loading dashboard data');
+    }
+
+    return {
+      metrics: [
+        { label: 'Total Revenue', value: '$45,231', change: '+12%' },
+        { label: 'Active Users', value: '2,345', change: '+5%' },
+        { label: 'Conversion Rate', value: '3.24%', change: '-2%' },
+      ],
+      recentActivity: [
+        { id: 1, type: 'sale', description: 'New sale completed', time: '2 minutes ago' },
+        { id: 2, type: 'user', description: 'New user registered', time: '15 minutes ago' },
+      ],
+      notifications: [
+        { id: 1, type: 'info', message: 'System maintenance scheduled' },
+        { id: 2, type: 'warning', message: 'Low inventory alert' },
+      ]
+    };
   };
 
   const refresh = () => {

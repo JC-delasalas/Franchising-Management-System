@@ -1,217 +1,221 @@
 
-import { Suspense, lazy } from "react";
+import React, { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { SimpleAuthProvider } from "@/hooks/useSimpleAuth";
-import SimpleRequireAuth from "@/components/auth/SimpleRequireAuth";
-import { HelmetProvider } from 'react-helmet-async';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import AppErrorBoundary from "@/components/AppErrorBoundary";
 import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
-import { LoadingSpinner } from "@/components/ui/loading";
+import ComponentErrorBoundary from "@/components/ui/ComponentErrorBoundary";
+import { PageLoading } from "@/components/ui/loading";
+import { SessionTimeoutWarning } from "@/components/auth/SessionTimeoutWarning";
+import { useSessionManager } from "@/hooks/useSessionManager";
+import { getCurrentUser } from "@/services/authService";
+import { validateConfig } from "@/config/environment";
+import { AuthorizationProvider } from "@/contexts/AuthorizationContext";
+import { AuthGuard, RequireAuth, GuestOnly } from "@/components/auth/AuthGuard";
 
-const Index = lazy(() => import("./pages/Index"));
-const Apply = lazy(() => import("./pages/Apply"));
-const Blog = lazy(() => import("./pages/Blog"));
-const BlogPost = lazy(() => import("./pages/BlogPost"));
-const BrandMicrosite = lazy(() => import("./pages/BrandMicrosite"));
-const Contact = lazy(() => import("./pages/Contact"));
-const Login = lazy(() => import("./pages/Login"));
-const Register = lazy(() => import("./pages/Register"));
-const FranchiseeDashboard = lazy(() => import("./pages/FranchiseeDashboard"));
-const FranchisorDashboard = lazy(() => import("./pages/FranchisorDashboard"));
-const FranchiseeAnalytics = lazy(() => import("./pages/FranchiseeAnalytics"));
-const FranchisorAnalytics = lazy(() => import("./pages/FranchisorAnalytics"));
-const FranchiseeTraining = lazy(() => import("./pages/FranchiseeTraining"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const IAMManagement = lazy(() => import("./pages/IAMManagement"));
-const SupabaseTest = lazy(() => import("./pages/SupabaseTest"));
-const Diagnostic = lazy(() => import("./pages/Diagnostic"));
-const TestRegistration = lazy(() => import("./pages/TestRegistration"));
+// Lazy load pages for better performance
+const Index = React.lazy(() => import("./pages/Index"));
+const Apply = React.lazy(() => import("./pages/Apply"));
+const Login = React.lazy(() => import("./pages/Login"));
+const Signup = React.lazy(() => import("./pages/Signup"));
+const Contact = React.lazy(() => import("./pages/Contact"));
+const Blog = React.lazy(() => import("./pages/Blog"));
+const BlogPost = React.lazy(() => import("./pages/BlogPost"));
+const BrandMicrosite = React.lazy(() => import("./pages/BrandMicrosite"));
 
-// Franchisee pages
-const ContractPackage = lazy(() => import("./pages/franchisee/ContractPackage"));
-const InventoryOrder = lazy(() => import("./pages/franchisee/InventoryOrder"));
-const MarketingAssets = lazy(() => import("./pages/franchisee/MarketingAssets"));
-const SalesUpload = lazy(() => import("./pages/franchisee/SalesUpload"));
-const SupportRequests = lazy(() => import("./pages/franchisee/SupportRequests"));
+// Dashboard pages
+const FranchisorDashboard = React.lazy(() => import("./pages/FranchisorDashboard"));
+const FranchiseeDashboard = React.lazy(() => import("./pages/FranchiseeDashboard"));
+const FranchiseeTraining = React.lazy(() => import("./pages/FranchiseeTraining"));
 
-// Franchisor pages
-const OrderManagement = lazy(() => import("./pages/franchisor/OrderManagement"));
+// Analytics pages
+const FranchisorAnalytics = React.lazy(() => import("./pages/FranchisorAnalytics"));
+const FranchiseeAnalytics = React.lazy(() => import("./pages/FranchiseeAnalytics"));
 
-// New management pages
-const FileManagement = lazy(() => import("./pages/FileManagement"));
-const TransactionManagement = lazy(() => import("./pages/TransactionManagement"));
-const ReportGeneration = lazy(() => import("./pages/ReportGeneration"));
+// IAM pages
+const IAMManagement = React.lazy(() => import("./pages/IAMManagement"));
 
-// New module pages
-const FranchiseOnboarding = lazy(() => import("./pages/FranchiseOnboarding"));
-const POSSystem = lazy(() => import("./pages/POSSystem"));
-const AdminPortal = lazy(() => import("./pages/AdminPortal"));
+// Franchisee sub-pages
+const SalesUpload = React.lazy(() => import("./pages/franchisee/SalesUpload"));
+const InventoryOrder = React.lazy(() => import("./pages/franchisee/InventoryOrder"));
+const MarketingAssets = React.lazy(() => import("./pages/franchisee/MarketingAssets"));
+const ContractPackage = React.lazy(() => import("./pages/franchisee/ContractPackage"));
+const SupportRequests = React.lazy(() => import("./pages/franchisee/SupportRequests"));
 
+// 404 page
+const NotFound = React.lazy(() => import("./pages/NotFound"));
+
+// Optimized React Query configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: (failureCount, error) => {
+        if (error && typeof error === 'object' && 'status' in error) {
+          const status = (error as any).status;
+          if (status >= 400 && status < 500) return false;
+        }
+        return failureCount < 2;
+      },
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
       refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+    },
+    mutations: {
+      retry: 1,
     },
   },
 });
 
-function App() {
+// Validate configuration on app start
+try {
+  validateConfig();
+} catch (error) {
+  console.error('Configuration validation failed:', error);
+}
+
+const SessionWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const user = getCurrentUser();
+  const {
+    showWarning,
+    formatTimeRemaining,
+    refreshSession,
+    handleSessionTimeout
+  } = useSessionManager();
+
   return (
-    <HelmetProvider>
-      <GlobalErrorBoundary>
+    <>
+      {children}
+      {user && (
+        <SessionTimeoutWarning
+          timeRemaining={formatTimeRemaining()}
+          onRefreshSession={refreshSession}
+          onLogout={handleSessionTimeout}
+          show={showWarning}
+        />
+      )}
+    </>
+  );
+};
+
+const App = () => (
+  <GlobalErrorBoundary>
+    <AppErrorBoundary>
+      <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <SimpleAuthProvider>
-            <TooltipProvider>
+          <AuthorizationProvider>
+            <SessionWrapper>
+              <TooltipProvider>
                 <Toaster />
                 <Sonner />
                 <BrowserRouter>
-                  <div className="min-h-screen bg-background">
-                    <Suspense fallback={
-                      <div className="min-h-screen flex items-center justify-center">
-                        <LoadingSpinner size="lg" />
-                      </div>
-                    }>
+                  <ComponentErrorBoundary>
+                    <Suspense fallback={<PageLoading />}>
                       <Routes>
-                        {/* Public routes */}
+                        {/* Public Routes */}
                         <Route path="/" element={<Index />} />
-                        <Route path="/apply" element={<Apply />} />
-                        <Route path="/blog" element={<Blog />} />
-                        <Route path="/blog/:slug" element={<BlogPost />} />
-                        <Route path="/brand/:brandId" element={<BrandMicrosite />} />
-                        <Route path="/brands/:brandSlug" element={<BrandMicrosite />} />
                         <Route path="/contact" element={<Contact />} />
-
-                        {/* Test routes */}
-                        <Route path="/test" element={<SupabaseTest />} />
-                        <Route path="/diagnostic" element={<Diagnostic />} />
-                        <Route path="/test-registration" element={<TestRegistration />} />
-
-                        {/* Authentication routes */}
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/register" element={<Register />} />
-
-                        {/* Protected routes */}
-                        <Route path="/franchisee-dashboard" element={
-                          <SimpleRequireAuth allowedRoles={['franchisee']}>
-                            <FranchiseeDashboard />
-                          </SimpleRequireAuth>
+                        <Route path="/blog" element={<Blog />} />
+                        <Route path="/blog/:id" element={<BlogPost />} />
+                        <Route path="/brand/:brandId" element={<BrandMicrosite />} />
+                        
+                        {/* Guest Only Routes (redirect if logged in) */}
+                        <Route path="/login" element={
+                          <GuestOnly>
+                            <Login />
+                          </GuestOnly>
                         } />
+                        <Route path="/signup" element={
+                          <GuestOnly>
+                            <Signup />
+                          </GuestOnly>
+                        } />
+                        <Route path="/apply" element={
+                          <GuestOnly>
+                            <Apply />
+                          </GuestOnly>
+                        } />
+                        
+                        {/* Protected Franchisor Routes */}
                         <Route path="/franchisor-dashboard" element={
-                          <SimpleRequireAuth allowedRoles={['franchisor']}>
+                          <RequireAuth role="franchisor">
                             <FranchisorDashboard />
-                          </SimpleRequireAuth>
-                        } />
-                        <Route path="/franchisee-analytics" element={
-                          <SimpleRequireAuth allowedRoles={['franchisee']}>
-                            <FranchiseeAnalytics />
-                          </SimpleRequireAuth>
+                          </RequireAuth>
                         } />
                         <Route path="/franchisor-analytics" element={
-                          <SimpleRequireAuth allowedRoles={['franchisor']}>
+                          <RequireAuth role="franchisor">
                             <FranchisorAnalytics />
-                          </SimpleRequireAuth>
+                          </RequireAuth>
+                        } />
+                        
+                        {/* Protected Franchisee Routes */}
+                        <Route path="/franchisee-dashboard" element={
+                          <RequireAuth role="franchisee">
+                            <FranchiseeDashboard />
+                          </RequireAuth>
+                        } />
+                        <Route path="/franchisee-analytics" element={
+                          <RequireAuth role="franchisee">
+                            <FranchiseeAnalytics />
+                          </RequireAuth>
                         } />
                         <Route path="/franchisee-training" element={
-                          <SimpleRequireAuth allowedRoles={['franchisee']}>
+                          <RequireAuth role="franchisee">
                             <FranchiseeTraining />
-                          </SimpleRequireAuth>
+                          </RequireAuth>
                         } />
-                        <Route path="/iam-management" element={
-                          <SimpleRequireAuth allowedRoles={['admin']}>
-                            <IAMManagement />
-                          </SimpleRequireAuth>
-                        } />
-
-                        {/* New Management Routes */}
-                        <Route path="/file-management" element={
-                          <SimpleRequireAuth>
-                            <FileManagement />
-                          </SimpleRequireAuth>
-                        } />
-                        <Route path="/transaction-management" element={
-                          <SimpleRequireAuth>
-                            <TransactionManagement />
-                          </SimpleRequireAuth>
-                        } />
-                        <Route path="/report-generation" element={
-                          <SimpleRequireAuth>
-                            <ReportGeneration />
-                          </SimpleRequireAuth>
-                        } />
-
-                        {/* Franchisee specific routes */}
-                        <Route path="/franchisee/contract-package" element={
-                          <SimpleRequireAuth allowedRoles={['franchisee']}>
-                            <ContractPackage />
-                          </SimpleRequireAuth>
+                        
+                        {/* Protected Franchisee Sub-pages */}
+                        <Route path="/franchisee/sales-upload" element={
+                          <RequireAuth role="franchisee">
+                            <SalesUpload />
+                          </RequireAuth>
                         } />
                         <Route path="/franchisee/inventory-order" element={
-                          <SimpleRequireAuth allowedRoles={['franchisee']}>
+                          <RequireAuth role="franchisee">
                             <InventoryOrder />
-                          </SimpleRequireAuth>
+                          </RequireAuth>
                         } />
                         <Route path="/franchisee/marketing-assets" element={
-                          <SimpleRequireAuth allowedRoles={['franchisee']}>
+                          <RequireAuth role="franchisee">
                             <MarketingAssets />
-                          </SimpleRequireAuth>
+                          </RequireAuth>
                         } />
-                        <Route path="/franchisee/sales-upload" element={
-                          <SimpleRequireAuth allowedRoles={['franchisee']}>
-                            <SalesUpload />
-                          </SimpleRequireAuth>
+                        <Route path="/franchisee/contract-package" element={
+                          <RequireAuth role="franchisee">
+                            <ContractPackage />
+                          </RequireAuth>
                         } />
                         <Route path="/franchisee/support-requests" element={
-                          <SimpleRequireAuth allowedRoles={['franchisee']}>
+                          <RequireAuth role="franchisee">
                             <SupportRequests />
-                          </SimpleRequireAuth>
+                          </RequireAuth>
                         } />
-
-                        {/* Franchisor specific routes */}
-                        <Route path="/franchisor/order-management" element={
-                          <SimpleRequireAuth allowedRoles={['franchisor']}>
-                            <OrderManagement />
-                          </SimpleRequireAuth>
+                        
+                        {/* Protected IAM Routes (requires special permissions) */}
+                        <Route path="/iam-management" element={
+                          <RequireAuth>
+                            <IAMManagement />
+                          </RequireAuth>
                         } />
-
-                        {/* New Module Routes */}
-                        <Route path="/onboarding" element={
-                          <SimpleRequireAuth allowedRoles={['admin', 'franchisor']}>
-                            <FranchiseOnboarding userRole="admin" />
-                          </SimpleRequireAuth>
-                        } />
-                        <Route path="/pos" element={
-                          <SimpleRequireAuth allowedRoles={['franchisee']}>
-                            <POSSystem />
-                          </SimpleRequireAuth>
-                        } />
-                        <Route path="/admin" element={
-                          <SimpleRequireAuth allowedRoles={['admin']}>
-                            <AdminPortal />
-                          </SimpleRequireAuth>
-                        } />
-
-                        {/* Redirect patterns */}
-                        <Route path="/auth" element={<Navigate to="/register" replace />} />
-                        <Route path="/auth/login" element={<Navigate to="/register" replace />} />
-                        <Route path="/auth/signup" element={<Navigate to="/register" replace />} />
-                        <Route path="/login" element={<Navigate to="/register" replace />} />
-
-                        {/* Catch all */}
+                        
+                        {/* Catch-all route - MUST be last */}
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </Suspense>
-                  </div>
+                  </ComponentErrorBoundary>
                 </BrowserRouter>
               </TooltipProvider>
-            </SimpleAuthProvider>
+            </SessionWrapper>
+          </AuthorizationProvider>
         </QueryClientProvider>
-      </GlobalErrorBoundary>
-    </HelmetProvider>
-  );
-}
+      </ErrorBoundary>
+    </AppErrorBoundary>
+  </GlobalErrorBoundary>
+);
 
 export default App;
