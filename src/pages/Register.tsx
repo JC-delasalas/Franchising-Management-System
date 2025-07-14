@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,25 +7,23 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { UserPlus, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { useSimpleAuth } from '@/hooks/useSimpleAuth';
+import { UserPlus, AlertCircle } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 
 const Register = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+  const { login } = useSimpleAuth();
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
-    password: '',
-    confirmPassword: '',
     accountType: ''
   });
-  
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
 
@@ -40,20 +38,10 @@ const Register = () => {
     if (!formData.firstName.trim()) newErrors.push('First name is required');
     if (!formData.lastName.trim()) newErrors.push('Last name is required');
     if (!formData.email.trim()) newErrors.push('Email is required');
-    if (!formData.password) newErrors.push('Password is required');
-    if (!formData.confirmPassword) newErrors.push('Please confirm your password');
     if (!formData.accountType) newErrors.push('Please select an account type');
 
     if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.push('Please enter a valid email address');
-    }
-
-    if (formData.password && formData.password.length < 6) {
-      newErrors.push('Password must be at least 6 characters long');
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.push('Passwords do not match');
     }
 
     setErrors(newErrors);
@@ -62,7 +50,7 @@ const Register = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -70,48 +58,53 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      // Sign up with Supabase Auth
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/login?message=account-created`
-        }
-      });
+      // Create a simple user profile directly without authentication
+      // Generate a temporary user ID for immediate access
+      const tempUserId = crypto.randomUUID();
 
-      if (error) {
-        setErrors([error.message]);
+      // Create user profile with simplified structure matching current schema
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .insert({
+          user_id: tempUserId,
+          email: formData.email,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          phone: formData.phone || null,
+          account_type: formData.accountType,
+          status: 'active' // Immediately active, no verification needed
+        });
+
+      if (profileError) {
+        console.error('Error creating user profile:', profileError);
+        setErrors(['Registration failed. Please try again.']);
         return;
       }
 
-      // Create user profile if signup was successful
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('user_profiles')
-          .insert({
-            user_id: data.user.id,
-            email: formData.email,
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            phone: formData.phone || null,
-            account_type: formData.accountType as 'franchisee' | 'franchisor' | 'admin',
-            status: 'pending'
-          });
+      // Store user session and login immediately
+      const userSession = {
+        user_id: tempUserId,
+        email: formData.email,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        account_type: formData.accountType,
+        status: 'active'
+      };
 
-        if (profileError) {
-          console.error('Error creating user profile:', profileError);
-          setErrors(['Account created but profile setup failed. Please contact support.']);
-          return;
-        }
-      }
+      // Use the auth context to login
+      login(userSession);
 
       toast({
-        title: "Account created successfully!",
-        description: "Please check your email to verify your account before signing in.",
+        title: "Registration successful!",
+        description: "Welcome to the franchise management system. You now have immediate access.",
       });
 
-      // Redirect to login page
-      navigate('/login?message=account-created');
+      // Redirect based on account type
+      if (formData.accountType === 'franchisor') {
+        navigate('/franchisor-dashboard', { replace: true });
+      } else {
+        navigate('/franchisee-dashboard', { replace: true });
+      }
 
     } catch (error) {
       console.error('Registration error:', error);
@@ -128,8 +121,8 @@ const Register = () => {
       <div className="container mx-auto px-4 py-8">
         <Card className="max-w-md mx-auto">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Create Account</CardTitle>
-            <CardDescription>Join our franchise network</CardDescription>
+            <CardTitle className="text-2xl">Quick Registration</CardTitle>
+            <CardDescription>Join our franchise network - instant access, no passwords required!</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -185,8 +178,8 @@ const Register = () => {
 
               <div>
                 <Label htmlFor="accountType">Account Type *</Label>
-                <Select 
-                  value={formData.accountType} 
+                <Select
+                  value={formData.accountType}
                   onValueChange={(value) => handleInputChange('accountType', value)}
                   disabled={isLoading}
                 >
@@ -198,64 +191,6 @@ const Register = () => {
                     <SelectItem value="franchisor">Franchisor</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="password">Password *</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={(e) => handleInputChange('password', e.target.value)}
-                    placeholder="Enter your password"
-                    required
-                    disabled={isLoading}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                    disabled={isLoading}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="confirmPassword">Confirm Password *</Label>
-                <div className="relative">
-                  <Input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={formData.confirmPassword}
-                    onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                    placeholder="Confirm your password"
-                    required
-                    disabled={isLoading}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    disabled={isLoading}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
               </div>
 
               {errors.length > 0 && (
@@ -275,12 +210,12 @@ const Register = () => {
                 {isLoading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Creating Account...
+                    Registering...
                   </>
                 ) : (
                   <>
                     <UserPlus className="w-4 h-4 mr-2" />
-                    Create Account
+                    Join Now - Instant Access
                   </>
                 )}
               </Button>
@@ -288,10 +223,10 @@ const Register = () => {
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                Already have an account?{' '}
-                <Link to="/login" className="text-blue-600 hover:underline">
-                  Sign in here
-                </Link>
+                Simple registration - no passwords required!
+              </p>
+              <p className="text-xs text-gray-500 mt-2">
+                Get immediate access to the franchise management system
               </p>
             </div>
           </CardContent>

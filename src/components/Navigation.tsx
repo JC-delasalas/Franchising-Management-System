@@ -3,16 +3,17 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Logo from './Logo';
-import { useAuth } from '@/hooks/useAuth';
+import { useSimpleAuth } from '@/hooks/useSimpleAuth';
 import { Menu, X, FileText, DollarSign, BarChart3, LogOut, User } from 'lucide-react';
 
 const Navigation = () => {
   const location = useLocation();
-  const { user, signOut } = useAuth();
+  const { user, logout } = useSimpleAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const handleSignOut = async () => {
-    await signOut();
+  const handleSignOut = () => {
+    logout();
+    window.location.href = '/register';
   };
 
   const navigationLinks = [
@@ -81,7 +82,7 @@ const Navigation = () => {
             {user ? (
               <div className="flex items-center space-x-4">
                 <Link
-                  to="/franchisee-dashboard"
+                  to={user.account_type === 'franchisor' ? '/franchisor-dashboard' : '/franchisee-dashboard'}
                   className="flex items-center text-sm font-medium text-gray-700 hover:text-blue-600"
                 >
                   <User className="w-4 h-4 mr-1" />
@@ -99,14 +100,9 @@ const Navigation = () => {
               </div>
             ) : (
               <div className="flex items-center space-x-4">
-                <Link to="/supabase-login">
-                  <Button variant="ghost" size="sm">
-                    Sign In
-                  </Button>
-                </Link>
-                <Link to="/supabase-signup">
+                <Link to="/register">
                   <Button size="sm">
-                    Sign Up
+                    Join Now - Free Access
                   </Button>
                 </Link>
               </div>
@@ -169,7 +165,7 @@ const Navigation = () => {
                 {user ? (
                   <div className="space-y-1">
                     <Link
-                      to="/franchisee-dashboard"
+                      to={user.account_type === 'franchisor' ? '/franchisor-dashboard' : '/franchisee-dashboard'}
                       className="flex items-center px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
@@ -190,18 +186,11 @@ const Navigation = () => {
                 ) : (
                   <div className="space-y-1">
                     <Link
-                      to="/supabase-login"
-                      className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Sign In
-                    </Link>
-                    <Link
-                      to="/supabase-signup"
+                      to="/register"
                       className="block px-3 py-2 text-base font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      Sign Up
+                      Join Now - Free Access
                     </Link>
                   </div>
                 )}

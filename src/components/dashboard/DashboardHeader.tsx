@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Bell, PlusCircle, ArrowUp, User } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import UserProfile from '@/components/profile/UserProfile';
+import { useSimpleAuth } from '@/hooks/useSimpleAuth';
+import SimpleUserProfile from '@/components/profile/SimpleUserProfile';
 
 interface DashboardHeaderProps {
   showUpgrade: boolean;
@@ -16,12 +17,17 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   onToggleUpgrade
 }) => {
   const [showProfile, setShowProfile] = useState(false);
+  const { user } = useSimpleAuth();
 
   return (
     <div className="flex items-center justify-between mb-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Welcome back, Robert!</h1>
-        <p className="text-gray-600">Siomai Shop - Makati Branch (Package B)</p>
+        <h1 className="text-3xl font-bold text-gray-900">
+          Welcome back, {user ? `${user.first_name}!` : 'User!'}
+        </h1>
+        <p className="text-gray-600">
+          {user?.account_type === 'franchisor' ? 'Franchise Management Portal' : 'Franchise Dashboard'}
+        </p>
       </div>
       <div className="flex items-center space-x-4">
         <Dialog open={showProfile} onOpenChange={setShowProfile}>
@@ -35,7 +41,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             <DialogHeader>
               <DialogTitle>User Profile</DialogTitle>
             </DialogHeader>
-            <UserProfile onLogout={() => setShowProfile(false)} />
+            <SimpleUserProfile onLogout={() => setShowProfile(false)} />
           </DialogContent>
         </Dialog>
 

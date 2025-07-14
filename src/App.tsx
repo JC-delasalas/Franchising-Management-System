@@ -5,8 +5,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
-import RequireAuth from "@/components/auth/RequireAuth";
+import { SimpleAuthProvider } from "@/hooks/useSimpleAuth";
+import SimpleRequireAuth from "@/components/auth/SimpleRequireAuth";
 import { HelmetProvider } from 'react-helmet-async';
 import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 import { LoadingSpinner } from "@/components/ui/loading";
@@ -28,6 +28,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const IAMManagement = lazy(() => import("./pages/IAMManagement"));
 const SupabaseTest = lazy(() => import("./pages/SupabaseTest"));
 const Diagnostic = lazy(() => import("./pages/Diagnostic"));
+const TestRegistration = lazy(() => import("./pages/TestRegistration"));
 
 // Franchisee pages
 const ContractPackage = lazy(() => import("./pages/franchisee/ContractPackage"));
@@ -63,9 +64,8 @@ function App() {
     <HelmetProvider>
       <GlobalErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-
-              <TooltipProvider>
+          <SimpleAuthProvider>
+            <TooltipProvider>
                 <Toaster />
                 <Sonner />
                 <BrowserRouter>
@@ -88,6 +88,7 @@ function App() {
                         {/* Test routes */}
                         <Route path="/test" element={<SupabaseTest />} />
                         <Route path="/diagnostic" element={<Diagnostic />} />
+                        <Route path="/test-registration" element={<TestRegistration />} />
 
                         {/* Authentication routes */}
                         <Route path="/login" element={<Login />} />
@@ -95,108 +96,109 @@ function App() {
 
                         {/* Protected routes */}
                         <Route path="/franchisee-dashboard" element={
-                          <RequireAuth allowedRoles={['franchisee']}>
+                          <SimpleRequireAuth allowedRoles={['franchisee']}>
                             <FranchiseeDashboard />
-                          </RequireAuth>
+                          </SimpleRequireAuth>
                         } />
                         <Route path="/franchisor-dashboard" element={
-                          <RequireAuth allowedRoles={['franchisor']}>
+                          <SimpleRequireAuth allowedRoles={['franchisor']}>
                             <FranchisorDashboard />
-                          </RequireAuth>
+                          </SimpleRequireAuth>
                         } />
                         <Route path="/franchisee-analytics" element={
-                          <RequireAuth allowedRoles={['franchisee']}>
+                          <SimpleRequireAuth allowedRoles={['franchisee']}>
                             <FranchiseeAnalytics />
-                          </RequireAuth>
+                          </SimpleRequireAuth>
                         } />
                         <Route path="/franchisor-analytics" element={
-                          <RequireAuth allowedRoles={['franchisor']}>
+                          <SimpleRequireAuth allowedRoles={['franchisor']}>
                             <FranchisorAnalytics />
-                          </RequireAuth>
+                          </SimpleRequireAuth>
                         } />
                         <Route path="/franchisee-training" element={
-                          <RequireAuth allowedRoles={['franchisee']}>
+                          <SimpleRequireAuth allowedRoles={['franchisee']}>
                             <FranchiseeTraining />
-                          </RequireAuth>
+                          </SimpleRequireAuth>
                         } />
                         <Route path="/iam-management" element={
-                          <RequireAuth allowedRoles={['admin']}>
+                          <SimpleRequireAuth allowedRoles={['admin']}>
                             <IAMManagement />
-                          </RequireAuth>
+                          </SimpleRequireAuth>
                         } />
 
                         {/* New Management Routes */}
                         <Route path="/file-management" element={
-                          <RequireAuth>
+                          <SimpleRequireAuth>
                             <FileManagement />
-                          </RequireAuth>
+                          </SimpleRequireAuth>
                         } />
                         <Route path="/transaction-management" element={
-                          <RequireAuth>
+                          <SimpleRequireAuth>
                             <TransactionManagement />
-                          </RequireAuth>
+                          </SimpleRequireAuth>
                         } />
                         <Route path="/report-generation" element={
-                          <RequireAuth>
+                          <SimpleRequireAuth>
                             <ReportGeneration />
-                          </RequireAuth>
+                          </SimpleRequireAuth>
                         } />
 
                         {/* Franchisee specific routes */}
                         <Route path="/franchisee/contract-package" element={
-                          <RequireAuth allowedRoles={['franchisee']}>
+                          <SimpleRequireAuth allowedRoles={['franchisee']}>
                             <ContractPackage />
-                          </RequireAuth>
+                          </SimpleRequireAuth>
                         } />
                         <Route path="/franchisee/inventory-order" element={
-                          <RequireAuth allowedRoles={['franchisee']}>
+                          <SimpleRequireAuth allowedRoles={['franchisee']}>
                             <InventoryOrder />
-                          </RequireAuth>
+                          </SimpleRequireAuth>
                         } />
                         <Route path="/franchisee/marketing-assets" element={
-                          <RequireAuth allowedRoles={['franchisee']}>
+                          <SimpleRequireAuth allowedRoles={['franchisee']}>
                             <MarketingAssets />
-                          </RequireAuth>
+                          </SimpleRequireAuth>
                         } />
                         <Route path="/franchisee/sales-upload" element={
-                          <RequireAuth allowedRoles={['franchisee']}>
+                          <SimpleRequireAuth allowedRoles={['franchisee']}>
                             <SalesUpload />
-                          </RequireAuth>
+                          </SimpleRequireAuth>
                         } />
                         <Route path="/franchisee/support-requests" element={
-                          <RequireAuth allowedRoles={['franchisee']}>
+                          <SimpleRequireAuth allowedRoles={['franchisee']}>
                             <SupportRequests />
-                          </RequireAuth>
+                          </SimpleRequireAuth>
                         } />
 
                         {/* Franchisor specific routes */}
                         <Route path="/franchisor/order-management" element={
-                          <RequireAuth allowedRoles={['franchisor']}>
+                          <SimpleRequireAuth allowedRoles={['franchisor']}>
                             <OrderManagement />
-                          </RequireAuth>
+                          </SimpleRequireAuth>
                         } />
 
                         {/* New Module Routes */}
                         <Route path="/onboarding" element={
-                          <RequireAuth allowedRoles={['admin', 'franchisor']}>
+                          <SimpleRequireAuth allowedRoles={['admin', 'franchisor']}>
                             <FranchiseOnboarding userRole="admin" />
-                          </RequireAuth>
+                          </SimpleRequireAuth>
                         } />
                         <Route path="/pos" element={
-                          <RequireAuth allowedRoles={['franchisee']}>
+                          <SimpleRequireAuth allowedRoles={['franchisee']}>
                             <POSSystem />
-                          </RequireAuth>
+                          </SimpleRequireAuth>
                         } />
                         <Route path="/admin" element={
-                          <RequireAuth allowedRoles={['admin']}>
+                          <SimpleRequireAuth allowedRoles={['admin']}>
                             <AdminPortal />
-                          </RequireAuth>
+                          </SimpleRequireAuth>
                         } />
 
                         {/* Redirect patterns */}
-                        <Route path="/auth" element={<Navigate to="/login" replace />} />
-                        <Route path="/auth/login" element={<Navigate to="/login" replace />} />
+                        <Route path="/auth" element={<Navigate to="/register" replace />} />
+                        <Route path="/auth/login" element={<Navigate to="/register" replace />} />
                         <Route path="/auth/signup" element={<Navigate to="/register" replace />} />
+                        <Route path="/login" element={<Navigate to="/register" replace />} />
 
                         {/* Catch all */}
                         <Route path="*" element={<NotFound />} />
@@ -205,7 +207,7 @@ function App() {
                   </div>
                 </BrowserRouter>
               </TooltipProvider>
-          </AuthProvider>
+            </SimpleAuthProvider>
         </QueryClientProvider>
       </GlobalErrorBoundary>
     </HelmetProvider>
