@@ -6,14 +6,13 @@ import { IAMErrorBoundary } from '@/components/iam/IAMErrorBoundary';
 import { Shield, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { RequireAuth } from '@/components/auth/AuthGuard';
-import { useAuthorization } from '@/contexts/AuthorizationContext';
+import { useAuth } from '@/hooks/useAuth';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const IAMManagement: React.FC = () => {
-  const { canAccessIAM } = useAuthorization();
+  const { userProfile } = useAuth();
 
-  if (!canAccessIAM) {
+  if (!userProfile || userProfile.account_type !== 'admin') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="max-w-md mx-auto px-4">

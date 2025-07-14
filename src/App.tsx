@@ -6,8 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
-import { AuthorizationProvider } from "@/contexts/AuthorizationContext";
-import { RequireSupabaseAuth, GuestOnlySupabase } from "@/components/auth/SupabaseAuthGuard";
+import RequireAuth from "@/components/auth/RequireAuth";
 import { HelmetProvider } from 'react-helmet-async';
 import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 import { LoadingSpinner } from "@/components/ui/loading";
@@ -19,9 +18,7 @@ const BlogPost = lazy(() => import("./pages/BlogPost"));
 const BrandMicrosite = lazy(() => import("./pages/BrandMicrosite"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Login = lazy(() => import("./pages/Login"));
-const Signup = lazy(() => import("./pages/Signup"));
-const SupabaseLogin = lazy(() => import("./pages/SupabaseLogin"));
-const SupabaseSignup = lazy(() => import("./pages/SupabaseSignup"));
+const Register = lazy(() => import("./pages/Register"));
 const FranchiseeDashboard = lazy(() => import("./pages/FranchiseeDashboard"));
 const FranchisorDashboard = lazy(() => import("./pages/FranchisorDashboard"));
 const FranchiseeAnalytics = lazy(() => import("./pages/FranchiseeAnalytics"));
@@ -67,7 +64,7 @@ function App() {
       <GlobalErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <AuthorizationProvider>
+
               <TooltipProvider>
                 <Toaster />
                 <Sonner />
@@ -92,134 +89,114 @@ function App() {
                         <Route path="/test" element={<SupabaseTest />} />
                         <Route path="/diagnostic" element={<Diagnostic />} />
 
-                        {/* Legacy auth routes (keep for existing users) */}
-                        <Route path="/login" element={
-                          <GuestOnlySupabase>
-                            <Login />
-                          </GuestOnlySupabase>
-                        } />
-                        <Route path="/signup" element={
-                          <GuestOnlySupabase>
-                            <Signup />
-                          </GuestOnlySupabase>
-                        } />
-
-                        {/* New Supabase auth routes */}
-                        <Route path="/supabase-login" element={
-                          <GuestOnlySupabase>
-                            <SupabaseLogin />
-                          </GuestOnlySupabase>
-                        } />
-                        <Route path="/supabase-signup" element={
-                          <GuestOnlySupabase>
-                            <SupabaseSignup />
-                          </GuestOnlySupabase>
-                        } />
+                        {/* Authentication routes */}
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/register" element={<Register />} />
 
                         {/* Protected routes */}
                         <Route path="/franchisee-dashboard" element={
-                          <RequireSupabaseAuth>
+                          <RequireAuth allowedRoles={['franchisee']}>
                             <FranchiseeDashboard />
-                          </RequireSupabaseAuth>
+                          </RequireAuth>
                         } />
                         <Route path="/franchisor-dashboard" element={
-                          <RequireSupabaseAuth>
+                          <RequireAuth allowedRoles={['franchisor']}>
                             <FranchisorDashboard />
-                          </RequireSupabaseAuth>
+                          </RequireAuth>
                         } />
                         <Route path="/franchisee-analytics" element={
-                          <RequireSupabaseAuth>
+                          <RequireAuth allowedRoles={['franchisee']}>
                             <FranchiseeAnalytics />
-                          </RequireSupabaseAuth>
+                          </RequireAuth>
                         } />
                         <Route path="/franchisor-analytics" element={
-                          <RequireSupabaseAuth>
+                          <RequireAuth allowedRoles={['franchisor']}>
                             <FranchisorAnalytics />
-                          </RequireSupabaseAuth>
+                          </RequireAuth>
                         } />
                         <Route path="/franchisee-training" element={
-                          <RequireSupabaseAuth>
+                          <RequireAuth allowedRoles={['franchisee']}>
                             <FranchiseeTraining />
-                          </RequireSupabaseAuth>
+                          </RequireAuth>
                         } />
                         <Route path="/iam-management" element={
-                          <RequireSupabaseAuth>
+                          <RequireAuth allowedRoles={['admin']}>
                             <IAMManagement />
-                          </RequireSupabaseAuth>
+                          </RequireAuth>
                         } />
 
                         {/* New Management Routes */}
                         <Route path="/file-management" element={
-                          <RequireSupabaseAuth>
+                          <RequireAuth>
                             <FileManagement />
-                          </RequireSupabaseAuth>
+                          </RequireAuth>
                         } />
                         <Route path="/transaction-management" element={
-                          <RequireSupabaseAuth>
+                          <RequireAuth>
                             <TransactionManagement />
-                          </RequireSupabaseAuth>
+                          </RequireAuth>
                         } />
                         <Route path="/report-generation" element={
-                          <RequireSupabaseAuth>
+                          <RequireAuth>
                             <ReportGeneration />
-                          </RequireSupabaseAuth>
+                          </RequireAuth>
                         } />
 
                         {/* Franchisee specific routes */}
                         <Route path="/franchisee/contract-package" element={
-                          <RequireSupabaseAuth>
+                          <RequireAuth allowedRoles={['franchisee']}>
                             <ContractPackage />
-                          </RequireSupabaseAuth>
+                          </RequireAuth>
                         } />
                         <Route path="/franchisee/inventory-order" element={
-                          <RequireSupabaseAuth>
+                          <RequireAuth allowedRoles={['franchisee']}>
                             <InventoryOrder />
-                          </RequireSupabaseAuth>
+                          </RequireAuth>
                         } />
                         <Route path="/franchisee/marketing-assets" element={
-                          <RequireSupabaseAuth>
+                          <RequireAuth allowedRoles={['franchisee']}>
                             <MarketingAssets />
-                          </RequireSupabaseAuth>
+                          </RequireAuth>
                         } />
                         <Route path="/franchisee/sales-upload" element={
-                          <RequireSupabaseAuth>
+                          <RequireAuth allowedRoles={['franchisee']}>
                             <SalesUpload />
-                          </RequireSupabaseAuth>
+                          </RequireAuth>
                         } />
                         <Route path="/franchisee/support-requests" element={
-                          <RequireSupabaseAuth>
+                          <RequireAuth allowedRoles={['franchisee']}>
                             <SupportRequests />
-                          </RequireSupabaseAuth>
+                          </RequireAuth>
                         } />
 
                         {/* Franchisor specific routes */}
                         <Route path="/franchisor/order-management" element={
-                          <RequireSupabaseAuth>
+                          <RequireAuth allowedRoles={['franchisor']}>
                             <OrderManagement />
-                          </RequireSupabaseAuth>
+                          </RequireAuth>
                         } />
 
                         {/* New Module Routes */}
                         <Route path="/onboarding" element={
-                          <RequireSupabaseAuth>
+                          <RequireAuth allowedRoles={['admin', 'franchisor']}>
                             <FranchiseOnboarding userRole="admin" />
-                          </RequireSupabaseAuth>
+                          </RequireAuth>
                         } />
                         <Route path="/pos" element={
-                          <RequireSupabaseAuth>
+                          <RequireAuth allowedRoles={['franchisee']}>
                             <POSSystem />
-                          </RequireSupabaseAuth>
+                          </RequireAuth>
                         } />
                         <Route path="/admin" element={
-                          <RequireSupabaseAuth>
+                          <RequireAuth allowedRoles={['admin']}>
                             <AdminPortal />
-                          </RequireSupabaseAuth>
+                          </RequireAuth>
                         } />
 
                         {/* Redirect patterns */}
-                        <Route path="/auth" element={<Navigate to="/supabase-login" replace />} />
-                        <Route path="/auth/login" element={<Navigate to="/supabase-login" replace />} />
-                        <Route path="/auth/signup" element={<Navigate to="/supabase-signup" replace />} />
+                        <Route path="/auth" element={<Navigate to="/login" replace />} />
+                        <Route path="/auth/login" element={<Navigate to="/login" replace />} />
+                        <Route path="/auth/signup" element={<Navigate to="/register" replace />} />
 
                         {/* Catch all */}
                         <Route path="*" element={<NotFound />} />
@@ -228,7 +205,6 @@ function App() {
                   </div>
                 </BrowserRouter>
               </TooltipProvider>
-            </AuthorizationProvider>
           </AuthProvider>
         </QueryClientProvider>
       </GlobalErrorBoundary>

@@ -9,8 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { Camera, Save, LogOut, User } from 'lucide-react';
-import { getCurrentUser, logoutUser, AuthUser } from '@/services/authService';
-import { updateUser } from '@/services/auth/authStorage';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ProfileFormData {
   firstName: string;
@@ -23,15 +22,15 @@ interface UserProfileProps {
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({ onLogout }) => {
-  const [user, setUser] = useState<AuthUser | null>(getCurrentUser());
+  const { user, userProfile, signOut, updateProfile } = useAuth();
   const [profileImage, setProfileImage] = useState<string>('');
   const [isEditing, setIsEditing] = useState(false);
 
   const form = useForm<ProfileFormData>({
     defaultValues: {
-      firstName: user?.firstName || '',
-      lastName: user?.lastName || '',
-      email: user?.email || '',
+      firstName: userProfile?.first_name || '',
+      lastName: userProfile?.last_name || '',
+      email: userProfile?.email || '',
     }
   });
 
@@ -47,29 +46,33 @@ const UserProfile: React.FC<UserProfileProps> = ({ onLogout }) => {
     }
   };
 
-  const onSubmit = (data: ProfileFormData) => {
-    if (!user) return;
+  const onSubmit = async (data: ProfileFormData) => {
+    if (!userProfile) return;
 
-    const updatedUser: AuthUser = {
-      ...user,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: data.email,
-    };
-
-    updateUser(updatedUser);
-    setUser(updatedUser);
-    setIsEditing(false);
-    console.log('Profile updated successfully');
+    try {
+      await updateProfile({
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: data.email,
+      });
+      setIsEditing(false);
+      console.log('Profile updated successfully');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    }
   };
 
-  const handleLogout = () => {
-    logoutUser();
-    onLogout?.();
-    window.location.href = '/login';
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      onLogout?.();
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
-  if (!user) {
+  if (!userProfile) {
     return (
       <Card>
         <CardContent className="p-6">
@@ -92,9 +95,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ onLogout }) => {
         <div className="flex items-center space-x-4">
           <div className="relative">
             <Avatar className="w-20 h-20">
-              <AvatarImage src={profileImage} alt={`${user.firstName} ${user.lastName}`} />
+              <AvatarImage src={profileImage} alt={`${userProfile.first_name} ${userProfile.last_name}`} />
               <AvatarFallback className="bg-blue-100 text-blue-600 text-lg">
-                {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                {userProfile.first_name.charAt(0)}{userProfile.last_name.charAt(0)}
               </AvatarFallback>
             </Avatar>
             <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-1 rounded-full cursor-pointer hover:bg-blue-700">
@@ -108,8 +111,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ onLogout }) => {
             </label>
           </div>
           <div>
-            <h3 className="font-semibold text-lg">{user.firstName} {user.lastName}</h3>
-            <p className="text-gray-600 capitalize">{user.accountType}</p>
+            <h3 className="font-semibold text-lg">{userProfile.first_name} {userProfile.last_name}</h3>
+            <p className="text-gray-600 capitalize">{userProfile.account_type}</p>
           </div>
         </div>
 

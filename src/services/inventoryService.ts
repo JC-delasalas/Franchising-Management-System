@@ -1,6 +1,5 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { getCurrentUser } from './authService';
 
 export interface InventoryItem {
   id: string;
@@ -212,7 +211,7 @@ class InventoryService {
 
   async createOrder(items: OrderItem[], notes?: string): Promise<Order> {
     try {
-      const user = getCurrentUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.log('Using demo mode for order creation');
       }
@@ -251,7 +250,7 @@ class InventoryService {
 
   async getRecentOrders(): Promise<Order[]> {
     try {
-      const user = getCurrentUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.log('Using demo mode for recent orders');
       }

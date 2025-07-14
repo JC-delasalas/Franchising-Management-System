@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAnalyticsData } from '@/hooks/useAnalyticsData';
-import { getCurrentUser } from '@/services/authService';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -26,9 +26,9 @@ interface KPICardsProps {
 }
 
 export const KPICards: React.FC<KPICardsProps> = ({ salesData }) => {
-  const user = getCurrentUser();
+  const { userProfile } = useAuth();
   // Map accountType to role for consistency
-  const userRole = user?.role || user?.accountType || 'franchisee';
+  const userRole = userProfile?.account_type || 'franchisee';
   
   const {
     data,
