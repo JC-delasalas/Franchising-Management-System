@@ -4,10 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading';
 import { useToast } from '@/hooks/use-toast';
+import { signUp } from '@/hooks/useAuth';
 import FormValidation from '@/components/apply/FormValidation';
 import SignupFormFields from './SignupFormFields';
 import { useSignupValidation } from './SignupFormValidation';
-import { signupUser } from '@/services/authService';
 import { UserPlus } from 'lucide-react';
 
 interface SignupFormProps {
@@ -49,27 +49,33 @@ const SignupForm: React.FC<SignupFormProps> = ({ onVerificationRequired }) => {
     setIsLoading(true);
 
     try {
-      const result = await signupUser(formData);
-      
-      if (result.success) {
-        if (result.requiresVerification) {
-          onVerificationRequired(formData.email);
-          toast({
-            title: "Account Created!",
-            description: "Please check your email for verification instructions.",
-          });
-        } else {
-          navigate('/login');
-          toast({
-            title: "Account Created!",
-            description: "You can now sign in to your account.",
-          });
+      const data = await signUp(
+        formData.email,
+        formData.password,
+        {
+          full_name: `${formData.firstName} ${formData.lastName}`,
+          phone: formData.phone,
+          role: formData.accountType === 'franchisor' ? 'franchisor' : 'franchisee'
         }
+      );
+
+      if (data.user && !data.session) {
+        // Email verification required
+        onVerificationRequired(formData.email);
+        toast({
+          title: "Account Created!",
+          description: "Please check your email for verification instructions.",
+        });
       } else {
-        setErrors([result.message]);
+        // User signed up and logged in
+        navigate('/dashboard');
+        toast({
+          title: "Account Created!",
+          description: "Welcome to FranchiseHub!",
+        });
       }
-    } catch (error) {
-      setErrors(['Registration failed. Please try again.']);
+    } catch (error: any) {
+      setErrors([error.message || 'Registration failed. Please try again.']);
     } finally {
       setIsLoading(false);
     }
