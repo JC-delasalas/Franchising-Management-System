@@ -32,11 +32,9 @@ const Logo: React.FC<LogoProps> = ({
 
   const logoContent = (
     <div className={`flex items-center space-x-2 ${clickable ? 'hover:opacity-80 transition-opacity' : ''}`}>
-      <img
-        src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏪</text></svg>"
-        alt={`${config.app.name} Logo`}
-        className={sizeClasses[size]}
-      />
+      <div className={`${sizeClasses[size]} bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center`}>
+        <span className="text-white font-bold text-sm">FH</span>
+      </div>
       {showText && (
         <span className={`font-bold ${className?.includes('text-white') ? 'text-white' : 'text-gray-900'} ${textSizeClasses[size]}`}>
           {config.app.name}

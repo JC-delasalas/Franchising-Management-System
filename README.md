@@ -1,35 +1,164 @@
-# Supabase CLI
+# FranchiseHub - Multi-Brand Franchising Platform
 
-[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
-](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
+A comprehensive franchise management system built with React, TypeScript, and Supabase. This platform enables franchisors to manage multiple franchise brands and franchisees to operate their locations efficiently.
 
-[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
+## Features
 
-This repository contains all the functionality for Supabase CLI.
+- **Multi-Brand Support**: Manage multiple franchise brands from a single platform
+- **Real-time Analytics**: Live dashboard with KPIs, sales data, and performance metrics
+- **Inventory Management**: Track stock levels, automate reordering, and manage suppliers
+- **Order Management**: Complete order lifecycle from creation to delivery
+- **Application Processing**: Streamlined franchise application and approval workflow
+- **Role-Based Access**: Secure access control for franchisors, franchisees, and staff
+- **Financial Tracking**: Revenue monitoring, royalty calculations, and payment processing
 
-- [x] Running Supabase locally
-- [x] Managing database migrations
-- [x] Creating and deploying Supabase Functions
-- [x] Generating types directly from your database schema
-- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
+## Technology Stack
 
-## Getting started
+- **Frontend**: React 18, TypeScript, Tailwind CSS, Shadcn/ui
+- **Backend**: Supabase (PostgreSQL, Auth, Real-time subscriptions)
+- **State Management**: React Query (TanStack Query)
+- **Authentication**: Supabase Auth with Row Level Security
+- **Database**: PostgreSQL with 25+ tables and comprehensive relationships
 
-### Install the CLI
-
-Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
-
-```bash
-npm i supabase --save-dev
-```
-
-To install the beta release channel:
+## Getting Started
 
 ```bash
-npm i supabase@beta --save-dev
+# Clone the repository
+git clone https://github.com/JC-delasalas/Franchising-Management-System.git
+
+# Navigate to project directory
+cd Franchising-Management-System
+
+# Install dependencies
+npm install
+
+# Copy environment configuration
+cp .env.example .env
+
+# Start development server
+npm run dev
 ```
 
-When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
+## Environment Setup
+
+Create a `.env` file with the following variables:
+
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+## Demo Accounts
+
+The system includes demo accounts for testing:
+
+- **Franchisor**: `franchisor@demo.com` / `demo123`
+- **Franchisee**: `franchisee@demo.com` / `demo123`
+- **Admin**: `admin@demo.com` / `demo123`
+
+## Database Schema
+
+The system uses a comprehensive 25-table database schema including:
+
+- **Core Tables**: Organizations, User Profiles, Franchises, Locations
+- **Product Management**: Products, Inventory Levels, Warehouses, Stock Movements
+- **Order Management**: Orders, Order Items, Shipments, Invoices, Payments
+- **Analytics**: Performance Targets, Financial Transactions, Audit Logs
+- **System**: Notifications, Settings, Organization Members
+
+## Architecture
+
+- **Frontend**: React with TypeScript for type safety
+- **UI Components**: Shadcn/ui with Tailwind CSS for modern design
+- **State Management**: React Query for server state and caching
+- **Authentication**: Supabase Auth with Row Level Security (RLS)
+- **Database**: PostgreSQL with comprehensive relationships and constraints
+- **Real-time**: Supabase real-time subscriptions for live updates
+
+## Key Features
+
+### For Franchisors
+- Multi-brand franchise management
+- Application review and approval workflow
+- Network-wide analytics and reporting
+- Inventory and order oversight
+- Financial tracking and royalty management
+
+### For Franchisees
+- Location-specific dashboard and analytics
+- Inventory management and automated reordering
+- Order placement and tracking
+- Performance monitoring against targets
+- Financial reporting and payment tracking
+
+## Security
+
+- Row Level Security (RLS) enabled on all tables
+- Role-based access control (RBAC)
+- Secure API endpoints with proper authentication
+- Data isolation between different user roles
+- Audit logging for all critical operations
+
+## Development
+
+### Project Structure
+```
+src/
+├── api/           # API layer with Supabase integration
+├── components/    # Reusable UI components
+├── hooks/         # Custom React hooks
+├── pages/         # Application pages/routes
+├── lib/           # Utility libraries and configurations
+├── services/      # Business logic layer
+└── types/         # TypeScript type definitions
+```
+
+### Available Scripts
+```bash
+npm run dev        # Start development server
+npm run build      # Build for production
+npm run preview    # Preview production build
+npm run lint       # Run ESLint
+npm run type-check # Run TypeScript checks
+```
+
+## Testing
+
+The system includes comprehensive testing utilities:
+
+```javascript
+// Run system integration tests in browser console
+runSystemTests()
+```
+
+## Deployment
+
+1. **Database Setup**: Deploy schema to Supabase
+2. **Environment Variables**: Configure production environment
+3. **Build**: Create production build
+4. **Deploy**: Deploy to your hosting platform
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
+
+## Author
+
+**John Cedrick de las Alas**
+- Email: jcedrick.delasalas@gmail.com
+- GitHub: [@JC-delasalas](https://github.com/JC-delasalas)
+
+## Support
+
+For support and questions, please open an issue on GitHub or contact the author directly.
 
 ```
 NODE_OPTIONS=--no-experimental-fetch yarn add supabase
@@ -151,6 +280,7 @@ For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency
 
 ### Run the CLI
 
+<<<<<<< HEAD
 ```bash
 supabase bootstrap
 ```
@@ -181,3 +311,102 @@ To run from source:
 # Go >= 1.22
 go run . help
 ```
+=======
+### Production Build
+```bash
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+### Deployment Platforms
+- **Vercel**: Connect your repository for automatic deployments
+- **Netlify**: Deploy the `dist` folder after building
+- **Manual**: Upload the `dist` folder to any static hosting service
+
+## 📁 Project Structure
+
+```
+src/
+├── components/          # Reusable UI components
+│   ├── ui/             # shadcn/ui components
+│   └── apply/          # Application form components
+├── pages/              # Page components
+│   └── franchisee/     # Franchisee dashboard pages
+├── config/             # Configuration files
+├── hooks/              # Custom React hooks
+├── lib/                # Utility functions
+└── assets/             # Static assets
+```
+
+## 🎯 Key Features
+
+### For Franchisees
+- **Dashboard**: Complete management interface
+- **Sales Reporting**: Upload and track daily sales
+- **Inventory Management**: Order supplies and track stock
+- **Marketing Assets**: Download promotional materials
+- **Support System**: Submit and track support requests
+- **Contract Management**: View agreements and upgrade options
+
+### For Franchisors
+- **Application Management**: Review and approve applications
+- **Analytics Dashboard**: Monitor franchise performance
+- **Content Management**: Update marketing materials
+- **Support Oversight**: Manage support tickets
+
+### Public Features
+- **Multi-Brand Showcase**: Display multiple franchise opportunities
+- **Application System**: Complete multi-step application process
+- **Blog System**: SEO-optimized content marketing
+- **Contact System**: Lead generation and inquiries
+
+## 🔧 Development
+
+### Available Scripts
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run preview      # Preview production build
+npm run lint         # Run ESLint
+npm run type-check   # Run TypeScript checks
+```
+
+### Code Quality
+- **TypeScript**: Full type safety
+- **ESLint**: Code linting and formatting
+- **Prettier**: Code formatting
+- **Git Hooks**: Quality checks on commit
+
+## 📈 Performance
+
+- **Lighthouse Score**: 95+ across all metrics
+- **Bundle Size**: Optimized with code splitting
+- **Loading Speed**: Fast initial load with lazy loading
+- **SEO**: Comprehensive meta tags and structured data
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+For support and questions:
+- Email: info@franchisehub.ph
+- Phone: +63 2 8123 4567
+- Documentation: See `DATABASE_RECOMMENDATIONS.md` for setup instructions
+
+## 🎉 Acknowledgments
+
+Built with modern web technologies and best practices for scalable franchise management.
+>>>>>>> d8c236e272e9ac681400e8e9183ffc31ac124827

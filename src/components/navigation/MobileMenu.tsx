@@ -2,9 +2,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Switch } from '@/components/ui/switch';
 import Logo from '@/components/Logo';
 import { Menu } from 'lucide-react';
 
@@ -14,17 +12,8 @@ interface NavigationLink {
   isRoute?: boolean;
 }
 
-interface DevPage {
-  href: string;
-  label: string;
-  desc: string;
-}
-
 interface MobileMenuProps {
   navigationLinks: NavigationLink[];
-  devPages: DevPage[];
-  devMode: boolean;
-  onDevModeChange: (enabled: boolean) => void;
   onNavClick: (href: string, isRoute: boolean) => void;
   mobileMenuOpen: boolean;
   setMobileMenuOpen: (open: boolean) => void;
@@ -32,9 +21,6 @@ interface MobileMenuProps {
 
 export const MobileMenu: React.FC<MobileMenuProps> = ({
   navigationLinks,
-  devPages,
-  devMode,
-  onDevModeChange,
   onNavClick,
   mobileMenuOpen,
   setMobileMenuOpen
@@ -97,38 +83,6 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
                 )
               ))}
             </nav>
-
-            {devMode && (
-              <div className="border-t pt-4 mt-6">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">Development Pages</h3>
-                <div className="flex flex-col space-y-2">
-                  {devPages.map((page) => (
-                    <Link
-                      key={page.href}
-                      to={page.href}
-                      className="text-sm text-gray-600 hover:text-blue-600 transition-colors py-1"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {page.label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="border-t pt-4 mt-6">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Dev Mode</span>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    checked={devMode}
-                    onCheckedChange={onDevModeChange}
-                    aria-label="Toggle development mode"
-                  />
-                  {devMode && <Badge variant="outline" className="text-xs">DEV</Badge>}
-                </div>
-              </div>
-            </div>
           </div>
         </SheetContent>
       </Sheet>
