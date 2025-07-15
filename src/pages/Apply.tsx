@@ -4,6 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import { FranchiseAPI } from '@/api/franchises';
 import PersonalInfoStep from '@/components/apply/PersonalInfoStep';
 import BusinessExperienceStep from '@/components/apply/BusinessExperienceStep';
 import FranchiseSelectionStep from '@/components/apply/FranchiseSelectionStep';
@@ -33,6 +36,8 @@ const Apply = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [documentsValid, setDocumentsValid] = useState(false);
+  const { toast } = useToast();
+
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
@@ -47,6 +52,25 @@ const Apply = () => {
     selectedPackage: '',
     province: '',
     city: ''
+  });
+
+  // Mutation for submitting application
+  const submitApplicationMutation = useMutation({
+    mutationFn: FranchiseAPI.createApplication,
+    onSuccess: () => {
+      setIsSubmitted(true);
+      toast({
+        title: "Application Submitted Successfully!",
+        description: "We'll review your application and get back to you soon.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error Submitting Application",
+        description: error.message || "Please try again later.",
+        variant: "destructive",
+      });
+    },
   });
 
   const totalSteps = 5;
@@ -90,7 +114,46 @@ const Apply = () => {
   };
 
   const handleSubmit = () => {
-    setIsSubmitted(true);
+    // Validate required fields
+    if (!formData.selectedBrand || !formData.selectedPackage) {
+      toast({
+        title: "Missing Information",
+        description: "Please select a franchise and package before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Prepare application data
+    const applicationData = {
+      franchise_id: formData.selectedBrand,
+      package_id: formData.selectedPackage,
+      application_data: {
+        personal_info: {
+          full_name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+        },
+        business_experience: {
+          years_experience: parseInt(formData.businessExperience) || 0,
+          previous_businesses: formData.businessDescription ? [formData.businessDescription] : [],
+          management_experience: formData.businessExperience !== '0',
+        },
+        financial_info: {
+          liquid_capital: parseInt(formData.investmentCapacity) || 0,
+          net_worth: parseInt(formData.investmentCapacity) * 1.5 || 0, // Estimate
+          financing_needed: parseInt(formData.investmentCapacity) < 500000,
+        },
+        location_preferences: {
+          province: formData.province,
+          city: formData.city,
+          timeframe: formData.timeframe,
+        }
+      }
+    };
+
+    submitApplicationMutation.mutate(applicationData);
   };
 
   if (isSubmitted) {
@@ -186,12 +249,12 @@ const Apply = () => {
                   </Button>
                   
                   {currentStep === totalSteps ? (
-                    <Button 
-                      onClick={handleSubmit} 
+                    <Button
+                      onClick={handleSubmit}
                       className="bg-green-600 hover:bg-green-700"
-                      disabled={!isStepValid}
+                      disabled={!isStepValid || submitApplicationMutation.isPending}
                     >
-                      Submit Application
+                      {submitApplicationMutation.isPending ? 'Submitting...' : 'Submit Application'}
                     </Button>
                   ) : (
                     <Button 

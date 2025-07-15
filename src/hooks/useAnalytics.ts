@@ -1,13 +1,16 @@
 import { useState, useMemo } from 'react';
-import { 
-  generateFranchiseeSalesData, 
-  generateProductData, 
+import { useQuery } from '@tanstack/react-query';
+import { AnalyticsAPI } from '@/api/analytics';
+import { useAuth } from '@/hooks/useAuth';
+import {
+  generateFranchiseeSalesData,
+  generateProductData,
   franchiseeKpiData,
   type PeriodType,
   type ProductDataPoint
 } from '@/data/analytics/franchiseeData';
-import { 
-  generateSalesData, 
+import {
+  generateSalesData,
   franchisorKpiData,
   brandPerformanceData,
   networkProductData,
@@ -17,12 +20,39 @@ import { calculateTargetAchievement } from '@/utils/analytics';
 
 export const useFranchiseeAnalytics = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>('MTD');
+  const { user } = useAuth();
 
+  // Get user's primary location
+  const locationId = user?.metadata?.primary_location_id;
+
+  // Fetch real analytics data
+  const { data: analyticsData } = useQuery({
+    queryKey: ['franchisee-analytics', locationId],
+    queryFn: () => AnalyticsAPI.getFranchiseeAnalytics(locationId!),
+    enabled: !!locationId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Fallback to mock data for now, but use real data when available
   const currentData = useMemo(() => generateFranchiseeSalesData(selectedPeriod), [selectedPeriod]);
   const currentProductData = useMemo(() => generateProductData(selectedPeriod), [selectedPeriod]);
-  const currentKPI = useMemo(() => franchiseeKpiData[selectedPeriod], [selectedPeriod]);
-  const targetAchievement = useMemo(() => 
-    calculateTargetAchievement(currentKPI.totalSales, currentKPI.target), 
+
+  // Use real KPI data if available, otherwise fallback to mock
+  const currentKPI = useMemo(() => {
+    if (analyticsData) {
+      return {
+        totalSales: `₱${analyticsData.sales.month.toLocaleString()}`,
+        growth: analyticsData.sales.change_percentage,
+        target: `₱${(analyticsData.sales.month * 1.2).toLocaleString()}`, // 20% higher target
+        orders: analyticsData.orders.total,
+        avgOrderValue: `₱${analyticsData.orders.avg_value.toLocaleString()}`
+      };
+    }
+    return franchiseeKpiData[selectedPeriod];
+  }, [selectedPeriod, analyticsData]);
+
+  const targetAchievement = useMemo(() =>
+    calculateTargetAchievement(currentKPI.totalSales, currentKPI.target),
     [currentKPI]
   );
 

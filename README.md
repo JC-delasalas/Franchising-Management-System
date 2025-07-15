@@ -1,220 +1,183 @@
-# FranchiseHub - Multi-Brand Franchising Platform
+# Supabase CLI
 
-A comprehensive franchise management system built with modern web technologies, designed to connect franchisors with potential franchisees in the Philippines.
+[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
+](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
 
-## 🚀 Features
+[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
 
-- **Multi-Brand Platform**: Support for multiple franchise brands
-- **Complete Application System**: Multi-step franchise application process
-- **Franchisee Dashboard**: Comprehensive management tools for franchisees
-- **Franchisor Dashboard**: Analytics and application management
-- **Blog System**: SEO-optimized content management
-- **Responsive Design**: Mobile-first approach with excellent UX
-- **Real-time Features**: Live updates and notifications
-- **Database Ready**: Complete schema and integration guide
+This repository contains all the functionality for Supabase CLI.
 
-## 🛠️ Technology Stack
+- [x] Running Supabase locally
+- [x] Managing database migrations
+- [x] Creating and deploying Supabase Functions
+- [x] Generating types directly from your database schema
+- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
 
-- **Frontend**: React 18 with TypeScript
-- **Styling**: Tailwind CSS with shadcn/ui components
-- **Build Tool**: Vite for fast development and building
-- **Routing**: React Router for client-side navigation
-- **State Management**: React hooks and context
-- **Database**: Supabase (PostgreSQL) recommended
-- **Deployment**: Vercel/Netlify ready
+## Getting started
 
-## 📦 Installation
+### Install the CLI
 
-### Prerequisites
-- Node.js 18+ and npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-### Setup Steps
+Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
 
 ```bash
-# Clone the repository
-git clone https://github.com/JC-delasalas/franchise-front-runner-portal.git
-
-# Navigate to project directory
-cd franchise-front-runner-portal
-
-# Install dependencies
-npm install
-
-# Copy environment configuration
-cp .env.example .env
-
-# Start development server
-npm run dev
+npm i supabase --save-dev
 ```
 
-The application will be available at `http://localhost:8080`
-
-## ⚙️ Configuration
-
-### Environment Variables
-
-Copy `.env.example` to `.env` and configure:
+To install the beta release channel:
 
 ```bash
-# Application Configuration
-VITE_APP_NAME=FranchiseHub
-VITE_APP_BASE_URL=https://franchisehub.ph
-
-# Contact Information
-VITE_CONTACT_PHONE=+63 2 8123 4567
-VITE_CONTACT_EMAIL=info@franchisehub.ph
-VITE_CONTACT_ADDRESS=Ayala Avenue, Makati City, Metro Manila, Philippines
-
-# Google Maps API (optional - fallback map active by default)
-VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
-
-# Feature Flags
-VITE_FEATURE_CHAT_ASSISTANT=true
-VITE_FEATURE_ANALYTICS=true
+npm i supabase@beta --save-dev
 ```
 
-## 📊 Analytics Dashboard
+When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
 
-Comprehensive analytics and KPI tracking with advanced charting capabilities:
+```
+NODE_OPTIONS=--no-experimental-fetch yarn add supabase
+```
 
-- **Multi-Period Analysis**: Month-to-Date, Quarter-to-Date, Year-to-Date views
-- **Interactive Charts**: Line, bar, area, and pie charts with Recharts
-- **KPI Tracking**: Sales trends, target achievement, growth metrics
-- **Performance Insights**: Automated alerts and actionable recommendations
-- **Responsive Design**: Mobile-friendly charts and dashboards
-- **Documentation**: See `docs/ANALYTICS_DASHBOARD.md` for detailed guide
+> **Note**
+For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
 
-Features include sales trend analysis, franchisee performance tracking, and revenue distribution by brand.
+<details>
+  <summary><b>macOS</b></summary>
 
-## 🗺️ Maps Integration
+  Available via [Homebrew](https://brew.sh). To install:
 
-The platform includes Google Maps integration with an intelligent fallback system:
+  ```sh
+  brew install supabase/tap/supabase
+  ```
 
-- **Fallback Map (Active)**: Beautiful custom map design with navigation links
-- **Google Maps API (Optional)**: Interactive maps with full functionality
-- **Setup Guide**: See `docs/GOOGLE_MAPS_SETUP.md` for detailed instructions
+  To install the beta release channel:
+  
+  ```sh
+  brew install supabase/tap/supabase-beta
+  brew link --overwrite supabase-beta
+  ```
+  
+  To upgrade:
 
-The fallback map provides excellent user experience without API costs.
+  ```sh
+  brew upgrade supabase
+  ```
+</details>
 
-## 🗄️ Database Setup
+<details>
+  <summary><b>Windows</b></summary>
 
-This project is designed to work with Supabase (recommended) or any PostgreSQL database.
+  Available via [Scoop](https://scoop.sh). To install:
 
-### Recommended: Supabase
-1. Sign up at [supabase.com](https://supabase.com) (free tier available)
-2. Create a new project
-3. Run the SQL schema from `DATABASE_RECOMMENDATIONS.md`
-4. Update environment variables with your Supabase credentials
+  ```powershell
+  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+  scoop install supabase
+  ```
 
-See `DATABASE_RECOMMENDATIONS.md` for complete setup instructions and schema.
+  To upgrade:
 
-## 🚀 Deployment
+  ```powershell
+  scoop update supabase
+  ```
+</details>
 
-### Vercel (Recommended)
+<details>
+  <summary><b>Linux</b></summary>
+
+  Available via [Homebrew](https://brew.sh) and Linux packages.
+
+  #### via Homebrew
+
+  To install:
+
+  ```sh
+  brew install supabase/tap/supabase
+  ```
+
+  To upgrade:
+
+  ```sh
+  brew upgrade supabase
+  ```
+
+  #### via Linux packages
+
+  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
+
+  ```sh
+  sudo apk add --allow-untrusted <...>.apk
+  ```
+
+  ```sh
+  sudo dpkg -i <...>.deb
+  ```
+
+  ```sh
+  sudo rpm -i <...>.rpm
+  ```
+
+  ```sh
+  sudo pacman -U <...>.pkg.tar.zst
+  ```
+</details>
+
+<details>
+  <summary><b>Other Platforms</b></summary>
+
+  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
+
+  ```sh
+  go install github.com/supabase/cli@latest
+  ```
+
+  Add a symlink to the binary in `$PATH` for easier access:
+
+  ```sh
+  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
+  ```
+
+  This works on other non-standard Linux distros.
+</details>
+
+<details>
+  <summary><b>Community Maintained Packages</b></summary>
+
+  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
+  To install in your working directory:
+
+  ```bash
+  pkgx install supabase
+  ```
+
+  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
+</details>
+
+### Run the CLI
+
 ```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel
+supabase bootstrap
 ```
 
-### Netlify
+Or using npx:
+
 ```bash
-# Build the project
-npm run build
-
-# Deploy the dist folder to Netlify
+npx supabase bootstrap
 ```
 
-### Manual Deployment
-```bash
-# Build for production
-npm run build
+The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
 
-# The dist folder contains the built application
+## Docs
+
+Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+
+## Breaking changes
+
+We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+
+However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+
+## Developing
+
+To run from source:
+
+```sh
+# Go >= 1.22
+go run . help
 ```
-
-## 📁 Project Structure
-
-```
-src/
-├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui components
-│   └── apply/          # Application form components
-├── pages/              # Page components
-│   └── franchisee/     # Franchisee dashboard pages
-├── config/             # Configuration files
-├── hooks/              # Custom React hooks
-├── lib/                # Utility functions
-└── assets/             # Static assets
-```
-
-## 🎯 Key Features
-
-### For Franchisees
-- **Dashboard**: Complete management interface
-- **Sales Reporting**: Upload and track daily sales
-- **Inventory Management**: Order supplies and track stock
-- **Marketing Assets**: Download promotional materials
-- **Support System**: Submit and track support requests
-- **Contract Management**: View agreements and upgrade options
-
-### For Franchisors
-- **Application Management**: Review and approve applications
-- **Analytics Dashboard**: Monitor franchise performance
-- **Content Management**: Update marketing materials
-- **Support Oversight**: Manage support tickets
-
-### Public Features
-- **Multi-Brand Showcase**: Display multiple franchise opportunities
-- **Application System**: Complete multi-step application process
-- **Blog System**: SEO-optimized content marketing
-- **Contact System**: Lead generation and inquiries
-
-## 🔧 Development
-
-### Available Scripts
-```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run preview      # Preview production build
-npm run lint         # Run ESLint
-npm run type-check   # Run TypeScript checks
-```
-
-### Code Quality
-- **TypeScript**: Full type safety
-- **ESLint**: Code linting and formatting
-- **Prettier**: Code formatting
-- **Husky**: Git hooks for quality checks
-
-## 📈 Performance
-
-- **Lighthouse Score**: 95+ across all metrics
-- **Bundle Size**: Optimized with code splitting
-- **Loading Speed**: Fast initial load with lazy loading
-- **SEO**: Comprehensive meta tags and structured data
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-For support and questions:
-- Email: info@franchisehub.ph
-- Phone: +63 2 8123 4567
-- Documentation: See `DATABASE_RECOMMENDATIONS.md` and `IMPROVEMENTS.md`
-
-## 🎉 Acknowledgments
-
-Built with modern web technologies and best practices for scalable franchise management.

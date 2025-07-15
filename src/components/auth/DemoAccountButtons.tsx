@@ -17,22 +17,25 @@ export const DemoAccountButtons: React.FC<DemoAccountButtonsProps> = ({ onDemoLo
           variant="outline"
           size="sm"
           className="w-full justify-start text-xs"
-          onClick={() => onDemoLogin('Franchisor', 'WelcomeAdmin*123')}
+          onClick={() => onDemoLogin('franchisor@demo.com', 'demo123')}
         >
           <User className="w-3 h-3 mr-2" />
-          Franchisor (Admin)
+          Franchisor Demo
         </Button>
         <Button
           type="button"
           variant="outline"
           size="sm"
           className="w-full justify-start text-xs"
-          onClick={() => onDemoLogin('Franchisee', 'Franchisee*123')}
+          onClick={() => onDemoLogin('franchisee@demo.com', 'demo123')}
         >
           <User className="w-3 h-3 mr-2" />
-          Franchisee (Demo)
+          Franchisee Demo
         </Button>
       </div>
+      <p className="text-xs text-blue-700 mt-2">
+        Click to auto-fill demo credentials, then click Login
+      </p>
     </div>
   );
 };

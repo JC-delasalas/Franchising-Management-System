@@ -40,6 +40,13 @@ export const config = {
     errorReporting: import.meta.env.VITE_FEATURE_ERROR_REPORTING !== 'false',
   },
 
+  // Supabase Configuration
+  supabase: {
+    url: import.meta.env.VITE_SUPABASE_URL || '',
+    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+    serviceRoleKey: import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || '',
+  },
+
   // Third-party Services
   services: {
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',

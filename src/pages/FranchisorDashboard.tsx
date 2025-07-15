@@ -9,26 +9,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { FranchiseAPI } from '@/api/franchises';
+import { AnalyticsAPI } from '@/api/analytics';
 import Logo from '@/components/Logo';
 import ChatAssistant from '@/components/ChatAssistant';
 import KPICharts from '@/components/analytics/KPICharts';
 import { IAMDashboard } from '@/components/iam/IAMDashboard';
-import { TrendingUp, Users, Package, DollarSign, Bell, Search, Filter, Download, Plus, Check, X, Clock, MessageCircle, AlertTriangle, ArrowLeft, Eye, Mail, Phone, BarChart3, Shield } from 'lucide-react';
-
-const mockApplications = [
-  { id: 'APP001', name: 'Maria Santos', brand: 'Siomai Shop', package: 'Package B', status: 'Pending', date: '2024-01-15', phone: '+63 912 345 6789', email: 'maria@email.com' },
-  { id: 'APP002', name: 'Juan Dela Cruz', brand: 'Coffee Shop', package: 'Package C', status: 'Approved', date: '2024-01-14', phone: '+63 917 234 5678', email: 'juan@email.com' },
-  { id: 'APP003', name: 'Ana Rodriguez', brand: 'Lemon Juice Stand', package: 'Package A', status: 'Semi-Approved', date: '2024-01-13', phone: '+63 905 876 5432', email: 'ana@email.com' },
-  { id: 'APP004', name: 'Carlos Mendoza', brand: 'Burger & Fries', package: 'Package D', status: 'Approved', date: '2024-01-12', phone: '+63 922 111 2222', email: 'carlos@email.com' },
-  { id: 'APP005', name: 'Lisa Garcia', brand: 'Siomai Shop', package: 'Package A', status: 'Rejected', date: '2024-01-11', phone: '+63 909 333 4444', email: 'lisa@email.com' }
-];
-
-const mockFranchisees = [
-  { id: 'FR001', name: 'Robert Kim', brand: 'Siomai Shop', location: 'Makati', monthlyRevenue: '₱45,000', status: 'Active', lowStock: ['Sauce Packets', 'Paper Bags'] },
-  { id: 'FR002', name: 'Jennifer Lopez', brand: 'Coffee Shop', location: 'BGC', monthlyRevenue: '₱78,000', status: 'Active', lowStock: [] },
-  { id: 'FR003', name: 'Michael Chen', brand: 'Lemon Juice Stand', location: 'Ortigas', monthlyRevenue: '₱32,000', status: 'Active', lowStock: ['Lemon Concentrate'] },
-  { id: 'FR004', name: 'Sarah Johnson', brand: 'Burger & Fries', location: 'Quezon City', monthlyRevenue: '₱56,000', status: 'Active', lowStock: ['Burger Patties'] }
-];
+import { TrendingUp, Users, Package, DollarSign, Bell, Search, Filter, Download, Plus, Check, X, Clock, MessageCircle, AlertTriangle, ArrowLeft, Eye, Mail, Phone, BarChart3, Shield, RefreshCw } from 'lucide-react';
 
 const FranchisorDashboard = () => {
   const [selectedBrand, setSelectedBrand] = useState('all');
@@ -36,6 +27,71 @@ const FranchisorDashboard = () => {
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [actionType, setActionType] = useState('');
   const [actionReason, setActionReason] = useState('');
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch franchisor analytics
+  const { data: analytics, isLoading: analyticsLoading } = useQuery({
+    queryKey: ['franchisor-analytics'],
+    queryFn: AnalyticsAPI.getFranchisorAnalytics,
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 30 * 1000,
+  });
+
+  // Fetch all franchises owned by this user
+  const { data: franchises, isLoading: franchisesLoading } = useQuery({
+    queryKey: ['franchises', user?.id],
+    queryFn: () => FranchiseAPI.getFranchisesByOwner(user!.id),
+    enabled: !!user?.id,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  // Fetch pending applications across all franchises
+  const { data: applications, isLoading: applicationsLoading } = useQuery({
+    queryKey: ['pending-applications'],
+    queryFn: async () => {
+      if (!franchises) return [];
+      const allApplications = await Promise.all(
+        franchises.map(franchise =>
+          FranchiseAPI.getApplicationsForFranchise(franchise.id)
+        )
+      );
+      return allApplications.flat();
+    },
+    enabled: !!franchises,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Fetch franchise locations
+  const { data: locations, isLoading: locationsLoading } = useQuery({
+    queryKey: ['franchise-locations'],
+    queryFn: () => FranchiseAPI.getFranchiseLocations(),
+    staleTime: 10 * 60 * 1000,
+  });
+
+  // Update application status mutation
+  const updateApplicationMutation = useMutation({
+    mutationFn: ({ applicationId, updates }: { applicationId: string; updates: any }) =>
+      FranchiseAPI.updateApplicationStatus(applicationId, updates),
+    onSuccess: () => {
+      toast({
+        title: "Application Updated",
+        description: "Application status has been updated successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['pending-applications'] });
+      setSelectedApplication(null);
+      setActionType('');
+      setActionReason('');
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update application.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {

@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getCurrentUser } from '@/services/authService';
+import { useAuth } from '@/hooks/useAuth';
 import { useErrorRecovery } from '@/hooks/useErrorRecovery';
 
 interface AuthorizationContextType {
@@ -17,7 +17,8 @@ const AuthorizationContext = createContext<AuthorizationContextType | undefined>
 export const AuthorizationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [canAccessIAM, setCanAccessIAM] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+
   const { error, retryCount, handleError, retry, reset } = useErrorRecovery({
     maxRetries: 3,
     retryDelay: 1000,
@@ -27,21 +28,22 @@ export const AuthorizationProvider: React.FC<{ children: React.ReactNode }> = ({
   const checkPermissions = async () => {
     try {
       setIsLoading(true);
-      const user = getCurrentUser();
       
-      if (!user) {
-        setCanAccessIAM(false);
+      // Wait for auth to load
+      if (authLoading) {
         return;
       }
 
-      // Simulate permission check with potential network call
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Map accountType to role for permission checking
-      const userRole = user.role || user.accountType;
-      const hasIAMAccess = userRole === 'franchisor' || userRole === 'admin';
+      if (!isAuthenticated || !user) {
+        setCanAccessIAM(false);
+        setIsLoading(false);
+        return;
+      }
+
+      // Check if user has IAM access (franchisor or admin)
+      const hasIAMAccess = user.role === 'franchisor' || user.role === 'admin';
       setCanAccessIAM(hasIAMAccess);
-      
+
       console.log('Permissions checked successfully', { user: user.email, hasIAMAccess });
     } catch (err) {
       handleError(err instanceof Error ? err : new Error('Failed to check permissions'));
@@ -56,8 +58,10 @@ export const AuthorizationProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   useEffect(() => {
-    checkPermissions();
-  }, []);
+    if (!authLoading) {
+      checkPermissions();
+    }
+  }, [authLoading, isAuthenticated, user]);
 
   // Auto-retry on transient errors
   useEffect(() => {
@@ -72,10 +76,11 @@ export const AuthorizationProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const value = {
     canAccessIAM,
-    isLoading,
+    isLoading: isLoading || authLoading,
     error,
     retryCount,
     refreshPermissions,
+    retry,
     reset
   };
 

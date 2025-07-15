@@ -3,6 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Bell, PlusCircle, ArrowUp } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface DashboardHeaderProps {
   showUpgrade: boolean;
@@ -13,11 +14,17 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   showUpgrade,
   onToggleUpgrade
 }) => {
+  const { user } = useAuth();
+
+  const firstName = user?.full_name?.split(' ')[0] || 'User';
+
   return (
     <div className="flex items-center justify-between mb-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Welcome back, Robert!</h1>
-        <p className="text-gray-600">Siomai Shop - Makati Branch (Package B)</p>
+        <h1 className="text-3xl font-bold text-gray-900">Welcome back, {firstName}!</h1>
+        <p className="text-gray-600">
+          {user?.role === 'franchisee' ? 'Franchisee Dashboard' : 'Franchisor Dashboard'}
+        </p>
       </div>
       <div className="flex items-center space-x-4">
         <Button

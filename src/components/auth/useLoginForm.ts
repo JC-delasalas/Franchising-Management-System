@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { validateRequired, combineValidations } from '@/lib/validation';
-import { loginUser } from '@/services/authService';
+import { signIn } from '@/hooks/useAuth';
 import { ROUTES } from '@/constants/routes';
 
 export const useLoginForm = () => {
@@ -39,38 +39,33 @@ export const useLoginForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     setIsLoading(true);
 
     try {
-      const result = await loginUser(formData);
-      
-      if (result.success && result.user) {
+      const result = await signIn(formData.email, formData.password);
+
+      if (result.user) {
         toast({
           title: "Login Successful",
-          description: `Welcome back, ${result.user.firstName}!`,
+          description: `Welcome back!`,
         });
-        
-        // Use route constants for navigation
-        const redirectPath = result.user.accountType === 'franchisor' 
-          ? ROUTES.FRANCHISOR_DASHBOARD 
-          : ROUTES.FRANCHISEE_DASHBOARD;
-        
-        navigate(redirectPath, { replace: true });
-      } else {
-        setErrors([result.message]);
+
+        // Navigation will be handled by auth state change in AuthGuard
+        // The user will be redirected based on their role
       }
-    } catch (error) {
-      setErrors(['An unexpected error occurred. Please try again.']);
+    } catch (error: any) {
+      console.error('Login error:', error);
+      setErrors([error.message || 'Invalid email or password. Please try again.']);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDemoLogin = (username: string, password: string) => {
-    setFormData({ email: username, password });
+  const handleDemoLogin = (email: string, password: string) => {
+    setFormData({ email, password });
   };
 
   return {

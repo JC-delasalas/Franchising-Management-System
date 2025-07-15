@@ -1,5 +1,9 @@
 
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { AnalyticsAPI } from '@/api/analytics';
+import { FranchiseAPI } from '@/api/franchises';
+import { useAuth } from '@/hooks/useAuth';
 import ChatAssistant from '@/components/ChatAssistant';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
@@ -10,13 +14,21 @@ import UpgradeBanner from '@/components/dashboard/UpgradeBanner';
 
 const FranchiseeDashboard = () => {
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const { user } = useAuth();
 
-  const salesData = {
-    today: '₱45,250',
-    thisWeek: '₱342,100',
-    thisMonth: '₱1,370,000',
-    target: '₱1,000,000'
-  };
+  // Get the user's primary location ID for KPI data
+  const locationId = user?.metadata?.primary_location_id;
+
+  // Fetch user's franchise locations
+  const { data: locations } = useQuery({
+    queryKey: ['franchise-locations', user?.id],
+    queryFn: () => FranchiseAPI.getLocationsByFranchisee(user!.id),
+    enabled: !!user?.id,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  // Use first location if no primary location set
+  const effectiveLocationId = locationId || locations?.[0]?.id;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -36,7 +48,7 @@ const FranchiseeDashboard = () => {
           <UpgradeBanner showUpgrade={showUpgrade} onClose={() => setShowUpgrade(false)} />
 
           {/* KPI Cards */}
-          <KPICards salesData={salesData} />
+          <KPICards locationId={effectiveLocationId} />
 
           {/* Milestones Section */}
           <MilestonesSection />

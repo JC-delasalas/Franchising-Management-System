@@ -12,7 +12,7 @@ import ComponentErrorBoundary from "@/components/ui/ComponentErrorBoundary";
 import { PageLoading } from "@/components/ui/loading";
 import { SessionTimeoutWarning } from "@/components/auth/SessionTimeoutWarning";
 import { useSessionManager } from "@/hooks/useSessionManager";
-import { getCurrentUser } from "@/services/authService";
+import { useAuth } from "@/hooks/useAuth";
 import { validateConfig } from "@/config/environment";
 import { AuthorizationProvider } from "@/contexts/AuthorizationContext";
 import { AuthGuard, RequireAuth, GuestOnly } from "@/components/auth/AuthGuard";
@@ -79,7 +79,7 @@ try {
 }
 
 const SessionWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const user = getCurrentUser();
+  const { user, isAuthenticated } = useAuth();
   const {
     showWarning,
     formatTimeRemaining,
@@ -90,7 +90,7 @@ const SessionWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return (
     <>
       {children}
-      {user && (
+      {isAuthenticated && user && (
         <SessionTimeoutWarning
           timeRemaining={formatTimeRemaining()}
           onRefreshSession={refreshSession}

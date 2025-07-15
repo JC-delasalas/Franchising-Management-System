@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getCurrentUser, logoutUser } from '@/services/authService';
+import { signOut } from '@/hooks/useAuth';
 import { useNotifications } from '@/hooks/useNotifications';
+import { supabase } from '@/lib/supabase';
 
 interface SessionConfig {
   timeoutMinutes: number;
@@ -61,19 +62,28 @@ export const useSessionManager = (config: Partial<SessionConfig> = {}) => {
     }, finalConfig.timeoutMinutes * 60 * 1000);
   }, [finalConfig.timeoutMinutes, finalConfig.warningMinutes]);
 
-  const handleSessionTimeout = useCallback(() => {
-    logoutUser();
-    setSessionActive(false);
-    setShowWarning(false);
-    notifications.auth.logoutSuccess();
-    window.location.href = '/login';
+  const handleSessionTimeout = useCallback(async () => {
+    try {
+      await signOut();
+      setSessionActive(false);
+      setShowWarning(false);
+      notifications.auth.logoutSuccess();
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Error during session timeout:', error);
+      window.location.href = '/login';
+    }
   }, [notifications]);
 
-  const refreshSession = useCallback(() => {
-    const user = getCurrentUser();
-    if (user) {
-      resetTimer();
-      notifications.general.saveSuccess();
+  const refreshSession = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        resetTimer();
+        notifications.general.saveSuccess();
+      }
+    } catch (error) {
+      console.error('Error refreshing session:', error);
     }
   }, [resetTimer, notifications]);
 
@@ -90,11 +100,15 @@ export const useSessionManager = (config: Partial<SessionConfig> = {}) => {
   }, [sessionActive, resetTimer]);
 
   useEffect(() => {
-    const user = getCurrentUser();
-    if (user) {
-      setSessionActive(true);
-      resetTimer();
-    }
+    const checkSession = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setSessionActive(true);
+        resetTimer();
+      }
+    };
+
+    checkSession();
   }, [resetTimer]);
 
   useEffect(() => {

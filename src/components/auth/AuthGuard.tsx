@@ -1,7 +1,7 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { getCurrentUser, AuthUser } from '@/services/authService';
+import { useAuth, hasRole } from '@/hooks/useAuth';
 import { PageLoading } from '@/components/ui/loading';
 import { useSessionManager } from '@/hooks/useSessionManager';
 
@@ -20,42 +20,35 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
 }) => {
   const location = useLocation();
   const { sessionActive } = useSessionManager();
-  const [user, setUser] = React.useState<AuthUser | null>(null);
-  const [loading, setLoading] = React.useState(true);
+  const { user, isAuthenticated, isLoading, role } = useAuth();
 
-  useEffect(() => {
-    const currentUser = getCurrentUser();
-    setUser(currentUser);
-    setLoading(false);
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return <PageLoading />;
   }
 
   // If authentication is required but user is not logged in
-  if (requireAuth && !user) {
+  if (requireAuth && !isAuthenticated) {
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
   // If authentication is not required but user is logged in (e.g., login page)
-  if (!requireAuth && user) {
-    const dashboardRoute = user.accountType === 'franchisor' 
-      ? '/franchisor-dashboard' 
+  if (!requireAuth && isAuthenticated) {
+    const dashboardRoute = role === 'franchisor'
+      ? '/franchisor-dashboard'
       : '/franchisee-dashboard';
     return <Navigate to={dashboardRoute} replace />;
   }
 
   // If specific role is required but user doesn't have it
-  if (requiredRole && user && user.accountType !== requiredRole) {
-    const unauthorizedRoute = user.accountType === 'franchisor' 
-      ? '/franchisor-dashboard' 
+  if (requiredRole && user && !hasRole(role, requiredRole)) {
+    const unauthorizedRoute = role === 'franchisor'
+      ? '/franchisor-dashboard'
       : '/franchisee-dashboard';
     return <Navigate to={unauthorizedRoute} replace />;
   }
 
   // If session is not active (timed out)
-  if (requireAuth && !sessionActive && user) {
+  if (requireAuth && !sessionActive && isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 

@@ -1,11 +1,11 @@
 
 import { useLocation } from 'react-router-dom';
-import { getCurrentUser } from '@/services/authService';
+import { useAuth } from '@/hooks/useAuth';
 import { useAuthorization } from '@/contexts/AuthorizationContext';
 
 export const useNavigationData = () => {
   const location = useLocation();
-  const user = getCurrentUser();
+  const { user } = useAuth();
   const { canAccessIAM, isLoading, error } = useAuthorization();
 
   const navigationLinks = [

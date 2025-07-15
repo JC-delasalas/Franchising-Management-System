@@ -5,6 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { InventoryAPI } from '@/api/inventory';
+import { OrderAPI } from '@/api/orders';
+import { OrderService } from '@/services/OrderService';
 import Navigation from '@/components/Navigation';
 import SEO from '@/components/SEO';
 import {
@@ -16,21 +23,18 @@ import {
   CheckCircle,
   Clock,
   ArrowLeft,
-  Truck
+  Truck,
+  RefreshCw
 } from 'lucide-react';
 
-interface InventoryItem {
-  id: string;
+interface CartItem {
+  product_id: string;
   name: string;
-  currentStock: number;
-  unit: string;
-  reorderLevel: number;
-  status: 'Good' | 'Low' | 'Critical';
-  price: number;
+  sku: string;
   category: string;
-}
-
-interface CartItem extends InventoryItem {
+  current_stock: number;
+  reorder_level: number;
+  price: number;
   quantity: number;
 }
 
@@ -38,36 +42,87 @@ const InventoryOrder = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [recentOrders, setRecentOrders] = useState([
-    { id: 'ORD-001', date: '2024-01-10', items: 5, total: '₱4,250', status: 'Delivered' },
-    { id: 'ORD-002', date: '2024-01-08', items: 3, total: '₱2,100', status: 'In Transit' },
-    { id: 'ORD-003', date: '2024-01-05', items: 7, total: '₱6,800', status: 'Delivered' }
-  ]);
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const inventoryItems: InventoryItem[] = [
-    { id: '1', name: 'Siomai Mix (500pcs)', currentStock: 45, unit: 'pcs', reorderLevel: 20, status: 'Good', price: 2500, category: 'Food' },
-    { id: '2', name: 'Sauce Packets (100pcs)', currentStock: 12, unit: 'boxes', reorderLevel: 15, status: 'Low', price: 450, category: 'Condiments' },
-    { id: '3', name: 'Disposable Containers (200pcs)', currentStock: 156, unit: 'pcs', reorderLevel: 50, status: 'Good', price: 1200, category: 'Packaging' },
-    { id: '4', name: 'Paper Bags (50 bundles)', currentStock: 8, unit: 'bundles', reorderLevel: 10, status: 'Critical', price: 800, category: 'Packaging' },
-    { id: '5', name: 'Chili Oil (1L)', currentStock: 5, unit: 'bottles', reorderLevel: 8, status: 'Critical', price: 350, category: 'Condiments' },
-    { id: '6', name: 'Soy Sauce (500ml)', currentStock: 25, unit: 'bottles', reorderLevel: 12, status: 'Good', price: 180, category: 'Condiments' },
-    { id: '7', name: 'Napkins (1000pcs)', currentStock: 3, unit: 'packs', reorderLevel: 5, status: 'Low', price: 250, category: 'Supplies' },
-    { id: '8', name: 'Plastic Spoons (500pcs)', currentStock: 45, unit: 'packs', reorderLevel: 20, status: 'Good', price: 320, category: 'Supplies' }
-  ];
+  // Get user's primary location
+  const locationId = user?.metadata?.primary_location_id;
 
-  const categories = ['All', 'Food', 'Condiments', 'Packaging', 'Supplies'];
+  // Fetch inventory data
+  const { data: inventory, isLoading: inventoryLoading, error: inventoryError } = useQuery({
+    queryKey: ['inventory', locationId],
+    queryFn: () => InventoryAPI.getInventoryByLocation(locationId!),
+    enabled: !!locationId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
+  // Fetch recent orders
+  const { data: orders, isLoading: ordersLoading } = useQuery({
+    queryKey: ['orders', locationId],
+    queryFn: () => OrderAPI.getOrdersByLocation(locationId!),
+    enabled: !!locationId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Create order mutation
+  const createOrderMutation = useMutation({
+    mutationFn: OrderService.createOrderWithValidation,
+    onSuccess: () => {
+      toast({
+        title: "Order Created Successfully!",
+        description: "Your inventory order has been submitted for approval.",
+      });
+      setCart([]);
+      queryClient.invalidateQueries({ queryKey: ['orders', locationId] });
+      queryClient.invalidateQueries({ queryKey: ['inventory', locationId] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error Creating Order",
+        description: error.message || "Please try again later.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Process inventory data
+  const inventoryItems = inventory?.map(item => ({
+    product_id: item.product_id,
+    name: item.product?.name || 'Unknown Product',
+    sku: item.product?.sku || '',
+    category: item.product?.category || 'Uncategorized',
+    current_stock: item.available_quantity,
+    reorder_level: item.reorder_level,
+    price: item.product?.price || 0,
+    status: item.available_quantity <= 0 ? 'Critical' as const :
+            item.available_quantity <= item.reorder_level ? 'Low' as const : 'Good' as const
+  })) || [];
+
+  // Get unique categories
+  const categories = ['All', ...new Set(inventoryItems.map(item => item.category))];
+
+  // Filter items based on search and category
   const filteredItems = inventoryItems.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.sku.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
-  const addToCart = (item: InventoryItem) => {
-    const existingItem = cart.find(cartItem => cartItem.id === item.id);
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
+    }).format(amount);
+  };
+
+  const addToCart = (item: typeof inventoryItems[0]) => {
+    const existingItem = cart.find(cartItem => cartItem.product_id === item.product_id);
     if (existingItem) {
       setCart(cart.map(cartItem =>
-        cartItem.id === item.id
+        cartItem.product_id === item.product_id
           ? { ...cartItem, quantity: cartItem.quantity + 1 }
           : cartItem
       ));
@@ -76,12 +131,12 @@ const InventoryOrder = () => {
     }
   };
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateQuantity = (productId: string, quantity: number) => {
     if (quantity <= 0) {
-      setCart(cart.filter(item => item.id !== id));
+      setCart(cart.filter(item => item.product_id !== productId));
     } else {
       setCart(cart.map(item =>
-        item.id === id ? { ...item, quantity } : item
+        item.product_id === productId ? { ...item, quantity } : item
       ));
     }
   };
@@ -118,32 +173,37 @@ const InventoryOrder = () => {
 
   const handleCheckout = () => {
     if (cart.length === 0) {
-      alert('Please add items to your cart first.');
+      toast({
+        title: "Cart is Empty",
+        description: "Please add items to your cart first.",
+        variant: "destructive",
+      });
       return;
     }
 
-    // Generate new order ID
-    const newOrderId = `ORD-${String(recentOrders.length + 1).padStart(3, '0')}`;
-    const today = new Date().toISOString().split('T')[0];
-    const totalAmount = getTotalAmount();
+    if (!locationId) {
+      toast({
+        title: "Location Error",
+        description: "Unable to determine your location. Please contact support.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    // Create new order
-    const newOrder = {
-      id: newOrderId,
-      date: today,
-      items: cart.length,
-      total: `₱${totalAmount.toLocaleString()}`,
-      status: 'Processing'
+    // Create order data
+    const orderData = {
+      franchise_location_id: locationId,
+      order_type: 'inventory' as const,
+      priority: 'normal' as const,
+      items: cart.map(item => ({
+        product_id: item.product_id,
+        quantity: item.quantity,
+        unit_price: item.price
+      })),
+      special_instructions: 'Inventory restock order from franchisee dashboard'
     };
 
-    // Add to recent orders (at the beginning)
-    setRecentOrders([newOrder, ...recentOrders]);
-
-    // Clear cart
-    setCart([]);
-
-    // Show success message
-    alert(`✅ Order placed successfully!\n\nOrder ID: ${newOrderId}\nTotal: ₱${totalAmount.toLocaleString()}\nItems: ${cart.length}\n\nYour order is now being processed and will be delivered in 3-5 business days.`);
+    createOrderMutation.mutate(orderData);
   };
 
   return (
@@ -201,42 +261,84 @@ const InventoryOrder = () => {
             </Card>
 
             {/* Inventory Items */}
-            <div className="grid md:grid-cols-2 gap-4 mb-8">
-              {filteredItems.map((item) => (
-                <Card key={item.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg mb-2">{item.name}</h3>
-                        <div className="flex items-center space-x-2 mb-2">
-                          {getStatusBadge(item.status)}
-                          <Badge variant="outline">{item.category}</Badge>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2">
-                          Current Stock: {item.currentStock} {item.unit}
-                        </p>
-                        {item.status !== 'Good' && (
-                          <div className="flex items-center space-x-1 text-sm text-orange-600">
-                            <AlertTriangle className="w-4 h-4" />
-                            <span>Reorder Level: {item.reorderLevel} {item.unit}</span>
-                          </div>
-                        )}
+            {inventoryLoading ? (
+              <div className="grid md:grid-cols-2 gap-4 mb-8">
+                {[...Array(6)].map((_, i) => (
+                  <Card key={i}>
+                    <CardContent className="p-6">
+                      <Skeleton className="h-6 w-3/4 mb-2" />
+                      <Skeleton className="h-4 w-1/2 mb-2" />
+                      <Skeleton className="h-4 w-1/3 mb-4" />
+                      <div className="flex justify-between items-center">
+                        <Skeleton className="h-6 w-20" />
+                        <Skeleton className="h-8 w-24" />
                       </div>
-                    </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : inventoryError ? (
+              <div className="text-center p-8 text-red-600">
+                <AlertTriangle className="w-12 h-12 mx-auto mb-4" />
+                <p>Error loading inventory. Please try again later.</p>
+                <Button
+                  onClick={() => queryClient.invalidateQueries({ queryKey: ['inventory', locationId] })}
+                  className="mt-4"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Retry
+                </Button>
+              </div>
+            ) : filteredItems.length === 0 ? (
+              <div className="text-center p-8 text-gray-500">
+                <Package className="w-12 h-12 mx-auto mb-4" />
+                <p>No inventory items found matching your criteria.</p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-4 mb-8">
+                {filteredItems.map((item) => (
+                  <Card key={item.product_id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-lg mb-2">{item.name}</h3>
+                          <div className="flex items-center space-x-2 mb-2">
+                            {getStatusBadge(item.status)}
+                            <Badge variant="outline">{item.category}</Badge>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">
+                            SKU: {item.sku}
+                          </p>
+                          <p className="text-sm text-gray-600 mb-2">
+                            Current Stock: {item.current_stock} units
+                          </p>
+                          {item.status !== 'Good' && (
+                            <div className="flex items-center space-x-1 text-sm text-orange-600">
+                              <AlertTriangle className="w-4 h-4" />
+                              <span>Reorder Level: {item.reorder_level} units</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
 
-                    <div className="flex items-center justify-between">
-                      <span className="text-xl font-bold text-green-600">
-                        ₱{item.price.toLocaleString()}
-                      </span>
-                      <Button onClick={() => addToCart(item)} size="sm">
-                        <ShoppingCart className="w-4 h-4 mr-2" />
-                        Add to Cart
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xl font-bold text-green-600">
+                          {formatCurrency(item.price)}
+                        </span>
+                        <Button
+                          onClick={() => addToCart(item)}
+                          size="sm"
+                          disabled={item.current_stock <= 0}
+                        >
+                          <ShoppingCart className="w-4 h-4 mr-2" />
+                          {item.current_stock <= 0 ? 'Out of Stock' : 'Add to Cart'}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
 
             {/* Recent Orders */}
             <Card>
@@ -247,22 +349,38 @@ const InventoryOrder = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {recentOrders.map((order) => (
-                    <div key={order.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div>
-                        <div className="font-medium">{order.id}</div>
-                        <div className="text-sm text-gray-600">
-                          {new Date(order.date).toLocaleDateString()} • {order.items} items
+                {ordersLoading ? (
+                  <div className="space-y-4">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="p-4 bg-gray-50 rounded-lg">
+                        <Skeleton className="h-4 w-24 mb-2" />
+                        <Skeleton className="h-3 w-32" />
+                      </div>
+                    ))}
+                  </div>
+                ) : orders && orders.length > 0 ? (
+                  <div className="space-y-4">
+                    {orders.slice(0, 5).map((order) => (
+                      <div key={order.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div>
+                          <div className="font-medium">{order.order_number}</div>
+                          <div className="text-sm text-gray-600">
+                            {new Date(order.order_date).toLocaleDateString()} • {order.items?.length || 0} items
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold mb-1">{formatCurrency(order.total_amount)}</div>
+                          {getOrderStatusBadge(order.status)}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-semibold mb-1">{order.total}</div>
-                        {getOrderStatusBadge(order.status)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center p-4 text-gray-500">
+                    <Truck className="w-8 h-8 mx-auto mb-2" />
+                    <p>No recent orders found.</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -282,15 +400,15 @@ const InventoryOrder = () => {
                 ) : (
                   <div className="space-y-4">
                     {cart.map((item) => (
-                      <div key={item.id} className="border-b pb-4">
+                      <div key={item.product_id} className="border-b pb-4">
                         <h4 className="font-medium text-sm mb-2">{item.name}</h4>
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm text-gray-600">₱{item.price.toLocaleString()}</span>
+                          <span className="text-sm text-gray-600">{formatCurrency(item.price)}</span>
                           <div className="flex items-center space-x-2">
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
                             >
                               <Minus className="w-3 h-3" />
                             </Button>
@@ -298,14 +416,14 @@ const InventoryOrder = () => {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
                             >
                               <Plus className="w-3 h-3" />
                             </Button>
                           </div>
                         </div>
                         <div className="text-right font-semibold">
-                          ₱{(item.price * item.quantity).toLocaleString()}
+                          {formatCurrency(item.price * item.quantity)}
                         </div>
                       </div>
                     ))}
@@ -314,11 +432,22 @@ const InventoryOrder = () => {
 
                     <div className="flex justify-between items-center font-bold text-lg">
                       <span>Total:</span>
-                      <span>₱{getTotalAmount().toLocaleString()}</span>
+                      <span>{formatCurrency(getTotalAmount())}</span>
                     </div>
 
-                    <Button onClick={handleCheckout} className="w-full">
-                      Place Order
+                    <Button
+                      onClick={handleCheckout}
+                      className="w-full"
+                      disabled={createOrderMutation.isPending}
+                    >
+                      {createOrderMutation.isPending ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                          Placing Order...
+                        </>
+                      ) : (
+                        'Place Order'
+                      )}
                     </Button>
                   </div>
                 )}

@@ -1,8 +1,11 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useQuery } from '@tanstack/react-query';
+import { FranchiseAPI } from '@/api/franchises';
 import { FormData } from '@/pages/Apply';
 
 interface FranchiseSelectionStepProps {
@@ -10,18 +13,23 @@ interface FranchiseSelectionStepProps {
   onInputChange: (field: keyof FormData, value: string) => void;
 }
 
-const brands = [
-  { id: 'siomai-shop', name: 'Siomai Shop' },
-  { id: 'lemon-juice-stand', name: 'Lemon Juice Stand' },
-  { id: 'coffee-shop', name: 'Coffee Shop' },
-  { id: 'burger-fries', name: 'Burger & Fries' }
-];
+// Fetch real franchise data
+const useFranchiseData = () => {
+  return useQuery({
+    queryKey: ['franchises'],
+    queryFn: FranchiseAPI.getAllFranchises,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+};
 
-const packages = {
-  A: { name: 'Entry Level', price: '₱50,000', description: 'Food Cart Setup' },
-  B: { name: 'Mid Tier', price: '₱120,000', description: 'Kiosk Setup' },
-  C: { name: 'Advanced', price: '₱250,000', description: 'Food Stall Setup' },
-  D: { name: 'Investor Tier', price: '₱500,000+', description: 'Mini Branch Setup' }
+// Fetch packages for selected franchise
+const useFranchisePackages = (franchiseId: string | null) => {
+  return useQuery({
+    queryKey: ['franchise-packages', franchiseId],
+    queryFn: () => FranchiseAPI.getFranchisePackages(franchiseId!),
+    enabled: !!franchiseId,
+    staleTime: 10 * 60 * 1000,
+  });
 };
 
 // Complete list of Philippine cities and their provinces based on philatlas.com
@@ -114,44 +122,85 @@ const philippineCitiesData = {
 const sortedProvinces = Object.keys(philippineCitiesData).sort();
 
 const FranchiseSelectionStep: React.FC<FranchiseSelectionStepProps> = ({ formData, onInputChange }) => {
+  const { data: franchises, isLoading: franchisesLoading, error: franchisesError } = useFranchiseData();
+  const { data: packages, isLoading: packagesLoading } = useFranchisePackages(formData.selectedBrand || null);
+
   const handleProvinceChange = (province: string) => {
     onInputChange('province', province);
     onInputChange('city', ''); // Reset city when province changes
   };
+
+  const handleFranchiseChange = (franchiseId: string) => {
+    onInputChange('selectedBrand', franchiseId);
+    onInputChange('selectedPackage', ''); // Reset package when franchise changes
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
+    }).format(amount);
+  };
+
+  if (franchisesError) {
+    return (
+      <div className="text-center p-4 text-red-600">
+        <p>Error loading franchises. Please try again later.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
       <h3 className="text-xl font-semibold mb-4">Franchise Selection</h3>
       <div className="space-y-2">
         <Label htmlFor="selectedBrand">Preferred Brand *</Label>
-        <Select value={formData.selectedBrand} onValueChange={(value) => onInputChange('selectedBrand', value)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a brand" />
-          </SelectTrigger>
-          <SelectContent>
-            {brands.map((brand) => (
-              <SelectItem key={brand.id} value={brand.id}>
-                {brand.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {franchisesLoading ? (
+          <Skeleton className="h-10 w-full" />
+        ) : (
+          <Select value={formData.selectedBrand} onValueChange={handleFranchiseChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a brand" />
+            </SelectTrigger>
+            <SelectContent>
+              {franchises?.map((franchise) => (
+                <SelectItem key={franchise.id} value={franchise.id}>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{franchise.name}</span>
+                    <span className="text-sm text-gray-500">{franchise.category}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="selectedPackage">Package Tier *</Label>
-        <Select value={formData.selectedPackage} onValueChange={(value) => onInputChange('selectedPackage', value)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a package" />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(packages).map(([key, pkg]) => (
-              <SelectItem key={key} value={key}>
-                Package {key} - {pkg.name} ({pkg.price})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {packagesLoading ? (
+          <Skeleton className="h-10 w-full" />
+        ) : (
+          <Select
+            value={formData.selectedPackage}
+            onValueChange={(value) => onInputChange('selectedPackage', value)}
+            disabled={!formData.selectedBrand}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={formData.selectedBrand ? "Select a package" : "Select a franchise first"} />
+            </SelectTrigger>
+            <SelectContent>
+              {packages?.map((pkg) => (
+                <SelectItem key={pkg.id} value={pkg.id}>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{pkg.name} - {formatCurrency(pkg.initial_fee)}</span>
+                    <span className="text-sm text-gray-500">{pkg.description}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -190,13 +239,26 @@ const FranchiseSelectionStep: React.FC<FranchiseSelectionStepProps> = ({ formDat
         </Select>
       </div>
 
-      {formData.selectedPackage && (
+      {formData.selectedPackage && packages && (
         <div className="bg-blue-50 p-4 rounded-lg">
           <h4 className="font-semibold text-blue-900 mb-2">Selected Package Summary:</h4>
           <div className="text-sm text-blue-800">
-            <p><strong>Package:</strong> {packages[formData.selectedPackage as keyof typeof packages]?.name}</p>
-            <p><strong>Investment:</strong> {packages[formData.selectedPackage as keyof typeof packages]?.price}</p>
-            <p><strong>Setup:</strong> {packages[formData.selectedPackage as keyof typeof packages]?.description}</p>
+            {(() => {
+              const selectedPackage = packages.find(pkg => pkg.id === formData.selectedPackage);
+              const selectedFranchise = franchises?.find(f => f.id === formData.selectedBrand);
+
+              if (!selectedPackage || !selectedFranchise) return null;
+
+              return (
+                <>
+                  <p><strong>Franchise:</strong> {selectedFranchise.name}</p>
+                  <p><strong>Package:</strong> {selectedPackage.name}</p>
+                  <p><strong>Investment:</strong> {formatCurrency(selectedPackage.initial_fee)}</p>
+                  <p><strong>Setup:</strong> {selectedPackage.description}</p>
+                  <p><strong>Monthly Royalty:</strong> {selectedPackage.monthly_royalty_rate}%</p>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}
