@@ -88,6 +88,20 @@ Ensure the following settings in your Supabase project:
 - **API**: Auto-generated API documentation enabled
 - **Storage**: Configured if you plan to use file uploads
 
+### 3. Security Configuration
+
+✅ **Database Security** (Completed):
+- [x] RLS policies on all 25 tables
+- [x] Database functions with proper search_path
+- [x] Performance indexes on all foreign keys
+- [x] Secure views with security_invoker
+
+🔧 **Authentication Security** (Manual Configuration Required):
+- [ ] **OTP Expiry**: Go to Dashboard → Authentication → Settings → Set OTP expiry to 1800 seconds (30 minutes)
+- [ ] **Password Protection**: Go to Dashboard → Authentication → Settings → Enable "Leaked Password Protection"
+
+See `docs/SUPABASE_SECURITY_FIXES.md` for detailed instructions.
+
 ## Application Deployment
 
 ### 1. Build the Application
