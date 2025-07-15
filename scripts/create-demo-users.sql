@@ -1,12 +1,34 @@
--- Script to create demo user profiles after auth users are created
--- Run this after creating the auth users in Supabase Auth
-
--- This script assumes the following auth users have been created:
--- 1. franchisor@demo.com (password: demo123)
--- 2. franchisee@demo.com (password: demo123)  
--- 3. admin@demo.com (password: demo123)
-
--- You need to replace the UUIDs below with the actual auth.users IDs from Supabase
+-- ============================================================================
+-- DEMO USER SETUP SCRIPT
+-- ============================================================================
+--
+-- STEP 1: Create Auth Users in Supabase Dashboard
+-- ============================================================================
+-- 1. Go to Supabase Dashboard → Authentication → Users
+-- 2. Click "Add User" and create these three users:
+--
+--    User 1:
+--    - Email: franchisor@demo.com
+--    - Password: demo123
+--    - Email Confirm: true
+--
+--    User 2:
+--    - Email: franchisee@demo.com
+--    - Password: demo123
+--    - Email Confirm: true
+--
+--    User 3:
+--    - Email: admin@demo.com
+--    - Password: demo123
+--    - Email Confirm: true
+--
+-- 3. After creating each user, copy their UUID from the Users table
+-- 4. Replace the placeholder UUIDs below with the actual auth.users IDs
+-- 5. Run this script in the Supabase SQL Editor
+--
+-- ============================================================================
+-- STEP 2: Update UUIDs and Run This Script
+-- ============================================================================
 
 -- Demo User Profiles
 -- Replace these UUIDs with actual auth.users IDs after creating auth users

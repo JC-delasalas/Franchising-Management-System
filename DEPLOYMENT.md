@@ -20,28 +20,53 @@ This guide covers the complete deployment process for the FranchiseHub franchise
 
 ### 2. Deploy Database Schema
 
-The database schema has already been deployed to the production Supabase instance. If you need to deploy to a new instance:
+✅ **COMPLETED**: The database schema has been deployed to production Supabase instance.
 
-1. Copy all the SQL commands from the migration files in `supabase/migrations/`
-2. Run them in the Supabase SQL Editor in the following order:
-   - Core tables (organizations, user_profiles, etc.)
-   - Franchise tables (franchises, packages, applications, locations)
-   - Product and inventory tables
-   - Order management tables
-   - Analytics and performance tables
-   - Views and functions
-   - RLS policies
+For new deployments:
+1. Copy all SQL commands from `supabase/migrations/` files
+2. Run them in Supabase SQL Editor in order
+3. Verify all 25 tables are created with proper relationships
+4. Confirm all RLS policies are enabled
+5. Test all database views are functional
 
 ### 3. Create Demo Users
 
-1. Go to Supabase Dashboard > Authentication > Users
-2. Create three users manually:
-   - Email: `franchisor@demo.com`, Password: `demo123`
-   - Email: `franchisee@demo.com`, Password: `demo123`
-   - Email: `admin@demo.com`, Password: `demo123`
-3. Copy their auth user IDs
-4. Update the `scripts/create-demo-users.sql` file with the actual IDs
-5. Run the updated script in Supabase SQL Editor
+**CRITICAL**: Follow these steps exactly:
+
+#### Step 3.1: Create Auth Users
+1. Go to Supabase Dashboard → Authentication → Users
+2. Click "Add User" and create:
+   ```
+   User 1: franchisor@demo.com / demo123 (Email Confirm: true)
+   User 2: franchisee@demo.com / demo123 (Email Confirm: true)
+   User 3: admin@demo.com / demo123 (Email Confirm: true)
+   ```
+
+#### Step 3.2: Get Auth User IDs
+1. In the Users table, copy the UUID for each user
+2. Note them down:
+   ```
+   Franchisor ID: [copy from dashboard]
+   Franchisee ID: [copy from dashboard]
+   Admin ID: [copy from dashboard]
+   ```
+
+#### Step 3.3: Update and Run Setup Script
+1. Open `scripts/create-demo-users.sql`
+2. Replace all instances of:
+   - `REPLACE_WITH_FRANCHISOR_AUTH_ID` → actual franchisor UUID
+   - `REPLACE_WITH_FRANCHISEE_AUTH_ID` → actual franchisee UUID
+   - `REPLACE_WITH_ADMIN_AUTH_ID` → actual admin UUID
+3. Run the updated script in Supabase SQL Editor
+4. Run `scripts/verify-demo-setup.sql` to confirm success
+
+#### Step 3.4: Verification
+Expected results from verification script:
+- ✅ 3 demo auth users created
+- ✅ 3 user profiles with correct roles
+- ✅ Organization memberships established
+- ✅ Franchise ownership assigned
+- ✅ Location assignments completed
 
 ## Environment Configuration
 
