@@ -15,7 +15,8 @@ import {
   ShoppingCart,
   Store,
   CreditCard,
-  MapPin
+  MapPin,
+  Truck
 } from 'lucide-react';
 
 const DashboardSidebar = React.memo(() => {
@@ -81,6 +82,12 @@ const DashboardSidebar = React.memo(() => {
       label: 'Addresses',
       icon: MapPin,
       isActive: location.pathname === '/addresses'
+    },
+    {
+      href: '/orders',
+      label: 'My Orders',
+      icon: Truck,
+      isActive: location.pathname.startsWith('/orders')
     }
   ], [location.pathname]);
 

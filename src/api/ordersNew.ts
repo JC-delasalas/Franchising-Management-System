@@ -305,6 +305,71 @@ export const OrdersAPI = {
     return order;
   },
 
+  // Get user's orders
+  async getUserOrders(): Promise<OrderWithItems[]> {
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items (
+          *,
+          products (
+            id,
+            name,
+            sku,
+            price,
+            images,
+            unit_of_measure
+          )
+        ),
+        user_profiles (
+          id,
+          full_name,
+          email
+        ),
+        franchise_locations (
+          id,
+          name,
+          address,
+          city,
+          state
+        ),
+        payment_methods (
+          id,
+          type,
+          metadata
+        ),
+        billing_address:addresses!orders_billing_address_id_fkey (
+          id,
+          recipient_name,
+          address_line_1,
+          city,
+          state_province,
+          postal_code
+        ),
+        shipping_address:addresses!orders_shipping_address_id_fkey (
+          id,
+          recipient_name,
+          address_line_1,
+          city,
+          state_province,
+          postal_code
+        )
+      `)
+      .eq('created_by', user.user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching user orders:', error);
+      throw new Error(`Failed to fetch orders: ${error.message}`);
+    }
+
+    return data || [];
+  },
+
   // Get single order with details
   async getOrder(orderId: string): Promise<OrderWithItems | null> {
     const { data: user } = await supabase.auth.getUser();
@@ -369,6 +434,188 @@ export const OrdersAPI = {
     }
 
     return data;
+  },
+
+  // Get orders ready for shipping (approved, processing, shipped)
+  async getShippingOrders(): Promise<OrderWithItems[]> {
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) throw new Error('User not authenticated');
+
+    // Check if user is franchisor
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('role')
+      .eq('id', user.user.id)
+      .single();
+
+    if (profile?.role !== 'franchisor' && profile?.role !== 'admin') {
+      throw new Error('Insufficient permissions');
+    }
+
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items (
+          *,
+          products (
+            id,
+            name,
+            sku,
+            price,
+            images,
+            unit_of_measure
+          )
+        ),
+        user_profiles (
+          id,
+          full_name,
+          email
+        ),
+        franchise_locations (
+          id,
+          name,
+          address,
+          city,
+          state
+        ),
+        shipping_address:addresses!orders_shipping_address_id_fkey (
+          id,
+          recipient_name,
+          address_line_1,
+          address_line_2,
+          city,
+          state_province,
+          postal_code,
+          phone_number
+        )
+      `)
+      .in('status', ['approved', 'processing', 'shipped', 'delivered'])
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching shipping orders:', error);
+      throw new Error(`Failed to fetch shipping orders: ${error.message}`);
+    }
+
+    return data || [];
+  },
+
+  // Update shipping information
+  async updateShippingInfo(orderId: string, shippingInfo: {
+    carrier?: string;
+    tracking_number?: string;
+    shipping_method?: string;
+    estimated_delivery_date?: string;
+  }): Promise<Order> {
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('orders')
+      .update({
+        ...shippingInfo,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', orderId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating shipping info:', error);
+      throw new Error(`Failed to update shipping info: ${error.message}`);
+    }
+
+    // Log status change
+    await this.logStatusChange(orderId, 'shipping_info_updated', 'shipping_info_updated', user.user.id, 'Shipping information updated');
+
+    return data;
+  },
+
+  // Mark order as shipped
+  async markAsShipped(orderId: string): Promise<Order> {
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('orders')
+      .update({
+        status: 'shipped',
+        shipped_date: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', orderId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error marking as shipped:', error);
+      throw new Error(`Failed to mark as shipped: ${error.message}`);
+    }
+
+    // Log status change
+    await this.logStatusChange(orderId, 'processing', 'shipped', user.user.id, 'Order marked as shipped');
+
+    return data;
+  },
+
+  // Mark order as delivered
+  async markAsDelivered(orderId: string): Promise<Order> {
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('orders')
+      .update({
+        status: 'delivered',
+        delivered_date: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', orderId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error marking as delivered:', error);
+      throw new Error(`Failed to mark as delivered: ${error.message}`);
+    }
+
+    // Log status change
+    await this.logStatusChange(orderId, 'shipped', 'delivered', user.user.id, 'Order marked as delivered');
+
+    return data;
+  },
+
+  // Bulk update shipping information
+  async bulkUpdateShipping(orderIds: string[], shippingInfo: {
+    carrier?: string;
+    tracking_number?: string;
+    shipping_method?: string;
+    estimated_delivery_date?: string;
+  }): Promise<{ updated: number }> {
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('orders')
+      .update({
+        ...shippingInfo,
+        updated_at: new Date().toISOString(),
+      })
+      .in('id', orderIds)
+      .select('id');
+
+    if (error) {
+      console.error('Error bulk updating shipping:', error);
+      throw new Error(`Failed to bulk update shipping: ${error.message}`);
+    }
+
+    // Log status changes for all orders
+    for (const orderId of orderIds) {
+      await this.logStatusChange(orderId, 'bulk_shipping_update', 'bulk_shipping_update', user.user.id, 'Bulk shipping information update');
+    }
+
+    return { updated: data?.length || 0 };
   },
 
   // Helper method to log status changes

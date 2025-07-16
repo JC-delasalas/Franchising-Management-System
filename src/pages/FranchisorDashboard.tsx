@@ -19,7 +19,7 @@ import Logo from '@/components/Logo';
 import ChatAssistant from '@/components/ChatAssistant';
 import KPICharts from '@/components/analytics/KPICharts';
 import { IAMDashboard } from '@/components/iam/IAMDashboard';
-import { TrendingUp, Users, Package, DollarSign, Bell, Search, Filter, Download, Plus, Check, X, Clock, MessageCircle, AlertTriangle, ArrowLeft, Eye, Mail, Phone, BarChart3, Shield, RefreshCw, CheckCircle } from 'lucide-react';
+import { TrendingUp, Users, Package, DollarSign, Bell, Search, Filter, Download, Plus, Check, X, Clock, MessageCircle, AlertTriangle, ArrowLeft, Eye, Mail, Phone, BarChart3, Shield, RefreshCw, CheckCircle, Truck } from 'lucide-react';
 
 const FranchisorDashboard = () => {
   const [selectedBrand, setSelectedBrand] = useState('all');
@@ -890,12 +890,20 @@ const FranchisorDashboard = () => {
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold">Order Management</h2>
-                <Link to="/order-approvals">
-                  <Button>
-                    <Clock className="w-4 h-4 mr-2" />
-                    View All Pending Orders
-                  </Button>
-                </Link>
+                <div className="flex space-x-2">
+                  <Link to="/order-approvals">
+                    <Button>
+                      <Clock className="w-4 h-4 mr-2" />
+                      View Pending Orders
+                    </Button>
+                  </Link>
+                  <Link to="/shipping-management">
+                    <Button variant="outline">
+                      <Truck className="w-4 h-4 mr-2" />
+                      Manage Shipping
+                    </Button>
+                  </Link>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
