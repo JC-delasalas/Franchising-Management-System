@@ -1,0 +1,389 @@
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
+import { CartAPI, CartSummary } from '@/api/cart';
+import { 
+  ArrowLeft, 
+  Plus, 
+  Minus, 
+  Trash2, 
+  ShoppingCart, 
+  Package,
+  AlertTriangle,
+  CreditCard
+} from 'lucide-react';
+
+const ShoppingCart: React.FC = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch cart summary
+  const { data: cartSummary, isLoading, refetch } = useQuery<CartSummary>({
+    queryKey: ['cart-summary'],
+    queryFn: CartAPI.getCartSummary,
+  });
+
+  // Validate cart
+  const { data: validation } = useQuery({
+    queryKey: ['cart-validation'],
+    queryFn: CartAPI.validateCart,
+    enabled: !!cartSummary?.items.length,
+  });
+
+  // Update quantity mutation
+  const updateQuantityMutation = useMutation({
+    mutationFn: ({ cartItemId, quantity }: { cartItemId: string; quantity: number }) =>
+      CartAPI.updateCartItemQuantity(cartItemId, quantity),
+    onSuccess: () => {
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ['cart-count'] });
+    },
+    onError: (error) => {
+      console.error('Error updating quantity:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update quantity. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Remove item mutation
+  const removeItemMutation = useMutation({
+    mutationFn: (cartItemId: string) => CartAPI.removeFromCart(cartItemId),
+    onSuccess: () => {
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ['cart-count'] });
+      toast({
+        title: "Item removed",
+        description: "Item has been removed from your cart.",
+      });
+    },
+    onError: (error) => {
+      console.error('Error removing item:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove item. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Clear cart mutation
+  const clearCartMutation = useMutation({
+    mutationFn: CartAPI.clearCart,
+    onSuccess: () => {
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ['cart-count'] });
+      toast({
+        title: "Cart cleared",
+        description: "All items have been removed from your cart.",
+      });
+    },
+    onError: (error) => {
+      console.error('Error clearing cart:', error);
+      toast({
+        title: "Error",
+        description: "Failed to clear cart. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleUpdateQuantity = (cartItemId: string, newQuantity: number) => {
+    updateQuantityMutation.mutate({ cartItemId, quantity: newQuantity });
+  };
+
+  const handleRemoveItem = (cartItemId: string) => {
+    removeItemMutation.mutate(cartItemId);
+  };
+
+  const handleClearCart = () => {
+    if (window.confirm('Are you sure you want to clear your cart?')) {
+      clearCartMutation.mutate();
+    }
+  };
+
+  const handleCheckout = () => {
+    if (!validation?.isValid) {
+      toast({
+        title: "Cannot proceed to checkout",
+        description: "Please fix the issues in your cart first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    navigate('/checkout');
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <ShoppingCart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <p>Loading your cart...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!cartSummary || cartSummary.items.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-white border-b">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center h-16">
+              <Link to="/product-catalog">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Catalog
+                </Button>
+              </Link>
+              <h1 className="text-xl font-semibold ml-4">Shopping Cart</h1>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <Card>
+            <CardContent className="p-12 text-center">
+              <ShoppingCart className="w-16 h-16 text-gray-400 mx-auto mb-6" />
+              <h2 className="text-2xl font-semibold mb-4">Your cart is empty</h2>
+              <p className="text-gray-600 mb-6">
+                Start shopping to add items to your cart.
+              </p>
+              <Link to="/product-catalog">
+                <Button>
+                  <Package className="w-4 h-4 mr-2" />
+                  Browse Products
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center">
+              <Link to="/product-catalog">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Catalog
+                </Button>
+              </Link>
+              <h1 className="text-xl font-semibold ml-4">Shopping Cart</h1>
+            </div>
+            
+            <Button 
+              variant="outline" 
+              onClick={handleClearCart}
+              disabled={clearCartMutation.isPending}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Clear Cart
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Cart Items */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  Cart Items ({cartSummary.itemCount} {cartSummary.itemCount === 1 ? 'item' : 'items'})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Validation Errors */}
+                {validation && !validation.isValid && (
+                  <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      <div className="space-y-1">
+                        {validation.errors.map((error, index) => (
+                          <div key={index}>{error}</div>
+                        ))}
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Validation Warnings */}
+                {validation && validation.warnings.length > 0 && (
+                  <Alert>
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      <div className="space-y-1">
+                        {validation.warnings.map((warning, index) => (
+                          <div key={index}>{warning}</div>
+                        ))}
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {cartSummary.items.map((item) => (
+                  <div key={item.id} className="flex items-center space-x-4 p-4 border rounded-lg">
+                    <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      {item.products.images && item.products.images.length > 0 ? (
+                        <img 
+                          src={item.products.images[0]} 
+                          alt={item.products.name}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                      ) : (
+                        <Package className="w-8 h-8 text-gray-400" />
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold truncate">{item.products.name}</h3>
+                      <p className="text-sm text-gray-600">{item.products.sku}</p>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <Badge variant="secondary">{item.products.unit_of_measure}</Badge>
+                        <span className="text-sm text-gray-500">
+                          Min: {item.products.minimum_order_qty}
+                        </span>
+                        {item.products.maximum_order_qty && (
+                          <span className="text-sm text-gray-500">
+                            Max: {item.products.maximum_order_qty}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                        disabled={updateQuantityMutation.isPending}
+                      >
+                        <Minus className="w-4 h-4" />
+                      </Button>
+                      
+                      <span className="w-12 text-center font-semibold">
+                        {item.quantity}
+                      </span>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                        disabled={updateQuantityMutation.isPending}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="font-semibold">
+                        ₱{(item.quantity * item.products.price).toLocaleString()}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        ₱{item.products.price.toLocaleString()} each
+                      </p>
+                    </div>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveItem(item.id)}
+                      disabled={removeItemMutation.isPending}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Order Summary */}
+          <div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Order Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>₱{cartSummary.subtotal.toLocaleString()}</span>
+                </div>
+                
+                <div className="flex justify-between">
+                  <span>Tax (12%)</span>
+                  <span>₱{cartSummary.taxAmount.toLocaleString()}</span>
+                </div>
+                
+                <div className="flex justify-between">
+                  <span>Shipping</span>
+                  <span>
+                    {cartSummary.shippingCost === 0 ? (
+                      <Badge variant="secondary">FREE</Badge>
+                    ) : (
+                      `₱${cartSummary.shippingCost.toLocaleString()}`
+                    )}
+                  </span>
+                </div>
+                
+                <Separator />
+                
+                <div className="flex justify-between text-lg font-semibold">
+                  <span>Total</span>
+                  <span>₱{cartSummary.total.toLocaleString()}</span>
+                </div>
+
+                {cartSummary.subtotal < 5000 && (
+                  <Alert>
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      Add ₱{(5000 - cartSummary.subtotal).toLocaleString()} more for free shipping!
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                <Button 
+                  className="w-full" 
+                  onClick={handleCheckout}
+                  disabled={!validation?.isValid}
+                >
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  Proceed to Checkout
+                </Button>
+
+                <Link to="/product-catalog">
+                  <Button variant="outline" className="w-full">
+                    Continue Shopping
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ShoppingCart;

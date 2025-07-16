@@ -11,7 +11,9 @@ import {
   Phone,
   FileText,
   Image as ImageIcon,
-  ArrowLeft
+  ArrowLeft,
+  ShoppingCart,
+  Store
 } from 'lucide-react';
 
 const DashboardSidebar = React.memo(() => {
@@ -29,6 +31,18 @@ const DashboardSidebar = React.memo(() => {
       label: 'Upload Sales',
       icon: DollarSign,
       isActive: location.pathname === '/franchisee/sales-upload'
+    },
+    {
+      href: '/product-catalog',
+      label: 'Product Catalog',
+      icon: Store,
+      isActive: location.pathname === '/product-catalog'
+    },
+    {
+      href: '/cart',
+      label: 'Shopping Cart',
+      icon: ShoppingCart,
+      isActive: location.pathname === '/cart'
     },
     {
       href: '/franchisee/inventory-order',

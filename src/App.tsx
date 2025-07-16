@@ -49,6 +49,10 @@ const MarketingAssets = React.lazy(() => import("./pages/franchisee/MarketingAss
 const ContractPackage = React.lazy(() => import("./pages/franchisee/ContractPackage"));
 const SupportRequests = React.lazy(() => import("./pages/franchisee/SupportRequests"));
 
+// Order Management pages
+const ProductCatalog = React.lazy(() => import("./pages/ProductCatalog"));
+const ShoppingCart = React.lazy(() => import("./pages/ShoppingCart"));
+
 // Phase 3 Business Logic Pages
 const OrderManagement = React.lazy(() => import("./pages/OrderManagement"));
 const FinancialDashboard = React.lazy(() => import("./pages/FinancialDashboard"));
@@ -209,6 +213,18 @@ const App = () => (
                         <Route path="/franchisee/support-requests" element={
                           <RequireAuth role="franchisee">
                             <SupportRequests />
+                          </RequireAuth>
+                        } />
+
+                        {/* Order Management Routes */}
+                        <Route path="/product-catalog" element={
+                          <RequireAuth role="franchisee">
+                            <ProductCatalog />
+                          </RequireAuth>
+                        } />
+                        <Route path="/cart" element={
+                          <RequireAuth role="franchisee">
+                            <ShoppingCart />
                           </RequireAuth>
                         } />
 
