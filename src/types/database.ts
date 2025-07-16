@@ -1,4 +1,4 @@
-// Enhanced Database Types - Generated from Enhanced Schema
+// Complete Database Types - Generated from Complete Schema
 export type Database = {
   public: {
     Tables: {
@@ -370,6 +370,595 @@ export type Database = {
           square_footage?: number | null
           seating_capacity?: number | null
           parking_spaces?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      // Product & Inventory Tables
+      product_categories: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          parent_id: string | null
+          sort_order: number
+          active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          parent_id?: string | null
+          sort_order?: number
+          active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          parent_id?: string | null
+          sort_order?: number
+          active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      products: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          sku: string
+          category_id: string | null
+          price: number
+          cost: number | null
+          unit_of_measure: string
+          weight: number | null
+          dimensions: Record<string, any>
+          images: string[]
+          tags: string[]
+          active: boolean
+          featured: boolean
+          minimum_order_quantity: number
+          maximum_order_quantity: number | null
+          reorder_level: number
+          supplier_info: Record<string, any>
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          sku: string
+          category_id?: string | null
+          price: number
+          cost?: number | null
+          unit_of_measure?: string
+          weight?: number | null
+          dimensions?: Record<string, any>
+          images?: string[]
+          tags?: string[]
+          active?: boolean
+          featured?: boolean
+          minimum_order_quantity?: number
+          maximum_order_quantity?: number | null
+          reorder_level?: number
+          supplier_info?: Record<string, any>
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          sku?: string
+          category_id?: string | null
+          price?: number
+          cost?: number | null
+          unit_of_measure?: string
+          weight?: number | null
+          dimensions?: Record<string, any>
+          images?: string[]
+          tags?: string[]
+          active?: boolean
+          featured?: boolean
+          minimum_order_quantity?: number
+          maximum_order_quantity?: number | null
+          reorder_level?: number
+          supplier_info?: Record<string, any>
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      warehouses: {
+        Row: {
+          id: string
+          name: string
+          address: string | null
+          city: string | null
+          state: string | null
+          postal_code: string | null
+          country: string
+          manager_id: string | null
+          active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          address?: string | null
+          city?: string | null
+          state?: string | null
+          postal_code?: string | null
+          country?: string
+          manager_id?: string | null
+          active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          address?: string | null
+          city?: string | null
+          state?: string | null
+          postal_code?: string | null
+          country?: string
+          manager_id?: string | null
+          active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      inventory: {
+        Row: {
+          id: string
+          warehouse_id: string
+          product_id: string
+          quantity_on_hand: number
+          reserved_quantity: number
+          available_quantity: number
+          reorder_level: number
+          max_stock_level: number | null
+          last_restocked_at: string | null
+          last_counted_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          warehouse_id: string
+          product_id: string
+          quantity_on_hand?: number
+          reserved_quantity?: number
+          reorder_level?: number
+          max_stock_level?: number | null
+          last_restocked_at?: string | null
+          last_counted_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          warehouse_id?: string
+          product_id?: string
+          quantity_on_hand?: number
+          reserved_quantity?: number
+          reorder_level?: number
+          max_stock_level?: number | null
+          last_restocked_at?: string | null
+          last_counted_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      // Payment & Address Tables
+      payment_methods: {
+        Row: {
+          id: string
+          user_id: string
+          type: 'bank_transfer' | 'credit_card' | 'debit_card' | 'gcash' | 'cash_on_delivery'
+          provider: string
+          provider_payment_method_id: string
+          is_default: boolean
+          metadata: Record<string, any>
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          type: 'bank_transfer' | 'credit_card' | 'debit_card' | 'gcash' | 'cash_on_delivery'
+          provider: string
+          provider_payment_method_id: string
+          is_default?: boolean
+          metadata?: Record<string, any>
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          type?: 'bank_transfer' | 'credit_card' | 'debit_card' | 'gcash' | 'cash_on_delivery'
+          provider?: string
+          provider_payment_method_id?: string
+          is_default?: boolean
+          metadata?: Record<string, any>
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      addresses: {
+        Row: {
+          id: string
+          user_id: string
+          address_type: 'billing' | 'shipping' | 'both'
+          recipient_name: string
+          company_name: string | null
+          address_line_1: string
+          address_line_2: string | null
+          city: string
+          state_province: string
+          postal_code: string
+          country: string
+          phone_number: string | null
+          delivery_instructions: string | null
+          nickname: string | null
+          is_default: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          address_type?: 'billing' | 'shipping' | 'both'
+          recipient_name: string
+          company_name?: string | null
+          address_line_1: string
+          address_line_2?: string | null
+          city: string
+          state_province: string
+          postal_code: string
+          country?: string
+          phone_number?: string | null
+          delivery_instructions?: string | null
+          nickname?: string | null
+          is_default?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          address_type?: 'billing' | 'shipping' | 'both'
+          recipient_name?: string
+          company_name?: string | null
+          address_line_1?: string
+          address_line_2?: string | null
+          city?: string
+          state_province?: string
+          postal_code?: string
+          country?: string
+          phone_number?: string | null
+          delivery_instructions?: string | null
+          nickname?: string | null
+          is_default?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      // Shopping Cart Tables
+      cart_items: {
+        Row: {
+          id: string
+          user_id: string
+          product_id: string
+          quantity: number
+          unit_price: number
+          line_total: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          product_id: string
+          quantity: number
+          unit_price: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          product_id?: string
+          quantity?: number
+          unit_price?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      // Order Management Tables
+      orders: {
+        Row: {
+          id: string
+          order_number: string
+          franchise_location_id: string | null
+          created_by: string | null
+          status: 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+          order_type: 'inventory' | 'equipment' | 'marketing' | 'maintenance'
+          priority: 'low' | 'normal' | 'high' | 'urgent'
+          subtotal: number
+          tax_amount: number
+          shipping_amount: number
+          discount_amount: number
+          total_amount: number
+          payment_method_id: string | null
+          billing_address_id: string | null
+          shipping_address_id: string | null
+          carrier: string | null
+          tracking_number: string | null
+          shipping_method: string | null
+          estimated_delivery_date: string | null
+          shipped_date: string | null
+          delivered_date: string | null
+          approved_by: string | null
+          approved_at: string | null
+          approval_comments: string | null
+          rejection_reason: string | null
+          order_notes: string | null
+          internal_notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          order_number: string
+          franchise_location_id?: string | null
+          created_by?: string | null
+          status?: 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+          order_type?: 'inventory' | 'equipment' | 'marketing' | 'maintenance'
+          priority?: 'low' | 'normal' | 'high' | 'urgent'
+          subtotal?: number
+          tax_amount?: number
+          shipping_amount?: number
+          discount_amount?: number
+          total_amount?: number
+          payment_method_id?: string | null
+          billing_address_id?: string | null
+          shipping_address_id?: string | null
+          carrier?: string | null
+          tracking_number?: string | null
+          shipping_method?: string | null
+          estimated_delivery_date?: string | null
+          shipped_date?: string | null
+          delivered_date?: string | null
+          approved_by?: string | null
+          approved_at?: string | null
+          approval_comments?: string | null
+          rejection_reason?: string | null
+          order_notes?: string | null
+          internal_notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          order_number?: string
+          franchise_location_id?: string | null
+          created_by?: string | null
+          status?: 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+          order_type?: 'inventory' | 'equipment' | 'marketing' | 'maintenance'
+          priority?: 'low' | 'normal' | 'high' | 'urgent'
+          subtotal?: number
+          tax_amount?: number
+          shipping_amount?: number
+          discount_amount?: number
+          total_amount?: number
+          payment_method_id?: string | null
+          billing_address_id?: string | null
+          shipping_address_id?: string | null
+          carrier?: string | null
+          tracking_number?: string | null
+          shipping_method?: string | null
+          estimated_delivery_date?: string | null
+          shipped_date?: string | null
+          delivered_date?: string | null
+          approved_by?: string | null
+          approved_at?: string | null
+          approval_comments?: string | null
+          rejection_reason?: string | null
+          order_notes?: string | null
+          internal_notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      order_items: {
+        Row: {
+          id: string
+          order_id: string
+          product_id: string | null
+          quantity: number
+          unit_price: number
+          line_total: number
+          delivered_quantity: number
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          product_id?: string | null
+          quantity: number
+          unit_price: number
+          delivered_quantity?: number
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          product_id?: string | null
+          quantity?: number
+          unit_price?: number
+          delivered_quantity?: number
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      order_status_history: {
+        Row: {
+          id: string
+          order_id: string
+          previous_status: 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | null
+          new_status: 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+          changed_by: string | null
+          notes: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          previous_status?: 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | null
+          new_status: 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+          changed_by?: string | null
+          notes?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          previous_status?: 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | null
+          new_status?: 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+          changed_by?: string | null
+          notes?: string | null
+          created_at?: string
+        }
+      }
+      order_approvals: {
+        Row: {
+          id: string
+          order_id: string
+          approver_id: string | null
+          approval_level: number
+          action: string
+          comments: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          approver_id?: string | null
+          approval_level?: number
+          action: string
+          comments?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          approver_id?: string | null
+          approval_level?: number
+          action?: string
+          comments?: string | null
+          created_at?: string
+        }
+      }
+      // Notification Tables
+      notifications: {
+        Row: {
+          id: string
+          recipient_id: string
+          sender_id: string | null
+          type: 'order_approved' | 'order_rejected' | 'order_shipped' | 'order_delivered' | 'order_created' | 'system_announcement' | 'low_stock_alert' | 'payment_reminder'
+          title: string
+          message: string
+          related_order_id: string | null
+          action_url: string | null
+          priority: 'low' | 'medium' | 'high' | 'urgent'
+          is_read: boolean
+          read_at: string | null
+          metadata: Record<string, any>
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          recipient_id: string
+          sender_id?: string | null
+          type: 'order_approved' | 'order_rejected' | 'order_shipped' | 'order_delivered' | 'order_created' | 'system_announcement' | 'low_stock_alert' | 'payment_reminder'
+          title: string
+          message: string
+          related_order_id?: string | null
+          action_url?: string | null
+          priority?: 'low' | 'medium' | 'high' | 'urgent'
+          is_read?: boolean
+          read_at?: string | null
+          metadata?: Record<string, any>
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          recipient_id?: string
+          sender_id?: string | null
+          type?: 'order_approved' | 'order_rejected' | 'order_shipped' | 'order_delivered' | 'order_created' | 'system_announcement' | 'low_stock_alert' | 'payment_reminder'
+          title?: string
+          message?: string
+          related_order_id?: string | null
+          action_url?: string | null
+          priority?: 'low' | 'medium' | 'high' | 'urgent'
+          is_read?: boolean
+          read_at?: string | null
+          metadata?: Record<string, any>
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      user_notification_preferences: {
+        Row: {
+          id: string
+          user_id: string
+          email_notifications: boolean
+          push_notifications: boolean
+          order_updates: boolean
+          system_announcements: boolean
+          marketing_notifications: boolean
+          low_stock_alerts: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          email_notifications?: boolean
+          push_notifications?: boolean
+          order_updates?: boolean
+          system_announcements?: boolean
+          marketing_notifications?: boolean
+          low_stock_alerts?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          email_notifications?: boolean
+          push_notifications?: boolean
+          order_updates?: boolean
+          system_announcements?: boolean
+          marketing_notifications?: boolean
+          low_stock_alerts?: boolean
           created_at?: string
           updated_at?: string
         }
