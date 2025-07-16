@@ -808,35 +808,37 @@ const FranchisorDashboard = () => {
                               </DialogTrigger>
                               <DialogContent className="max-w-2xl">
                                 <DialogHeader>
-                                  <DialogTitle>Franchisee Details - {franchisee.id}</DialogTitle>
+                                  <DialogTitle>Franchisee Details - {location.id}</DialogTitle>
                                 </DialogHeader>
                                 <div className="space-y-4">
                                   <div className="grid grid-cols-2 gap-4">
                                     <div>
                                       <label className="text-sm font-medium text-gray-700">Name</label>
-                                      <p className="text-gray-900">{franchisee.name}</p>
+                                      <p className="text-gray-900">{location.user_profiles?.full_name || 'N/A'}</p>
                                     </div>
                                     <div>
                                       <label className="text-sm font-medium text-gray-700">Brand</label>
-                                      <p className="text-gray-900">{franchisee.brand}</p>
+                                      <p className="text-gray-900">{location.franchises?.name || 'N/A'}</p>
                                     </div>
                                     <div>
                                       <label className="text-sm font-medium text-gray-700">Location</label>
-                                      <p className="text-gray-900">{franchisee.location}</p>
+                                      <p className="text-gray-900">{location.address || 'N/A'}</p>
                                     </div>
                                     <div>
                                       <label className="text-sm font-medium text-gray-700">Monthly Revenue</label>
-                                      <p className="text-green-600 font-medium">{franchisee.monthlyRevenue}</p>
+                                      <p className="text-green-600 font-medium">
+                                        ₱{location.monthly_revenue ? (location.monthly_revenue / 1000).toFixed(0) + 'K' : '0'}
+                                      </p>
                                     </div>
                                     <div>
                                       <label className="text-sm font-medium text-gray-700">Status</label>
-                                      <Badge className={getStatusColor(franchisee.status)}>{franchisee.status}</Badge>
+                                      <Badge className={getStatusColor(location.status || 'Active')}>
+                                        {location.status || 'Active'}
+                                      </Badge>
                                     </div>
                                     <div>
-                                      <label className="text-sm font-medium text-gray-700">Low Stock Items</label>
-                                      <p className="text-gray-900">
-                                        {franchisee.lowStock.length > 0 ? franchisee.lowStock.join(', ') : 'None'}
-                                      </p>
+                                      <label className="text-sm font-medium text-gray-700">Contact</label>
+                                      <p className="text-gray-900">{location.user_profiles?.email || 'N/A'}</p>
                                     </div>
                                   </div>
                                   <div className="flex justify-end space-x-2 pt-4">
@@ -859,7 +861,13 @@ const FranchisorDashboard = () => {
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    )) : (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center text-gray-500 py-8">
+                          No franchisees found
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
