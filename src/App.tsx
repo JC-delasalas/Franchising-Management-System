@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { validateConfig } from "@/config/environment";
 import { AuthorizationProvider } from "@/contexts/AuthorizationContext";
 import { AuthGuard, RequireAuth, GuestOnly } from "@/components/auth/AuthGuard";
+import NotificationToast from "@/components/notifications/NotificationToast";
 
 // Lazy load pages for better performance
 const Index = React.lazy(() => import("./pages/Index"));
@@ -60,6 +61,8 @@ const AddressManagement = React.lazy(() => import("./pages/AddressManagement"));
 const OrderTracking = React.lazy(() => import("./pages/OrderTracking"));
 const ShippingManagement = React.lazy(() => import("./pages/ShippingManagement"));
 const OrdersList = React.lazy(() => import("./pages/OrdersList"));
+const NotificationsPage = React.lazy(() => import("./pages/NotificationsPage"));
+const NotificationSettings = React.lazy(() => import("./pages/NotificationSettings"));
 
 // Phase 3 Business Logic Pages
 const OrderManagement = React.lazy(() => import("./pages/OrderManagement"));
@@ -137,10 +140,11 @@ const App = () => (
         <QueryClientProvider client={queryClient}>
           <AuthorizationProvider>
             <SessionWrapper>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
+              <NotificationToast>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
                   <ComponentErrorBoundary>
                     <Suspense fallback={<PageLoading />}>
                       <Routes>
@@ -275,6 +279,16 @@ const App = () => (
                             <ShippingManagement />
                           </RequireAuth>
                         } />
+                        <Route path="/notifications" element={
+                          <RequireAuth>
+                            <NotificationsPage />
+                          </RequireAuth>
+                        } />
+                        <Route path="/notification-settings" element={
+                          <RequireAuth>
+                            <NotificationSettings />
+                          </RequireAuth>
+                        } />
 
                         {/* Phase 3 Business Logic Routes */}
                         <Route path="/order-management" element={
@@ -309,6 +323,7 @@ const App = () => (
                   </ComponentErrorBoundary>
                 </BrowserRouter>
               </TooltipProvider>
+              </NotificationToast>
             </SessionWrapper>
           </AuthorizationProvider>
         </QueryClientProvider>

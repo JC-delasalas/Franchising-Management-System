@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/types/database';
+import { NotificationsAPI } from './notifications';
 
 type Order = Database['public']['Tables']['orders']['Row'];
 type OrderInsert = Database['public']['Tables']['orders']['Insert'];
@@ -189,6 +190,18 @@ export const OrdersAPI = {
         comments: comments,
       });
 
+    // Create notification for order creator
+    try {
+      await NotificationsAPI.createOrderNotification(
+        data.created_by,
+        orderId,
+        'order_approved',
+        comments
+      );
+    } catch (error) {
+      console.error('Failed to create approval notification:', error);
+    }
+
     return data;
   },
 
@@ -237,6 +250,18 @@ export const OrdersAPI = {
         action: 'reject',
         comments: reason,
       });
+
+    // Create notification for order creator
+    try {
+      await NotificationsAPI.createOrderNotification(
+        data.created_by,
+        orderId,
+        'order_rejected',
+        reason
+      );
+    } catch (error) {
+      console.error('Failed to create rejection notification:', error);
+    }
 
     return data;
   },
@@ -301,6 +326,27 @@ export const OrdersAPI = {
 
     // Log status change
     await this.logStatusChange(order.id, 'draft', 'pending_approval', user.user.id, 'Order created');
+
+    // Create notification for franchisors about new order
+    try {
+      // Get all franchisors to notify
+      const { data: franchisors } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('role', 'franchisor');
+
+      if (franchisors) {
+        for (const franchisor of franchisors) {
+          await NotificationsAPI.createOrderNotification(
+            franchisor.id,
+            order.id,
+            'order_created'
+          );
+        }
+      }
+    } catch (error) {
+      console.error('Failed to create order creation notifications:', error);
+    }
 
     return order;
   },
@@ -556,6 +602,17 @@ export const OrdersAPI = {
     // Log status change
     await this.logStatusChange(orderId, 'processing', 'shipped', user.user.id, 'Order marked as shipped');
 
+    // Create notification for order creator
+    try {
+      await NotificationsAPI.createOrderNotification(
+        data.created_by,
+        orderId,
+        'order_shipped'
+      );
+    } catch (error) {
+      console.error('Failed to create shipping notification:', error);
+    }
+
     return data;
   },
 
@@ -582,6 +639,17 @@ export const OrdersAPI = {
 
     // Log status change
     await this.logStatusChange(orderId, 'shipped', 'delivered', user.user.id, 'Order marked as delivered');
+
+    // Create notification for order creator
+    try {
+      await NotificationsAPI.createOrderNotification(
+        data.created_by,
+        orderId,
+        'order_delivered'
+      );
+    } catch (error) {
+      console.error('Failed to create delivery notification:', error);
+    }
 
     return data;
   },

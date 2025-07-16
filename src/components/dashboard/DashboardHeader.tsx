@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Bell, PlusCircle, ArrowUp, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +46,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           <ArrowUp className="w-4 h-4 mr-2" />
           Upgrade Package
         </Button>
+        <NotificationCenter />
         <Button variant="outline" size="sm" asChild>
           <Link to="/franchisee/support-requests">
             <Bell className="w-4 h-4 mr-2" />

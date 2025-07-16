@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import ChatAssistant from '@/components/ChatAssistant';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 import { KPICards } from '@/components/dashboard/KPICards';
 import { MilestonesSection } from '@/components/dashboard/MilestonesSection';
 import { DashboardTabs } from '@/components/dashboard/DashboardTabs';

@@ -19,6 +19,7 @@ import Logo from '@/components/Logo';
 import ChatAssistant from '@/components/ChatAssistant';
 import KPICharts from '@/components/analytics/KPICharts';
 import { IAMDashboard } from '@/components/iam/IAMDashboard';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 import { TrendingUp, Users, Package, DollarSign, Bell, Search, Filter, Download, Plus, Check, X, Clock, MessageCircle, AlertTriangle, ArrowLeft, Eye, Mail, Phone, BarChart3, Shield, RefreshCw, CheckCircle, Truck } from 'lucide-react';
 
 const FranchisorDashboard = () => {
@@ -171,14 +172,7 @@ const FranchisorDashboard = () => {
               <span className="text-sm text-gray-500">Franchisor Dashboard</span>
             </div>
             <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => alert('Notifications feature coming soon!')}
-              >
-                <Bell className="w-4 h-4 mr-2" />
-                Notifications
-              </Button>
+              <NotificationCenter />
               <Button
                 size="sm"
                 onClick={() => alert('New announcement feature coming soon!')}
