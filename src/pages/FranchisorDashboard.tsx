@@ -19,7 +19,7 @@ import Logo from '@/components/Logo';
 import ChatAssistant from '@/components/ChatAssistant';
 import KPICharts from '@/components/analytics/KPICharts';
 import { IAMDashboard } from '@/components/iam/IAMDashboard';
-import { TrendingUp, Users, Package, DollarSign, Bell, Search, Filter, Download, Plus, Check, X, Clock, MessageCircle, AlertTriangle, ArrowLeft, Eye, Mail, Phone, BarChart3, Shield, RefreshCw } from 'lucide-react';
+import { TrendingUp, Users, Package, DollarSign, Bell, Search, Filter, Download, Plus, Check, X, Clock, MessageCircle, AlertTriangle, ArrowLeft, Eye, Mail, Phone, BarChart3, Shield, RefreshCw, CheckCircle } from 'lucide-react';
 
 const FranchisorDashboard = () => {
   const [selectedBrand, setSelectedBrand] = useState('all');
@@ -320,7 +320,7 @@ const FranchisorDashboard = () => {
         {/* Main Content */}
         <Tabs defaultValue="analytics" className="space-y-6">
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2">
-            <TabsList className="grid w-full grid-cols-6 bg-gray-50 rounded-lg p-1 gap-1">
+            <TabsList className="grid w-full grid-cols-7 bg-gray-50 rounded-lg p-1 gap-1">
               <TabsTrigger
                 value="analytics"
                 className="flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=active]:border data-[state=active]:border-blue-100 hover:bg-white/50"
@@ -344,6 +344,14 @@ const FranchisorDashboard = () => {
                 <Package className="w-4 h-4 mr-2" />
                 <span className="hidden sm:inline">Inventory</span>
                 <span className="sm:hidden">Stock</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="orders"
+                className="flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=active]:border data-[state=active]:border-blue-100 hover:bg-white/50"
+              >
+                <Clock className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Orders</span>
+                <span className="sm:hidden">Orders</span>
               </TabsTrigger>
               <TabsTrigger
                 value="revenue"
@@ -875,6 +883,74 @@ const FranchisorDashboard = () => {
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Orders Tab */}
+          <TabsContent value="orders">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold">Order Management</h2>
+                <Link to="/order-approvals">
+                  <Button>
+                    <Clock className="w-4 h-4 mr-2" />
+                    View All Pending Orders
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <Clock className="w-8 h-8 text-yellow-500" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-gray-600">Pending Approval</p>
+                        <p className="text-2xl font-bold">0</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <CheckCircle className="w-8 h-8 text-green-500" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-gray-600">Approved Today</p>
+                        <p className="text-2xl font-bold">0</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <Package className="w-8 h-8 text-blue-500" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-gray-600">Total Value</p>
+                        <p className="text-2xl font-bold">₱0</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Order Activity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8">
+                    <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600">No recent order activity</p>
+                    <p className="text-sm text-gray-500 mt-2">
+                      Orders requiring approval will appear here
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* New IAM Tab */}

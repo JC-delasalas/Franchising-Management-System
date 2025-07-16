@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { OrdersAPI, OrderWithItems } from '@/api/orders';
+import { OrdersAPI, OrderWithItems } from '@/api/ordersNew';
 import { PaymentMethodsAPI } from '@/api/paymentMethods';
 import { AddressesAPI } from '@/api/addresses';
 import { 

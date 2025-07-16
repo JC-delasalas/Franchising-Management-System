@@ -14,7 +14,7 @@ import { supabase } from '@/lib/supabase';
 import { CartAPI, CartSummary } from '@/api/cart';
 import { PaymentMethodsAPI } from '@/api/paymentMethods';
 import { AddressesAPI } from '@/api/addresses';
-import { OrdersAPI } from '@/api/orders';
+import { OrdersAPI } from '@/api/ordersNew';
 import { 
   ArrowLeft, 
   CreditCard, 
