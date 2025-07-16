@@ -1,412 +1,224 @@
-# FranchiseHub - Multi-Brand Franchising Platform
+# FranchiseHub - Comprehensive Franchise Management System
 
-A comprehensive franchise management system built with React, TypeScript, and Supabase. This platform enables franchisors to manage multiple franchise brands and franchisees to operate their locations efficiently.
+A production-ready, enterprise-grade franchise management platform built with React, TypeScript, and Supabase. FranchiseHub provides complete order management, user authentication, and franchise operations management with advanced security and scalability.
 
-## Features
+## 🚀 **System Overview**
 
-- **Multi-Brand Support**: Manage multiple franchise brands from a single platform
-- **Real-time Analytics**: Live dashboard with KPIs, sales data, and performance metrics
-- **Inventory Management**: Track stock levels, automate reordering, and manage suppliers
-- **Order Management**: Complete order lifecycle from creation to delivery
-- **Application Processing**: Streamlined franchise application and approval workflow
-- **Role-Based Access**: Secure access control for franchisors, franchisees, and staff
-- **Financial Tracking**: Revenue monitoring, royalty calculations, and payment processing
+FranchiseHub has evolved through systematic development phases to become a comprehensive franchise management solution:
 
-## Technology Stack
+- **Phase 1**: Foundation & Infrastructure - Core system architecture and basic functionality
+- **Phase 2**: Security Hardening & Deployment - Enterprise-grade security and production deployment
+- **Phase 3**: Order Management System - Complete product catalog, shopping cart, and order processing
+
+## ✨ **Current Features**
+
+### **For Franchisees**
+- 🛒 **Product Catalog**: Browse 10+ products with search, filtering, and categorization
+- 🛍️ **Shopping Cart**: Real-time cart management with quantity controls and validation
+- 💳 **Payment Methods**: Support for Bank Transfer, Credit/Debit Cards, GCash, and COD
+- 📍 **Address Management**: Separate billing and shipping addresses with validation
+- 🔄 **Reorder Templates**: Save frequent orders for quick reordering
+- 📊 **Dashboard**: Comprehensive franchise management interface
+- 📱 **Mobile Responsive**: Optimized for all device sizes
+
+### **For Franchisors**
+- 📦 **Product Management**: Add, edit, and manage product catalog
+- ✅ **Order Approval**: Approve, reject, or request changes to orders
+- 🚚 **Shipping Management**: Track orders and update delivery information
+- 👥 **User Management**: Franchisee account administration
+- 📈 **Analytics**: Order performance and franchise metrics
+- 🔒 **Security**: Enterprise-grade access control and data protection
+
+### **System-wide Capabilities**
+- 🔐 **Secure Authentication**: Role-based access control (Franchisee, Franchisor, Admin)
+- ⚡ **Real-time Updates**: Live data synchronization across all users
+- 🛡️ **Data Security**: 25+ Row Level Security policies protecting all data
+- 🎯 **Performance**: Optimized with 20+ database indexes and React Query caching
+- 🔄 **Error Recovery**: Comprehensive error handling and user feedback
+
+## 🏗️ **Technical Architecture**
+
+### **Database Schema (25+ Tables)**
+- **Core Tables**: user_profiles, franchises, franchise_locations, products, orders
+- **Order Management**: payment_methods, addresses, shopping_cart, order_items, order_status_history
+- **Workflow**: order_approvals, reorder_templates
+- **Security**: 25+ RLS policies, 4 secure database functions, 20+ performance indexes
+
+### **API Layer (8+ Modules, 60+ Methods)**
+- **PaymentMethodsAPI**: Complete payment method CRUD operations
+- **AddressesAPI**: Address management with Philippine validation
+- **CartAPI**: Shopping cart with real-time calculations
+- **ProductsAPI**: Product catalog with search and filtering
+- **ReorderTemplatesAPI**: Template management for repeat orders
+- **OrdersAPI**: Complete order lifecycle management
+- **Enhanced Security**: Comprehensive validation and error handling
+
+### **Frontend Components**
+- **ProductCatalog**: Advanced product browsing with filters and search
+- **ShoppingCart**: Complete cart management with validation
+- **Dashboard**: Role-based dashboard interfaces
+- **Navigation**: Integrated order management navigation
+- **Responsive Design**: Mobile-first approach with Tailwind CSS
+
+## 🛠️ **Tech Stack**
 
 - **Frontend**: React 18, TypeScript, Tailwind CSS, Shadcn/ui
-- **Backend**: Supabase (PostgreSQL, Auth, Real-time subscriptions)
-- **State Management**: React Query (TanStack Query)
-- **Authentication**: Supabase Auth with Row Level Security
-- **Database**: PostgreSQL with 25+ tables and comprehensive relationships
+- **Backend**: Supabase (PostgreSQL, Auth, Real-time, Edge Functions)
+- **State Management**: React Query with intelligent caching
+- **Authentication**: Supabase Auth with custom user profiles
+- **Database**: PostgreSQL with advanced security (RLS policies)
+- **Deployment**: Vercel with automatic deployments
+- **Development**: ESLint, TypeScript, Git workflow
 
-## Getting Started
+## 📊 **Development Statistics**
 
+- **Database**: 25+ tables, 25+ RLS policies, 20+ indexes, 4 secure functions
+- **API**: 8+ modules, 60+ methods, complete CRUD operations
+- **Frontend**: 2,500+ lines of new code, 100% TypeScript coverage
+- **Features**: 5 payment types, 8+ product categories, 9 order statuses
+- **Security**: Enterprise-grade with comprehensive validation
+
+## 🚀 **Getting Started**
+
+### **Prerequisites**
+- Node.js 18+
+- npm or yarn
+- Supabase account
+
+### **Installation**
+
+1. **Clone the repository:**
 ```bash
-# Clone the repository
 git clone https://github.com/JC-delasalas/Franchising-Management-System.git
-
-# Navigate to project directory
 cd Franchising-Management-System
-
-# Install dependencies
-npm install
-
-# Copy environment configuration
-cp .env.example .env
-
-# Start development server
-npm run dev
 ```
 
-## Environment Setup
+2. **Install dependencies:**
+```bash
+npm install
+```
 
-Create a `.env` file with the following variables:
+3. **Environment Setup:**
+```bash
+cp .env.example .env.local
+```
 
+4. **Configure Supabase:**
+Add your Supabase credentials to `.env.local`:
 ```env
-VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-## Demo Accounts
+5. **Database Setup:**
+- Import the database schema from `/docs/database-schema.sql`
+- Run the security policies from `/docs/rls-policies.sql`
+- Insert sample data from `/docs/sample-data.sql`
 
-The system includes demo accounts for testing:
-
-- **Franchisor**: `franchisor@demo.com` / `demo123`
-- **Franchisee**: `franchisee@demo.com` / `demo123`
-- **Admin**: `admin@demo.com` / `demo123`
-
-## Database Schema
-
-The system uses a comprehensive 25-table database schema including:
-
-- **Core Tables**: Organizations, User Profiles, Franchises, Locations
-- **Product Management**: Products, Inventory Levels, Warehouses, Stock Movements
-- **Order Management**: Orders, Order Items, Shipments, Invoices, Payments
-- **Analytics**: Performance Targets, Financial Transactions, Audit Logs
-- **System**: Notifications, Settings, Organization Members
-
-## Architecture
-
-- **Frontend**: React with TypeScript for type safety
-- **UI Components**: Shadcn/ui with Tailwind CSS for modern design
-- **State Management**: React Query for server state and caching
-- **Authentication**: Supabase Auth with Row Level Security (RLS)
-- **Database**: PostgreSQL with comprehensive relationships and constraints
-- **Real-time**: Supabase real-time subscriptions for live updates
-
-## Key Features
-
-### For Franchisors
-- Multi-brand franchise management
-- Application review and approval workflow
-- Network-wide analytics and reporting
-- Inventory and order oversight
-- Financial tracking and royalty management
-
-### For Franchisees
-- Location-specific dashboard and analytics
-- Inventory management and automated reordering
-- Order placement and tracking
-- Performance monitoring against targets
-- Financial reporting and payment tracking
-
-## Security
-
-- Row Level Security (RLS) enabled on all tables
-- Role-based access control (RBAC)
-- Secure API endpoints with proper authentication
-- Data isolation between different user roles
-- Audit logging for all critical operations
-
-## Development
-
-### Project Structure
-```
-src/
-├── api/           # API layer with Supabase integration
-├── components/    # Reusable UI components
-├── hooks/         # Custom React hooks
-├── pages/         # Application pages/routes
-├── lib/           # Utility libraries and configurations
-├── services/      # Business logic layer
-└── types/         # TypeScript type definitions
-```
-
-### Available Scripts
+6. **Start Development Server:**
 ```bash
-npm run dev        # Start development server
-npm run build      # Build for production
-npm run preview    # Preview production build
-npm run lint       # Run ESLint
-npm run type-check # Run TypeScript checks
+npm run dev
 ```
 
-## Testing
-
-The system includes comprehensive testing utilities:
-
-```javascript
-// Run system integration tests in browser console
-runSystemTests()
-```
-
-## Deployment
-
-1. **Database Setup**: Deploy schema to Supabase
-2. **Environment Variables**: Configure production environment
-3. **Build**: Create production build
-4. **Deploy**: Deploy to your hosting platform
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License.
-
-## Author
-
-**John Cedrick de las Alas**
-- Email: jcedrick.delasalas@gmail.com
-- GitHub: [@JC-delasalas](https://github.com/JC-delasalas)
-
-## Support
-
-For support and questions, please open an issue on GitHub or contact the author directly.
-
-```
-NODE_OPTIONS=--no-experimental-fetch yarn add supabase
-```
-
-> **Note**
-For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
-
-<details>
-  <summary><b>macOS</b></summary>
-
-  Available via [Homebrew](https://brew.sh). To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To install the beta release channel:
-  
-  ```sh
-  brew install supabase/tap/supabase-beta
-  brew link --overwrite supabase-beta
-  ```
-  
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Windows</b></summary>
-
-  Available via [Scoop](https://scoop.sh). To install:
-
-  ```powershell
-  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-  scoop install supabase
-  ```
-
-  To upgrade:
-
-  ```powershell
-  scoop update supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Linux</b></summary>
-
-  Available via [Homebrew](https://brew.sh) and Linux packages.
-
-  #### via Homebrew
-
-  To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-
-  #### via Linux packages
-
-  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
-
-  ```sh
-  sudo apk add --allow-untrusted <...>.apk
-  ```
-
-  ```sh
-  sudo dpkg -i <...>.deb
-  ```
-
-  ```sh
-  sudo rpm -i <...>.rpm
-  ```
-
-  ```sh
-  sudo pacman -U <...>.pkg.tar.zst
-  ```
-</details>
-
-<details>
-  <summary><b>Other Platforms</b></summary>
-
-  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
-
-  ```sh
-  go install github.com/supabase/cli@latest
-  ```
-
-  Add a symlink to the binary in `$PATH` for easier access:
-
-  ```sh
-  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
-  ```
-
-  This works on other non-standard Linux distros.
-</details>
-
-<details>
-  <summary><b>Community Maintained Packages</b></summary>
-
-  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
-  To install in your working directory:
-
-  ```bash
-  pkgx install supabase
-  ```
-
-  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
-</details>
-
-### Run the CLI
-
-<<<<<<< HEAD
+7. **Build for Production:**
 ```bash
-supabase bootstrap
-```
-
-Or using npx:
-
-```bash
-npx supabase bootstrap
-```
-
-The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
-
-## Docs
-
-Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
-
-## Breaking changes
-
-We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
-
-However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
-
-## Developing
-
-To run from source:
-
-```sh
-# Go >= 1.22
-go run . help
-```
-=======
-### Production Build
-```bash
-# Build for production
 npm run build
-
-# Preview production build
-npm run preview
 ```
 
-### Deployment Platforms
-- **Vercel**: Connect your repository for automatic deployments
-- **Netlify**: Deploy the `dist` folder after building
-- **Manual**: Upload the `dist` folder to any static hosting service
-
-## 📁 Project Structure
+## 📁 **Project Structure**
 
 ```
 src/
-├── components/          # Reusable UI components
-│   ├── ui/             # shadcn/ui components
-│   └── apply/          # Application form components
-├── pages/              # Page components
-│   └── franchisee/     # Franchisee dashboard pages
-├── config/             # Configuration files
-├── hooks/              # Custom React hooks
-├── lib/                # Utility functions
-└── assets/             # Static assets
+├── api/                 # API integration layer (8+ modules)
+│   ├── addresses.ts     # Address management API
+│   ├── cart.ts         # Shopping cart API
+│   ├── orders.ts       # Order management API
+│   ├── paymentMethods.ts # Payment methods API
+│   ├── products.ts     # Product catalog API
+│   └── reorderTemplates.ts # Reorder templates API
+├── components/         # Reusable UI components
+│   ├── ui/            # Shadcn/ui components
+│   └── dashboard/     # Dashboard-specific components
+├── pages/             # Page components
+│   ├── ProductCatalog.tsx # Product browsing interface
+│   ├── ShoppingCart.tsx   # Cart management interface
+│   └── *Dashboard.tsx     # Role-based dashboards
+├── hooks/             # Custom React hooks
+├── lib/               # Utility functions and configurations
+├── types/             # TypeScript type definitions
+└── styles/            # Global styles and Tailwind config
 ```
 
-## 🎯 Key Features
+## 📚 **Documentation**
 
-### For Franchisees
-- **Dashboard**: Complete management interface
-- **Sales Reporting**: Upload and track daily sales
-- **Inventory Management**: Order supplies and track stock
-- **Marketing Assets**: Download promotional materials
-- **Support System**: Submit and track support requests
-- **Contract Management**: View agreements and upgrade options
+- **[API Documentation](./docs/api-documentation.md)** - Complete API reference
+- **[Database Schema](./docs/database-schema.md)** - Database structure and relationships
+- **[Setup Guide](./docs/setup-guide.md)** - Detailed setup instructions
+- **[User Guide](./docs/user-guide.md)** - Feature usage for franchisees and franchisors
+- **[Development Guide](./docs/development-guide.md)** - Development standards and practices
 
-### For Franchisors
-- **Application Management**: Review and approve applications
-- **Analytics Dashboard**: Monitor franchise performance
-- **Content Management**: Update marketing materials
-- **Support Oversight**: Manage support tickets
+## 🔒 **Security Features**
 
-### Public Features
-- **Multi-Brand Showcase**: Display multiple franchise opportunities
-- **Application System**: Complete multi-step application process
-- **Blog System**: SEO-optimized content marketing
-- **Contact System**: Lead generation and inquiries
+- **Row Level Security**: 25+ policies protecting all data access
+- **Secure Functions**: Database functions with SECURITY DEFINER
+- **Input Validation**: Client and server-side validation
+- **Authentication**: Role-based access control
+- **Data Encryption**: Secure storage of sensitive information
+- **SQL Injection Prevention**: Parameterized queries throughout
 
-## 🔧 Development
+## 🎯 **Current Capabilities vs. Initial State**
 
-### Available Scripts
-```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run preview      # Preview production build
-npm run lint         # Run ESLint
-npm run type-check   # Run TypeScript checks
-```
+### **What the System Can Do Now:**
+✅ Complete product catalog with search and filtering
+✅ Shopping cart with real-time calculations
+✅ Multiple payment method support
+✅ Address management with validation
+✅ Order approval workflow
+✅ Reorder templates for efficiency
+✅ Real-time order tracking
+✅ Enterprise-grade security
+✅ Mobile-responsive design
+✅ Comprehensive error handling
 
-### Code Quality
-- **TypeScript**: Full type safety
-- **ESLint**: Code linting and formatting
-- **Prettier**: Code formatting
-- **Git Hooks**: Quality checks on commit
+### **What It Couldn't Do Initially:**
+❌ No product ordering system
+❌ No payment processing
+❌ No address management
+❌ No shopping cart functionality
+❌ Limited security policies
+❌ Basic user management only
 
-## 📈 Performance
+## 🚧 **Upcoming Features**
 
-- **Lighthouse Score**: 95+ across all metrics
-- **Bundle Size**: Optimized with code splitting
-- **Loading Speed**: Fast initial load with lazy loading
-- **SEO**: Comprehensive meta tags and structured data
+- **Checkout Process**: Complete payment flow implementation
+- **Order Approval Dashboard**: Enhanced franchisor interface
+- **Shipping Integration**: Real-time tracking and notifications
+- **Advanced Analytics**: Comprehensive reporting dashboard
+- **Mobile App**: React Native implementation
+- **Third-party Integrations**: Payment processors and shipping providers
 
-## 🤝 Contributing
+## 🤝 **Contributing**
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+3. Follow the established TypeScript and component patterns
+4. Test thoroughly before committing
+5. Commit changes (`git commit -m 'Add amazing feature'`)
+6. Push to branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
 
-## 📄 License
+## 📄 **License**
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## 👨‍💻 **Author**
 
-For support and questions:
-- Email: info@franchisehub.ph
-- Phone: +63 2 8123 4567
-- Documentation: See `DATABASE_RECOMMENDATIONS.md` for setup instructions
+**John Cedrick de las Alas**
+Email: jcedrick.delasalas@gmail.com
+GitHub: [@JC-delasalas](https://github.com/JC-delasalas)
 
-## 🎉 Acknowledgments
+---
 
-Built with modern web technologies and best practices for scalable franchise management.
->>>>>>> d8c236e272e9ac681400e8e9183ffc31ac124827
+**FranchiseHub** - Empowering franchise success through comprehensive management solutions.
+
+
