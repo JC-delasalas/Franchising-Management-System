@@ -862,13 +862,11 @@ const FranchisorDashboard = () => {
                         </TableCell>
                       </TableRow>
                     )) : (
-                      <>
-                        <TableRow>
-                          <TableCell colSpan={7} className="text-center text-gray-500 py-8">
-                            No franchisees found
-                          </TableCell>
-                        </TableRow>
-                      </>
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center text-gray-500 py-8">
+                          No franchisees found
+                        </TableCell>
+                      </TableRow>
                     )}
                   </TableBody>
                 </Table>
