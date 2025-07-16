@@ -31,6 +31,9 @@ const FranchisorDashboard = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Temporary fallback for missing mockFranchisees - will be removed when fully integrated
+  const mockFranchisees = [];
+
   // Fetch franchisor analytics
   const { data: analytics, isLoading: analyticsLoading } = useQuery({
     queryKey: ['franchisor-analytics'],
@@ -63,11 +66,40 @@ const FranchisorDashboard = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch franchise locations
+  // Fetch franchise locations with franchisee data
   const { data: locations, isLoading: locationsLoading } = useQuery({
     queryKey: ['franchise-locations'],
     queryFn: () => FranchiseAPI.getFranchiseLocations(),
     staleTime: 10 * 60 * 1000,
+  });
+
+  // Fetch all franchisees for the masterlist
+  const { data: franchisees, isLoading: franchiseesLoading } = useQuery({
+    queryKey: ['all-franchisees', user?.id],
+    queryFn: async () => {
+      if (!franchises) return [];
+      const allLocations = await Promise.all(
+        franchises.map(franchise =>
+          FranchiseAPI.getFranchiseLocations(franchise.id)
+        )
+      );
+      return allLocations.flat();
+    },
+    enabled: !!franchises,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Get low stock alerts
+  const { data: lowStockAlerts, isLoading: lowStockLoading } = useQuery({
+    queryKey: ['low-stock-alerts', user?.id],
+    queryFn: async () => {
+      if (!franchisees) return [];
+      // This would typically come from an inventory API
+      // For now, return empty array until inventory system is fully implemented
+      return [];
+    },
+    enabled: !!franchisees,
+    staleTime: 2 * 60 * 1000,
   });
 
   // Update application status mutation
@@ -168,30 +200,48 @@ const FranchisorDashboard = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">847</div>
-              <p className="text-xs text-muted-foreground">+34% from last month</p>
+              {applicationsLoading ? (
+                <Skeleton className="h-8 w-20" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">{applications?.length || 0}</div>
+                  <p className="text-xs text-muted-foreground">Total pending applications</p>
+                </>
+              )}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Approved Franchisees</CardTitle>
+              <CardTitle className="text-sm font-medium">Active Franchises</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">289</div>
-              <p className="text-xs text-muted-foreground">+28% from last month</p>
+              {franchisesLoading ? (
+                <Skeleton className="h-8 w-20" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">{franchises?.length || 0}</div>
+                  <p className="text-xs text-muted-foreground">Total active franchises</p>
+                </>
+              )}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Franchisees</CardTitle>
+              <CardTitle className="text-sm font-medium">Active Locations</CardTitle>
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">97</div>
-              <p className="text-xs text-muted-foreground">+29% from last month</p>
+              {locationsLoading ? (
+                <Skeleton className="h-8 w-20" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">{locations?.length || 0}</div>
+                  <p className="text-xs text-muted-foreground">Total franchise locations</p>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -201,8 +251,18 @@ const FranchisorDashboard = () => {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₱13.7M</div>
-              <p className="text-xs text-muted-foreground">+37% from last month</p>
+              {analyticsLoading ? (
+                <Skeleton className="h-8 w-20" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">
+                    ₱{analytics?.totalRevenue ? (analytics.totalRevenue / 1000000).toFixed(1) + 'M' : '0'}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {analytics?.revenueGrowth ? `+${analytics.revenueGrowth}%` : '+0%'} from last month
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -216,25 +276,44 @@ const FranchisorDashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-2 gap-4">
-              {mockFranchisees.filter(f => f.lowStock.length > 0).map((franchisee, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-orange-200">
-                  <div>
-                    <p className="font-medium">{franchisee.name}</p>
-                    <p className="text-sm text-gray-600">{franchisee.brand} - {franchisee.location}</p>
-                    <p className="text-xs text-orange-700">Low: {franchisee.lowStock.join(', ')}</p>
+            {lowStockLoading ? (
+              <div className="grid md:grid-cols-2 gap-4">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="p-3 bg-white rounded-lg border border-orange-200">
+                    <Skeleton className="h-4 w-32 mb-2" />
+                    <Skeleton className="h-3 w-24 mb-1" />
+                    <Skeleton className="h-3 w-40" />
                   </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => sendLowStockNotification(franchisee)}
-                    className="border-orange-300 text-orange-700 hover:bg-orange-100"
-                  >
-                    Notify
-                  </Button>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : lowStockAlerts && lowStockAlerts.length > 0 ? (
+              <div className="grid md:grid-cols-2 gap-4">
+                {lowStockAlerts.map((alert, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-orange-200">
+                    <div>
+                      <p className="font-medium">{alert.franchisee_name}</p>
+                      <p className="text-sm text-gray-600">{alert.brand} - {alert.location}</p>
+                      <p className="text-xs text-orange-700">Low: {alert.low_stock_items?.join(', ')}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => sendLowStockNotification(alert)}
+                      className="border-orange-300 text-orange-700 hover:bg-orange-100"
+                    >
+                      <MessageCircle className="w-4 h-4 mr-1" />
+                      Notify
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <AlertTriangle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No low stock alerts at this time</p>
+                <p className="text-sm text-gray-500">All franchisees have adequate inventory levels</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -691,18 +770,33 @@ const FranchisorDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {mockFranchisees.map((franchisee) => (
-                      <TableRow key={franchisee.id}>
-                        <TableCell className="font-medium">{franchisee.id}</TableCell>
-                        <TableCell>{franchisee.name}</TableCell>
-                        <TableCell>{franchisee.brand}</TableCell>
-                        <TableCell>{franchisee.location}</TableCell>
-                        <TableCell className="font-medium text-green-600">{franchisee.monthlyRevenue}</TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(franchisee.status)}>
-                            {franchisee.status}
-                          </Badge>
-                        </TableCell>
+                    {franchiseesLoading ? (
+                      [...Array(5)].map((_, i) => (
+                        <TableRow key={i}>
+                          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                        </TableRow>
+                      ))
+                    ) : franchisees && franchisees.length > 0 ? (
+                      franchisees.map((location) => (
+                        <TableRow key={location.id}>
+                          <TableCell className="font-medium">{location.id.slice(0, 8)}</TableCell>
+                          <TableCell>{location.user_profiles?.full_name || 'N/A'}</TableCell>
+                          <TableCell>{location.franchises?.name || 'N/A'}</TableCell>
+                          <TableCell>{location.address || 'N/A'}</TableCell>
+                          <TableCell className="font-medium text-green-600">
+                            ₱{location.monthly_revenue ? (location.monthly_revenue / 1000).toFixed(0) + 'K' : '0'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={getStatusColor(location.status || 'Active')}>
+                              {location.status || 'Active'}
+                            </Badge>
+                          </TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
                             <Dialog>

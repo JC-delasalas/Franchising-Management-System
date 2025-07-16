@@ -9,11 +9,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useRealTimeInventory } from '@/hooks/useRealTimeInventory';
+import { useRealTimeOrders } from '@/hooks/useRealTimeData';
 import { InventoryAPI } from '@/api/inventory';
 import { OrderAPI } from '@/api/orders';
 import { OrderService } from '@/services/OrderService';
 import Navigation from '@/components/Navigation';
 import SEO from '@/components/SEO';
+import { PageHeaderWithBack } from '@/components/navigation/BackToDashboard';
 import {
   Package,
   ShoppingCart,
@@ -49,21 +52,23 @@ const InventoryOrder = () => {
   // Get user's primary location
   const locationId = user?.metadata?.primary_location_id;
 
-  // Fetch inventory data
-  const { data: inventory, isLoading: inventoryLoading, error: inventoryError } = useQuery({
-    queryKey: ['inventory', locationId],
-    queryFn: () => InventoryAPI.getInventoryByLocation(locationId!),
-    enabled: !!locationId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  // Use real-time inventory and orders hooks
+  const {
+    inventory,
+    stockAlerts,
+    inventoryMetrics,
+    isLoading: inventoryLoading,
+    error: inventoryError,
+    isRealTimeConnected,
+    updateInventory
+  } = useRealTimeInventory(locationId);
 
-  // Fetch recent orders
-  const { data: orders, isLoading: ordersLoading } = useQuery({
-    queryKey: ['orders', locationId],
-    queryFn: () => OrderAPI.getOrdersByLocation(locationId!),
-    enabled: !!locationId,
-    staleTime: 5 * 60 * 1000,
-  });
+  const {
+    orders,
+    isLoading: ordersLoading,
+    pendingOrders,
+    isRealTimeConnected: ordersRealTimeConnected
+  } = useRealTimeOrders({ locationId });
 
   // Create order mutation
   const createOrderMutation = useMutation({
@@ -217,18 +222,10 @@ const InventoryOrder = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-4 mb-4">
-            <Button variant="ghost" asChild>
-              <Link to="/franchisee-dashboard">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Dashboard
-              </Link>
-            </Button>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900">Inventory Order</h1>
-          <p className="text-gray-600">Manage your stock levels and place orders</p>
-        </div>
+        <PageHeaderWithBack
+          title="Inventory Order"
+          subtitle="Manage your stock levels and place orders"
+        />
 
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Inventory Catalog */}

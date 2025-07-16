@@ -72,47 +72,77 @@ export interface FranchisorAnalytics {
 }
 
 export class AnalyticsAPI extends BaseAPI {
-  // Get KPI metrics for franchisee dashboard
+  // Get comprehensive real-time KPI metrics
   static async getKPIMetrics(locationId: string): Promise<KPIMetrics> {
     const user = await this.getCurrentUserProfile()
-    
+
     // Verify user has access to this location
     const location = await this.readSingle('franchise_locations', { id: locationId })
     if (location.franchisee_id !== user.id && !['franchisor', 'admin'].includes(user.role || '')) {
       throw new Error('Access denied to this location')
     }
 
-    // Get financial summary from view
-    const { data: financialData } = await supabase
-      .from('financial_summary')
-      .select('*')
+    // Get real-time financial data
+    const [financialData, ordersData, inventoryData] = await Promise.all([
+      supabase
+        .from('financial_summary')
+        .select('*')
+        .eq('location_id', locationId)
+        .single(),
+      supabase
+        .from('orders')
+        .select('total_amount, created_at, status')
+        .eq('location_id', locationId)
+        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+      supabase
+        .from('inventory')
+        .select('current_stock, unit_cost, reorder_level')
+        .eq('location_id', locationId)
+    ]);
+
+    // Calculate real-time metrics from actual data
+    const today = new Date().toISOString().split('T')[0];
+    const todayOrders = ordersData.data?.filter(order =>
+      order.created_at.startsWith(today) && order.status !== 'cancelled') || [];
+    const todaySales = todayOrders.reduce((sum, order) => sum + order.total_amount, 0);
+
+    const last7Days = ordersData.data?.filter(order =>
+      new Date(order.created_at) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) &&
+      order.status !== 'cancelled') || [];
+    const weekSales = last7Days.reduce((sum, order) => sum + order.total_amount, 0);
+
+    const monthSales = ordersData.data?.filter(order => order.status !== 'cancelled')
+      .reduce((sum, order) => sum + order.total_amount, 0) || 0;
+
+    // Calculate inventory metrics from real data
+    const inventoryValue = inventoryData.data?.reduce((sum, item) =>
+      sum + (item.current_stock * item.unit_cost), 0) || 0;
+
+    const lowStockItems = inventoryData.data?.filter(item =>
+      item.current_stock <= item.reorder_level).length || 0;
+
+    // Calculate growth rates from historical data
+    const previousMonthStart = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+    const previousMonthEnd = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    const { data: previousMonthOrders } = await supabase
+      .from('orders')
+      .select('total_amount')
       .eq('location_id', locationId)
-      .single()
+      .gte('created_at', previousMonthStart.toISOString())
+      .lt('created_at', previousMonthEnd.toISOString())
+      .neq('status', 'cancelled');
 
-    // Calculate metrics with fallback to mock data for demo
-    const todaySales = financialData?.sales_total_last_30_days || 45250
-    const weekSales = todaySales * 7 || 342100
-    const monthSales = todaySales * 30 || 1370000
-
-    // Get inventory value (simplified calculation)
-    const { data: inventoryData } = await supabase
-      .from('inventory_status')
-      .select('*')
-      .eq('warehouse_id', locationId)
-
-    const inventoryValue = inventoryData?.reduce((sum, item) => 
-      sum + (item.quantity_on_hand * 50), 0) || 125000 // Fallback value
-
-    const lowStockItems = inventoryData?.filter(item => 
-      item.stock_status === 'Low Stock' || item.stock_status === 'Out of Stock').length || 3
+    const previousMonthSales = previousMonthOrders?.reduce((sum, order) => sum + order.total_amount, 0) || 1;
+    const salesChange = previousMonthSales > 0 ? ((monthSales - previousMonthSales) / previousMonthSales) * 100 : 0;
 
     return {
       todaySales,
       weekSales,
       monthSales,
-      salesChange: 12.5, // Calculate from historical data
-      orderCount: financialData?.orders_last_30_days || 156,
-      avgOrderValue: todaySales / (financialData?.orders_last_30_days || 156),
+      salesChange: Math.round(salesChange * 10) / 10,
+      orderCount: ordersData.data?.filter(order => order.status !== 'cancelled').length || 0,
+      avgOrderValue: ordersData.data?.length > 0 ? monthSales / ordersData.data.length : 0,
       inventoryValue,
       lowStockItems
     }
@@ -181,22 +211,53 @@ export class AnalyticsAPI extends BaseAPI {
     }
   }
 
-  // Get analytics for franchisor dashboard
+  // Get comprehensive analytics for franchisor dashboard with real-time data
   static async getFranchisorAnalytics(): Promise<FranchisorAnalytics> {
     await this.checkPermission(['franchisor', 'admin'])
 
-    // Get franchise performance data
-    const { data: performanceData } = await supabase
-      .from('franchise_performance_dashboard')
-      .select('*')
+    // Get all franchise data in parallel for better performance
+    const [franchisesResult, locationsResult, ordersResult, applicationsResult, inventoryResult] = await Promise.all([
+      supabase
+        .from('franchises')
+        .select('id, name, brand, status, created_at'),
 
-    const franchises = performanceData || []
+      supabase
+        .from('franchise_locations')
+        .select(`
+          id, name, status, created_at, monthly_revenue, address,
+          user_profiles!franchisee_id (full_name, email),
+          franchises (name, brand)
+        `),
 
-    // Calculate overview metrics
-    const totalFranchises = franchises.length
-    const activeLocations = franchises.reduce((sum, f) => sum + f.active_locations, 0)
-    const pendingApplications = franchises.reduce((sum, f) => sum + f.pending_applications, 0)
-    const totalRevenue = franchises.reduce((sum, f) => sum + f.total_sales_last_30_days, 0)
+      supabase
+        .from('orders')
+        .select('total_amount, created_at, status, location_id')
+        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+
+      supabase
+        .from('franchise_applications')
+        .select('id, status, created_at, applicant_name'),
+
+      supabase
+        .from('inventory')
+        .select('current_stock, reorder_level, location_id, unit_cost')
+    ]);
+
+    const franchises = franchisesResult.data || [];
+    const locations = locationsResult.data || [];
+    const allOrders = ordersResult.data || [];
+    const applications = applicationsResult.data || [];
+    const inventory = inventoryResult.data || [];
+
+    // Calculate comprehensive metrics
+    const totalFranchises = franchises.length;
+    const activeLocations = locations.filter(l => l.status === 'active').length;
+    const pendingApplications = applications.filter(app => app.status === 'pending').length;
+
+    // Calculate total revenue from actual orders
+    const totalRevenue = allOrders
+      .filter(order => order.status !== 'cancelled')
+      .reduce((sum, order) => sum + order.total_amount, 0);
 
     // Get top and underperforming locations
     const allLocations = await this.read('franchise_locations', { status: 'open' }, `

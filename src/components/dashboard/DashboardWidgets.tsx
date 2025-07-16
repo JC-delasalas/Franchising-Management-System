@@ -5,33 +5,33 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
 import { useDashboardData } from '@/hooks/useDashboardData';
-import { 
-  TrendingUp, 
-  Users, 
+import {
+  TrendingUp,
+  Users,
   DollarSign,
+  Package,
   RefreshCw,
   AlertTriangle,
   Clock
 } from 'lucide-react';
 
 export const DashboardWidgets: React.FC = () => {
+  const { user, role } = useAuth();
+  const locationId = user?.metadata?.primary_location_id;
+
   const {
     data,
     isLoading,
     error,
-    retryCount,
-    canRetry,
-    lastUpdated,
     refresh,
-    retry,
-    reset
-  } = useDashboardData();
+    lastUpdated
+  } = useDashboardData(locationId);
 
-  if (error && !canRetry) {
+  if (error) {
     return (
       <ErrorDisplay
-        error={error}
-        onRetry={reset}
+        error={error.message || 'Failed to load dashboard data'}
+        onRetry={refresh}
         context="dashboard widgets"
         showDetails={true}
       />
@@ -70,21 +70,9 @@ export const DashboardWidgets: React.FC = () => {
               Last updated: {lastUpdated.toLocaleTimeString()}
             </div>
           )}
-          {retryCount > 0 && (
-            <div className="flex items-center text-sm text-orange-600">
-              <AlertTriangle className="w-4 h-4 mr-1" />
-              Retry {retryCount}/3
-            </div>
-          )}
-          {error && canRetry && (
-            <Button variant="outline" size="sm" onClick={retry}>
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Retry
-            </Button>
-          )}
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={refresh}
             disabled={isLoading}
           >
@@ -95,21 +83,66 @@ export const DashboardWidgets: React.FC = () => {
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {data?.metrics.map((metric, index) => (
-          <Card key={index} className={error ? 'border-orange-200 bg-orange-50' : ''}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{metric.label}</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{metric.value}</div>
-              <p className="text-xs text-muted-foreground">
-                {metric.change} from last month
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ₱{data?.metrics ? (data.metrics.totalRevenue / 1000000).toFixed(1) + 'M' : '0'}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {data?.metrics?.revenueChange ? `+${data.metrics.revenueChange}%` : '+0%'} from last month
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {data?.metrics?.totalOrders?.toLocaleString() || '0'}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {data?.metrics?.ordersChange ? `+${data.metrics.ordersChange}%` : '+0%'} from last month
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {data?.metrics?.activeUsers?.toLocaleString() || '0'}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {data?.metrics?.usersChange ? `+${data.metrics.usersChange}%` : '+0%'} from last month
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {data?.metrics?.conversionRate ? `${data.metrics.conversionRate}%` : '0%'}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {data?.metrics?.conversionChange ? `${data.metrics.conversionChange > 0 ? '+' : ''}${data.metrics.conversionChange}%` : '+0%'} from last month
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Recent Activity */}

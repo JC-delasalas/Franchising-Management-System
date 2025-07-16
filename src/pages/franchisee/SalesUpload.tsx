@@ -6,14 +6,18 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import Navigation from '@/components/Navigation';
 import SEO from '@/components/SEO';
-import { 
-  Upload, 
-  Download, 
-  Calendar, 
-  DollarSign, 
-  TrendingUp, 
+import { PageHeaderWithBack } from '@/components/navigation/BackToDashboard';
+import { useRealTimeSales } from '@/hooks/useRealTimeSales';
+import { useAuth } from '@/hooks/useAuth';
+import {
+  Upload,
+  Download,
+  Calendar,
+  DollarSign,
+  TrendingUp,
   FileText,
   CheckCircle,
   AlertCircle,
@@ -21,22 +25,19 @@ import {
 } from 'lucide-react';
 
 const SalesUpload = () => {
+  const { user } = useAuth();
+  const { salesMetrics, isLoading, uploadSales, isUploading, isRealTimeConnected } = useRealTimeSales();
+
   const [salesData, setSalesData] = useState({
-    date: new Date().toISOString().split('T')[0],
-    totalSales: '',
-    transactions: '',
+    sale_date: new Date().toISOString().split('T')[0],
+    total_amount: '',
+    items_sold: [{ product_id: '', product_name: '', quantity: 1, unit_price: 0, total_price: 0 }],
+    payment_method: 'cash' as 'cash' | 'card' | 'digital',
+    customer_count: 1,
     notes: ''
   });
 
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const recentReports = [
-    { date: '2024-01-14', amount: '₱3,450', status: 'Approved', transactions: 28 },
-    { date: '2024-01-13', amount: '₱2,890', status: 'Approved', transactions: 22 },
-    { date: '2024-01-12', amount: '₱4,120', status: 'Pending', transactions: 35 },
-    { date: '2024-01-11', amount: '₱3,780', status: 'Approved', transactions: 31 }
-  ];
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -47,22 +48,54 @@ const SalesUpload = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    alert('Sales report submitted successfully!');
-    setIsSubmitting(false);
-    
-    // Reset form
+
+    const salesUpload = {
+      ...salesData,
+      total_amount: parseFloat(salesData.total_amount),
+      location_id: user?.metadata?.primary_location_id || '',
+      items_sold: salesData.items_sold.map(item => ({
+        ...item,
+        quantity: Number(item.quantity),
+        unit_price: Number(item.unit_price),
+        total_price: Number(item.quantity) * Number(item.unit_price)
+      }))
+    };
+
+    uploadSales(salesUpload);
+
+    // Reset form on success
     setSalesData({
-      date: new Date().toISOString().split('T')[0],
-      totalSales: '',
-      transactions: '',
+      sale_date: new Date().toISOString().split('T')[0],
+      total_amount: '',
+      items_sold: [{ product_id: '', product_name: '', quantity: 1, unit_price: 0, total_price: 0 }],
+      payment_method: 'cash',
+      customer_count: 1,
       notes: ''
     });
     setUploadedFile(null);
+  };
+
+  const addItem = () => {
+    setSalesData(prev => ({
+      ...prev,
+      items_sold: [...prev.items_sold, { product_id: '', product_name: '', quantity: 1, unit_price: 0, total_price: 0 }]
+    }));
+  };
+
+  const removeItem = (index: number) => {
+    setSalesData(prev => ({
+      ...prev,
+      items_sold: prev.items_sold.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateItem = (index: number, field: string, value: any) => {
+    setSalesData(prev => ({
+      ...prev,
+      items_sold: prev.items_sold.map((item, i) =>
+        i === index ? { ...item, [field]: value } : item
+      )
+    }));
   };
 
   const getStatusBadge = (status: string) => {
@@ -89,17 +122,88 @@ const SalesUpload = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-4 mb-4">
-            <Button variant="ghost" asChild>
-              <Link to="/franchisee-dashboard">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Dashboard
-              </Link>
-            </Button>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900">Sales Upload</h1>
-          <p className="text-gray-600">Submit your daily sales reports and track performance</p>
+        <PageHeaderWithBack
+          title="Sales Upload"
+          subtitle="Submit your daily sales reports and track performance"
+        />
+
+        {/* Real-time Sales Overview Cards */}
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Today's Sales</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <Skeleton className="h-8 w-24" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">₱{salesMetrics?.todaySales?.toLocaleString() || '0'}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {isRealTimeConnected ? '🟢 Live data' : '🔴 Offline'}
+                  </p>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">This Week</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <Skeleton className="h-8 w-24" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">₱{salesMetrics?.weekSales?.toLocaleString() || '0'}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {salesMetrics?.orderCount || 0} orders this week
+                  </p>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">This Month</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <Skeleton className="h-8 w-24" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">₱{salesMetrics?.monthSales?.toLocaleString() || '0'}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {salesMetrics?.salesGrowth ? `${salesMetrics.salesGrowth > 0 ? '+' : ''}${salesMetrics.salesGrowth}%` : '+0%'} from last month
+                  </p>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Avg. Order Value</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <Skeleton className="h-8 w-24" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">₱{Math.round(salesMetrics?.avgOrderValue || 0).toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Based on {salesMetrics?.orderCount || 0} orders
+                  </p>
+                </>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">

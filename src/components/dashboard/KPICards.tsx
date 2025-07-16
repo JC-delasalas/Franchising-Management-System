@@ -27,10 +27,16 @@ export const KPICards: React.FC<KPICardsProps> = ({ locationId }) => {
   const effectiveLocationId = locationId || user?.metadata?.primary_location_id;
 
   const { data: kpiData, isLoading, error, refetch } = useQuery({
-    queryKey: ['kpi-metrics', effectiveLocationId],
-    queryFn: () => AnalyticsAPI.getKPIMetrics(effectiveLocationId!),
-    enabled: !!effectiveLocationId && role === 'franchisee',
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    queryKey: ['kpi-metrics', effectiveLocationId, role],
+    queryFn: async () => {
+      if (role === 'franchisor') {
+        return AnalyticsAPI.getFranchisorMetrics(user!.id);
+      } else {
+        return AnalyticsAPI.getFranchiseeMetrics(effectiveLocationId!);
+      }
+    },
+    enabled: !!user?.id && (role === 'franchisor' || !!effectiveLocationId),
+    staleTime: 2 * 60 * 1000, // 2 minutes
     refetchInterval: 30 * 1000, // 30 seconds
   });
 

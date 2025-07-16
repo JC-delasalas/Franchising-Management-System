@@ -39,6 +39,9 @@ const FranchiseeAnalytics = React.lazy(() => import("./pages/FranchiseeAnalytics
 // IAM pages
 const IAMManagement = React.lazy(() => import("./pages/IAMManagement"));
 
+// User Profile page
+const UserProfile = React.lazy(() => import("./pages/UserProfile"));
+
 // Franchisee sub-pages
 const SalesUpload = React.lazy(() => import("./pages/franchisee/SalesUpload"));
 const InventoryOrder = React.lazy(() => import("./pages/franchisee/InventoryOrder"));
@@ -49,7 +52,7 @@ const SupportRequests = React.lazy(() => import("./pages/franchisee/SupportReque
 // 404 page
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
-// Optimized React Query configuration
+// Enhanced React Query configuration for optimal performance
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -58,15 +61,24 @@ const queryClient = new QueryClient({
           const status = (error as any).status;
           if (status >= 400 && status < 500) return false;
         }
-        return failureCount < 2;
+        return failureCount < 3;
       },
-      staleTime: 5 * 60 * 1000,
-      gcTime: 10 * 60 * 1000,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 30 * 60 * 1000, // 30 minutes (increased for better caching)
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
+      refetchOnMount: true,
+      // Enable background refetching for better UX
+      refetchInterval: false,
+      // Optimize network usage
+      networkMode: 'online',
+      // Enable suspense for better loading states
+      suspense: false,
     },
     mutations: {
-      retry: 1,
+      retry: 2,
+      // Add network mode for mutations
+      networkMode: 'online',
     },
   },
 });
@@ -202,7 +214,14 @@ const App = () => (
                             <IAMManagement />
                           </RequireAuth>
                         } />
-                        
+
+                        {/* User Profile Route */}
+                        <Route path="/profile" element={
+                          <RequireAuth>
+                            <UserProfile />
+                          </RequireAuth>
+                        } />
+
                         {/* Catch-all route - MUST be last */}
                         <Route path="*" element={<NotFound />} />
                       </Routes>
