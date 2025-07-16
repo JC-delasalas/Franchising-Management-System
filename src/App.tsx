@@ -52,6 +52,8 @@ const SupportRequests = React.lazy(() => import("./pages/franchisee/SupportReque
 // Order Management pages
 const ProductCatalog = React.lazy(() => import("./pages/ProductCatalog"));
 const ShoppingCart = React.lazy(() => import("./pages/ShoppingCart"));
+const Checkout = React.lazy(() => import("./pages/Checkout"));
+const OrderConfirmation = React.lazy(() => import("./pages/OrderConfirmation"));
 
 // Phase 3 Business Logic Pages
 const OrderManagement = React.lazy(() => import("./pages/OrderManagement"));
@@ -225,6 +227,16 @@ const App = () => (
                         <Route path="/cart" element={
                           <RequireAuth role="franchisee">
                             <ShoppingCart />
+                          </RequireAuth>
+                        } />
+                        <Route path="/checkout" element={
+                          <RequireAuth role="franchisee">
+                            <Checkout />
+                          </RequireAuth>
+                        } />
+                        <Route path="/order-confirmation/:orderId" element={
+                          <RequireAuth role="franchisee">
+                            <OrderConfirmation />
                           </RequireAuth>
                         } />
 
