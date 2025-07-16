@@ -49,6 +49,10 @@ const MarketingAssets = React.lazy(() => import("./pages/franchisee/MarketingAss
 const ContractPackage = React.lazy(() => import("./pages/franchisee/ContractPackage"));
 const SupportRequests = React.lazy(() => import("./pages/franchisee/SupportRequests"));
 
+// Phase 3 Business Logic Pages
+const OrderManagement = React.lazy(() => import("./pages/OrderManagement"));
+const FinancialDashboard = React.lazy(() => import("./pages/FinancialDashboard"));
+
 // 404 page
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
@@ -207,7 +211,19 @@ const App = () => (
                             <SupportRequests />
                           </RequireAuth>
                         } />
-                        
+
+                        {/* Phase 3 Business Logic Routes */}
+                        <Route path="/order-management" element={
+                          <RequireAuth>
+                            <OrderManagement />
+                          </RequireAuth>
+                        } />
+                        <Route path="/financial-dashboard" element={
+                          <RequireAuth>
+                            <FinancialDashboard />
+                          </RequireAuth>
+                        } />
+
                         {/* Protected IAM Routes (requires special permissions) */}
                         <Route path="/iam-management" element={
                           <RequireAuth>

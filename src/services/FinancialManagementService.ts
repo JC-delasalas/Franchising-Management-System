@@ -42,7 +42,7 @@ export interface PaymentMethod {
 
 export interface FinancialTransaction {
   id?: string;
-  franchise_id: string;
+  franchise_location_id: string;
   transaction_type: 'payment' | 'refund' | 'chargeback' | 'fee' | 'royalty' | 'commission';
   amount: number;
   currency: string;
@@ -168,7 +168,7 @@ export class FinancialManagementService {
     try {
       // Create transaction record
       const transaction: FinancialTransaction = {
-        franchise_id: billing.franchise_id,
+        franchise_location_id: billing.franchise_location_id,
         transaction_type: billing.billing_type === 'royalty' ? 'royalty' : 'fee',
         amount: billing.amount,
         currency: billing.currency,

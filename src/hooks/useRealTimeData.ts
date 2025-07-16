@@ -180,9 +180,9 @@ export const useRealTimeOrders = (filters: { status?: string; locationId?: strin
       }
 
       if (filters.locationId) {
-        query = query.eq('location_id', filters.locationId);
+        query = query.eq('franchise_location_id', filters.locationId);
       } else if (user?.metadata?.primary_location_id) {
-        query = query.eq('location_id', user.metadata.primary_location_id);
+        query = query.eq('franchise_location_id', user.metadata.primary_location_id);
       }
 
       const { data, error } = await query;

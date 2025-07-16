@@ -16,7 +16,7 @@ export interface OrderItem {
 export interface Order {
   id?: string;
   order_number: string;
-  location_id: string;
+  franchise_location_id: string;
   created_by: string;
   status: 'draft' | 'pending_approval' | 'level1_approved' | 'level2_approved' | 'approved' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'rejected';
   approval_level: 0 | 1 | 2 | 3;

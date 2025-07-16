@@ -210,11 +210,11 @@ export const useFinancialManagement = (filters: FinancialFilters = {}) => {
   const { isConnected: isRealTimeConnected } = useRealTimeSubscription([
     {
       table: 'financial_transactions',
-      filter: `franchise_id=eq.${franchiseId}`,
+      filter: `franchise_location_id=eq.${franchiseId}`,
       callback: (payload) => {
         queryClient.invalidateQueries({ queryKey: ['financial-transactions'] });
         queryClient.invalidateQueries({ queryKey: ['financial-dashboard'] });
-        
+
         if (payload.eventType === 'INSERT') {
           const transaction = payload.new;
           toast({

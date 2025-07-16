@@ -29,7 +29,11 @@ export const ROUTES = {
     CONTRACT_PACKAGE: '/franchisee/contract-package',
     SUPPORT_REQUESTS: '/franchisee/support-requests',
   },
-  
+
+  // Phase 3 Business Logic Routes
+  ORDER_MANAGEMENT: '/order-management',
+  FINANCIAL_DASHBOARD: '/financial-dashboard',
+
   // IAM routes
   IAM_MANAGEMENT: '/iam-management',
 } as const;
@@ -64,7 +68,13 @@ export const ROUTE_GROUPS = {
     ROUTES.FRANCHISEE_TRAINING,
     ...Object.values(ROUTES.FRANCHISEE),
   ],
+  BUSINESS_LOGIC: [
+    ROUTES.ORDER_MANAGEMENT,
+    ROUTES.FINANCIAL_DASHBOARD,
+  ],
   PROTECTED: [
     ROUTES.IAM_MANAGEMENT,
+    ROUTES.ORDER_MANAGEMENT,
+    ROUTES.FINANCIAL_DASHBOARD,
   ],
 } as const;
