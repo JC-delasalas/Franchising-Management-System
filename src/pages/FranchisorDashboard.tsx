@@ -770,7 +770,7 @@ const FranchisorDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {franchiseesLoading ? (
+                    {franchiseesLoading && (
                       [...Array(5)].map((_, i) => (
                         <TableRow key={i}>
                           <TableCell><Skeleton className="h-4 w-16" /></TableCell>
@@ -782,7 +782,8 @@ const FranchisorDashboard = () => {
                           <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                         </TableRow>
                       ))
-                    ) : franchisees && franchisees.length > 0 ? (
+                    )}
+                    {!franchiseesLoading && franchisees && franchisees.length > 0 && (
                       franchisees.map((location) => (
                         <TableRow key={location.id}>
                           <TableCell className="font-medium">{location.id.slice(0, 8)}</TableCell>
@@ -861,7 +862,9 @@ const FranchisorDashboard = () => {
                           </div>
                         </TableCell>
                       </TableRow>
-                    )) : (
+                    ))
+                    )}
+                    {!franchiseesLoading && (!franchisees || franchisees.length === 0) && (
                       <TableRow>
                         <TableCell colSpan={7} className="text-center text-gray-500 py-8">
                           No franchisees found
