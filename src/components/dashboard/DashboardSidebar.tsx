@@ -13,7 +13,9 @@ import {
   Image as ImageIcon,
   ArrowLeft,
   ShoppingCart,
-  Store
+  Store,
+  CreditCard,
+  MapPin
 } from 'lucide-react';
 
 const DashboardSidebar = React.memo(() => {
@@ -67,6 +69,18 @@ const DashboardSidebar = React.memo(() => {
       label: 'Support & Requests',
       icon: Phone,
       isActive: location.pathname === '/franchisee/support-requests'
+    },
+    {
+      href: '/payment-methods',
+      label: 'Payment Methods',
+      icon: CreditCard,
+      isActive: location.pathname === '/payment-methods'
+    },
+    {
+      href: '/addresses',
+      label: 'Addresses',
+      icon: MapPin,
+      isActive: location.pathname === '/addresses'
     }
   ], [location.pathname]);
 
