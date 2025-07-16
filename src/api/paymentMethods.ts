@@ -6,24 +6,25 @@ type PaymentMethodInsert = Database['public']['Tables']['payment_methods']['Inse
 type PaymentMethodUpdate = Database['public']['Tables']['payment_methods']['Update'];
 
 export interface CreatePaymentMethodData {
-  payment_type: 'bank_transfer' | 'credit_card' | 'debit_card' | 'gcash' | 'cash_on_delivery';
-  nickname?: string;
+  type: 'bank_transfer' | 'credit_card' | 'debit_card' | 'gcash' | 'cash_on_delivery';
+  provider: string;
+  provider_payment_method_id: string;
   is_default?: boolean;
-  
-  // Bank Transfer fields
-  bank_name?: string;
-  account_number?: string;
-  account_holder_name?: string;
-  
-  // Card fields
-  card_last_four?: string;
-  card_brand?: string;
-  card_expiry_month?: number;
-  card_expiry_year?: number;
-  
-  // GCash fields
-  gcash_number?: string;
-  gcash_account_name?: string;
+  metadata?: {
+    nickname?: string;
+    // Bank Transfer fields
+    bank_name?: string;
+    account_number?: string;
+    account_holder_name?: string;
+    // Card fields
+    card_last_four?: string;
+    card_brand?: string;
+    card_expiry_month?: number;
+    card_expiry_year?: number;
+    // GCash fields
+    gcash_number?: string;
+    gcash_account_name?: string;
+  };
 }
 
 export const PaymentMethodsAPI = {
@@ -82,7 +83,12 @@ export const PaymentMethodsAPI = {
       .from('payment_methods')
       .insert({
         user_id: user.user.id,
-        ...paymentMethodData,
+        type: paymentMethodData.type,
+        provider: paymentMethodData.provider,
+        provider_payment_method_id: paymentMethodData.provider_payment_method_id,
+        is_default: paymentMethodData.is_default || false,
+        metadata: paymentMethodData.metadata || {},
+        status: 'active',
       })
       .select()
       .single();
@@ -105,12 +111,16 @@ export const PaymentMethodsAPI = {
       await this.unsetDefaultPaymentMethods();
     }
 
+    const updateData: any = {};
+    if (updates.type) updateData.type = updates.type;
+    if (updates.provider) updateData.provider = updates.provider;
+    if (updates.provider_payment_method_id) updateData.provider_payment_method_id = updates.provider_payment_method_id;
+    if (updates.is_default !== undefined) updateData.is_default = updates.is_default;
+    if (updates.metadata) updateData.metadata = updates.metadata;
+
     const { data, error } = await supabase
       .from('payment_methods')
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', id)
       .eq('user_id', user.user.id)
       .select()
@@ -211,40 +221,50 @@ export const PaymentMethodsAPI = {
   validatePaymentMethodData(data: CreatePaymentMethodData): string[] {
     const errors: string[] = [];
 
-    if (!data.payment_type) {
+    if (!data.type) {
       errors.push('Payment type is required');
     }
 
-    switch (data.payment_type) {
-      case 'bank_transfer':
-        if (!data.bank_name) errors.push('Bank name is required');
-        if (!data.account_number) errors.push('Account number is required');
-        if (!data.account_holder_name) errors.push('Account holder name is required');
-        break;
+    if (!data.provider) {
+      errors.push('Provider is required');
+    }
 
-      case 'credit_card':
-      case 'debit_card':
-        if (!data.card_last_four) errors.push('Card last four digits are required');
-        if (!data.card_brand) errors.push('Card brand is required');
-        if (!data.card_expiry_month || data.card_expiry_month < 1 || data.card_expiry_month > 12) {
-          errors.push('Valid expiry month is required');
-        }
-        if (!data.card_expiry_year || data.card_expiry_year < new Date().getFullYear()) {
-          errors.push('Valid expiry year is required');
-        }
-        break;
+    if (!data.provider_payment_method_id) {
+      errors.push('Provider payment method ID is required');
+    }
 
-      case 'gcash':
-        if (!data.gcash_number) errors.push('GCash number is required');
-        if (!data.gcash_account_name) errors.push('GCash account name is required');
-        break;
+    if (data.metadata) {
+      switch (data.type) {
+        case 'bank_transfer':
+          if (!data.metadata.bank_name) errors.push('Bank name is required');
+          if (!data.metadata.account_number) errors.push('Account number is required');
+          if (!data.metadata.account_holder_name) errors.push('Account holder name is required');
+          break;
 
-      case 'cash_on_delivery':
-        // No additional validation needed for COD
-        break;
+        case 'credit_card':
+        case 'debit_card':
+          if (!data.metadata.card_last_four) errors.push('Card last four digits are required');
+          if (!data.metadata.card_brand) errors.push('Card brand is required');
+          if (!data.metadata.card_expiry_month || data.metadata.card_expiry_month < 1 || data.metadata.card_expiry_month > 12) {
+            errors.push('Valid expiry month is required');
+          }
+          if (!data.metadata.card_expiry_year || data.metadata.card_expiry_year < new Date().getFullYear()) {
+            errors.push('Valid expiry year is required');
+          }
+          break;
 
-      default:
-        errors.push('Invalid payment type');
+        case 'gcash':
+          if (!data.metadata.gcash_number) errors.push('GCash number is required');
+          if (!data.metadata.gcash_account_name) errors.push('GCash account name is required');
+          break;
+
+        case 'cash_on_delivery':
+          // No additional validation needed for COD
+          break;
+
+        default:
+          errors.push('Invalid payment type');
+      }
     }
 
     return errors;
@@ -256,38 +276,40 @@ export const PaymentMethodsAPI = {
     subtitle: string;
     icon: string;
   } {
-    switch (paymentMethod.payment_type) {
+    const metadata = paymentMethod.metadata || {};
+
+    switch (paymentMethod.type) {
       case 'bank_transfer':
         return {
-          title: paymentMethod.nickname || `${paymentMethod.bank_name} Transfer`,
-          subtitle: `****${paymentMethod.account_number?.slice(-4)} - ${paymentMethod.account_holder_name}`,
+          title: metadata.nickname || `${metadata.bank_name} Transfer`,
+          subtitle: `****${metadata.account_number?.slice(-4)} - ${metadata.account_holder_name}`,
           icon: 'bank',
         };
 
       case 'credit_card':
         return {
-          title: paymentMethod.nickname || `${paymentMethod.card_brand} Credit Card`,
-          subtitle: `****${paymentMethod.card_last_four} - Expires ${paymentMethod.card_expiry_month}/${paymentMethod.card_expiry_year}`,
+          title: metadata.nickname || `${metadata.card_brand} Credit Card`,
+          subtitle: `****${metadata.card_last_four} - Expires ${metadata.card_expiry_month}/${metadata.card_expiry_year}`,
           icon: 'credit-card',
         };
 
       case 'debit_card':
         return {
-          title: paymentMethod.nickname || `${paymentMethod.card_brand} Debit Card`,
-          subtitle: `****${paymentMethod.card_last_four} - Expires ${paymentMethod.card_expiry_month}/${paymentMethod.card_expiry_year}`,
+          title: metadata.nickname || `${metadata.card_brand} Debit Card`,
+          subtitle: `****${metadata.card_last_four} - Expires ${metadata.card_expiry_month}/${metadata.card_expiry_year}`,
           icon: 'credit-card',
         };
 
       case 'gcash':
         return {
-          title: paymentMethod.nickname || 'GCash',
-          subtitle: `${paymentMethod.gcash_number} - ${paymentMethod.gcash_account_name}`,
+          title: metadata.nickname || 'GCash',
+          subtitle: `${metadata.gcash_number} - ${metadata.gcash_account_name}`,
           icon: 'smartphone',
         };
 
       case 'cash_on_delivery':
         return {
-          title: paymentMethod.nickname || 'Cash on Delivery',
+          title: metadata.nickname || 'Cash on Delivery',
           subtitle: 'Pay when you receive your order',
           icon: 'banknote',
         };
