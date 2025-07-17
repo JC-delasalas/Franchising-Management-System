@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AnalyticsAPI } from '@/api/analytics';
-import { OrdersAPI } from '@/api/orders';
+import { OrderAPI } from '@/api/orders';
 import { FranchiseAPI } from '@/api/franchises';
 import { useToast } from '@/hooks/use-toast';
 
@@ -77,7 +77,7 @@ export const FranchisorAPITest: React.FC = () => {
   const testFranchisorOrders = async () => {
     return await runTest('Franchisor Orders', async () => {
       const franchisorId = 'cbee6bd4-77c7-4abb-ac3c-02ac20bf6b51';
-      const orders = await OrdersAPI.getOrdersForFranchisor(franchisorId);
+      const orders = await OrderAPI.getOrdersForFranchisor(franchisorId);
       
       if (!Array.isArray(orders)) {
         throw new Error('Orders should be an array');
@@ -97,7 +97,7 @@ export const FranchisorAPITest: React.FC = () => {
 
   const testPendingOrders = async () => {
     return await runTest('Pending Orders', async () => {
-      const pendingOrders = await OrdersAPI.getPendingOrders();
+      const pendingOrders = await OrderAPI.getPendingOrders();
       
       if (!Array.isArray(pendingOrders)) {
         throw new Error('Pending orders should be an array');
