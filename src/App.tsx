@@ -3,7 +3,8 @@ import React, { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import AppErrorBoundary from "@/components/AppErrorBoundary";
@@ -88,36 +89,7 @@ const SupplierAccessTest = React.lazy(() => import("./components/testing/Supplie
 // 404 page
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
-// Enhanced React Query configuration for optimal performance
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: (failureCount, error) => {
-        if (error && typeof error === 'object' && 'status' in error) {
-          const status = (error as any).status;
-          if (status >= 400 && status < 500) return false;
-        }
-        return failureCount < 3;
-      },
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 30 * 60 * 1000, // 30 minutes (increased for better caching)
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: true,
-      refetchOnMount: true,
-      // Enable background refetching for better UX
-      refetchInterval: false,
-      // Optimize network usage
-      networkMode: 'online',
-      // Enable suspense for better loading states
-      suspense: false,
-    },
-    mutations: {
-      retry: 2,
-      // Add network mode for mutations
-      networkMode: 'online',
-    },
-  },
-});
+// Using optimized query client from lib/queryClient.ts
 
 // Validate configuration on app start
 try {

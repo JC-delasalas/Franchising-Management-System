@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,20 +9,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { FranchiseAPI } from '@/api/franchises';
 import { AnalyticsAPI } from '@/api/analytics';
 import { OrdersAPI } from '@/api/orders';
+import { queryKeys, prefetchStrategies } from '@/lib/queryClient';
+import { DashboardSkeleton, TableSkeleton } from '@/components/ui/SkeletonLoaders';
 import Logo from '@/components/Logo';
-import ChatAssistant from '@/components/ChatAssistant';
-import KPICharts from '@/components/analytics/KPICharts';
-import { IAMDashboard } from '@/components/iam/IAMDashboard';
-import NotificationCenter from '@/components/notifications/NotificationCenter';
-import { FranchisorAPITest } from '@/components/testing/FranchisorAPITest';
 import { TrendingUp, Users, Package, DollarSign, Bell, Search, Filter, Download, Plus, Check, X, Clock, MessageCircle, AlertTriangle, ArrowLeft, Eye, Mail, Phone, BarChart3, Shield, RefreshCw, CheckCircle, Truck, Settings } from 'lucide-react';
+
+// Lazy load heavy components for better performance
+const ChatAssistant = lazy(() => import('@/components/ChatAssistant'));
+const KPICharts = lazy(() => import('@/components/analytics/KPICharts'));
+const IAMDashboard = lazy(() => import('@/components/iam/IAMDashboard').then(module => ({ default: module.IAMDashboard })));
+const NotificationCenter = lazy(() => import('@/components/notifications/NotificationCenter'));
+const FranchisorAPITest = lazy(() => import('@/components/testing/FranchisorAPITest').then(module => ({ default: module.FranchisorAPITest })));
 
 const FranchisorDashboard = () => {
   const [selectedBrand, setSelectedBrand] = useState('all');
@@ -33,6 +36,13 @@ const FranchisorDashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Prefetch dashboard data on component mount
+  React.useEffect(() => {
+    if (user?.id && user?.role === 'franchisor') {
+      prefetchStrategies.prefetchDashboard(user.id, user.role);
+    }
+  }, [user?.id, user?.role]);
 
   // Temporary fallback for missing mockFranchisees - will be removed when fully integrated
   const mockFranchisees = [];
@@ -113,12 +123,13 @@ const FranchisorDashboard = () => {
     staleTime: 2 * 60 * 1000,
   });
 
-  // Fetch all orders for franchisor
+  // Optimized orders query with proper caching
   const { data: allOrders, isLoading: ordersLoading, error: ordersError } = useQuery({
-    queryKey: ['franchisor-orders', user?.id],
+    queryKey: queryKeys.orders.list({ userId: user?.id, limit: 50 }),
     queryFn: () => OrdersAPI.getOrdersForFranchisor(user!.id),
     enabled: !!user?.id,
-    staleTime: 2 * 60 * 1000,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
     onError: (error) => {
       console.error('Orders error:', error);
       toast({
@@ -129,12 +140,14 @@ const FranchisorDashboard = () => {
     }
   });
 
-  // Fetch pending orders for approval
+  // Optimized pending orders query
   const { data: pendingOrders, isLoading: pendingOrdersLoading } = useQuery({
-    queryKey: ['pending-orders'],
+    queryKey: queryKeys.orders.pending(user?.id || ''),
     queryFn: OrdersAPI.getPendingOrders,
-    staleTime: 1 * 60 * 1000,
-    refetchInterval: 30 * 1000,
+    enabled: !!user?.id,
+    staleTime: 1 * 60 * 1000, // 1 minute
+    gcTime: 3 * 60 * 1000, // 3 minutes
+    refetchInterval: 30 * 1000, // 30 seconds
   });
 
   // Update application status mutation
@@ -186,7 +199,41 @@ const FranchisorDashboard = () => {
     }
   });
 
-  const getStatusColor = (status: string) => {
+  // Memoized calculations for better performance
+  const dashboardStats = useMemo(() => {
+    if (!analytics || !allOrders || !pendingOrders) return null;
+
+    return {
+      totalRevenue: analytics.totalRevenue || 0,
+      totalOrders: allOrders?.length || 0,
+      pendingOrdersCount: pendingOrders?.length || 0,
+      activeLocations: locations?.filter(loc => loc.status === 'Active')?.length || 0,
+      recentOrders: allOrders?.slice(0, 5) || [],
+      topPerformingLocations: locations?.slice(0, 3) || []
+    };
+  }, [analytics, allOrders, pendingOrders, locations]);
+
+  // Memoized filtered data
+  const filteredApplications = useMemo(() => {
+    if (!applications) return [];
+
+    return applications.filter(app => {
+      const brandMatch = selectedBrand === 'all' || app.brand === selectedBrand;
+      const statusMatch = selectedStatus === 'all' || app.status === selectedStatus;
+      return brandMatch && statusMatch;
+    });
+  }, [applications, selectedBrand, selectedStatus]);
+
+  // Memoized callbacks for better performance
+  const handleBrandChange = useCallback((brand: string) => {
+    setSelectedBrand(brand);
+  }, []);
+
+  const handleStatusChange = useCallback((status: string) => {
+    setSelectedStatus(status);
+  }, []);
+
+  const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case 'Approved': return 'bg-green-100 text-green-800';
       case 'Pending': return 'bg-yellow-100 text-yellow-800';
@@ -196,23 +243,23 @@ const FranchisorDashboard = () => {
       case 'Active': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
-  };
+  }, []);
 
-  const handleApplicationAction = (application, action) => {
+  const handleApplicationAction = useCallback((application, action) => {
     setSelectedApplication(application);
     setActionType(action);
-  };
+  }, []);
 
-  const confirmApplicationAction = () => {
-    console.log(`${actionType} application ${selectedApplication.id}:`, actionReason);
+  const confirmApplicationAction = useCallback(() => {
+    console.log(`${actionType} application ${selectedApplication?.id}:`, actionReason);
     setSelectedApplication(null);
     setActionType('');
     setActionReason('');
-  };
+  }, [actionType, selectedApplication?.id, actionReason]);
 
-  const sendLowStockNotification = (franchisee) => {
+  const sendLowStockNotification = useCallback((franchisee) => {
     console.log(`Sending low stock notification to ${franchisee.name} for items:`, franchisee.lowStock);
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -538,7 +585,9 @@ const FranchisorDashboard = () => {
 
           {/* Analytics Tab */}
           <TabsContent value="analytics">
-            <KPICharts userType="franchisor" />
+            <Suspense fallback={<DashboardSkeleton />}>
+              <KPICharts userType="franchisor" />
+            </Suspense>
           </TabsContent>
 
           {/* Applications Tab */}
@@ -1119,18 +1168,24 @@ const FranchisorDashboard = () => {
 
           {/* New IAM Tab */}
           <TabsContent value="iam">
-            <IAMDashboard />
+            <Suspense fallback={<DashboardSkeleton />}>
+              <IAMDashboard />
+            </Suspense>
           </TabsContent>
 
           {/* API Testing Tab */}
           <TabsContent value="api-test">
-            <FranchisorAPITest />
+            <Suspense fallback={<TableSkeleton />}>
+              <FranchisorAPITest />
+            </Suspense>
           </TabsContent>
         </Tabs>
       </div>
 
       {/* Chat Assistant */}
-      <ChatAssistant />
+      <Suspense fallback={null}>
+        <ChatAssistant />
+      </Suspense>
     </div>
   );
 };
