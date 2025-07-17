@@ -32,30 +32,44 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         // Manual chunk splitting for better caching
-        manualChunks: {
+        manualChunks: (id) => {
           // Vendor chunks
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
-          'query-vendor': ['@tanstack/react-query'],
-          'supabase-vendor': ['@supabase/supabase-js'],
-          'chart-vendor': ['recharts', 'lucide-react'],
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+              return 'react-vendor';
+            }
+            if (id.includes('@radix-ui') || id.includes('radix-ui')) {
+              return 'ui-vendor';
+            }
+            if (id.includes('@tanstack/react-query')) {
+              return 'query-vendor';
+            }
+            if (id.includes('@supabase/supabase-js')) {
+              return 'supabase-vendor';
+            }
+            if (id.includes('recharts') || id.includes('lucide-react')) {
+              return 'chart-vendor';
+            }
+            // Other vendor dependencies
+            return 'vendor';
+          }
 
-          // Feature-based chunks
-          'dashboard': [
-            './src/pages/FranchisorDashboard.tsx',
-            './src/pages/FranchiseeDashboard.tsx',
-            './src/components/dashboard'
-          ],
-          'analytics': [
-            './src/pages/FranchisorAnalytics.tsx',
-            './src/pages/FranchiseeAnalytics.tsx',
-            './src/components/analytics'
-          ],
-          'orders': [
-            './src/pages/OrderManagement.tsx',
-            './src/pages/OrdersList.tsx',
-            './src/components/orders'
-          ],
+          // Feature-based chunks for application code
+          if (id.includes('/pages/') && (id.includes('Dashboard') || id.includes('dashboard'))) {
+            return 'dashboard';
+          }
+          if (id.includes('/pages/') && (id.includes('Analytics') || id.includes('analytics'))) {
+            return 'analytics';
+          }
+          if (id.includes('/pages/') && (id.includes('Order') || id.includes('order'))) {
+            return 'orders';
+          }
+          if (id.includes('/components/analytics/')) {
+            return 'analytics';
+          }
+          if (id.includes('/components/testing/')) {
+            return 'testing';
+          }
         },
       },
     },
