@@ -632,3 +632,6 @@ export class OrderAPI extends BaseAPI {
     }
   }
 }
+
+// Export alias for backward compatibility
+export const OrdersAPI = OrderAPI;

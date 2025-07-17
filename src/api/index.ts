@@ -1,6 +1,6 @@
 export { FranchiseAPI } from './franchises';
 export { AnalyticsAPI } from './analytics';
-export { OrderAPI } from './orders';
+export { OrderAPI, OrdersAPI } from './orders';
 export { InventoryAPI } from './inventory';
 export { FileAPI } from './files';
 export { ApprovalAPI } from './approvals';
