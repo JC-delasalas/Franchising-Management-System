@@ -17,6 +17,7 @@ import { AnalyticsAPI } from '@/api/analytics';
 import { OrdersAPI } from '@/api/orders';
 import { queryKeys, prefetchStrategies } from '@/lib/queryClient';
 import { DashboardSkeleton, TableSkeleton } from '@/components/ui/SkeletonLoaders';
+import DatabaseErrorBoundary, { useDatabaseErrorHandler } from '@/components/error/DatabaseErrorBoundary';
 import Logo from '@/components/Logo';
 import { TrendingUp, Users, Package, DollarSign, Bell, Search, Filter, Download, Plus, Check, X, Clock, MessageCircle, AlertTriangle, ArrowLeft, Eye, Mail, Phone, BarChart3, Shield, RefreshCw, CheckCircle, Truck, Settings } from 'lucide-react';
 
@@ -36,6 +37,7 @@ const FranchisorDashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { handleError } = useDatabaseErrorHandler();
 
   // Prefetch dashboard data on component mount
   React.useEffect(() => {
@@ -123,20 +125,31 @@ const FranchisorDashboard = () => {
     staleTime: 2 * 60 * 1000,
   });
 
-  // Optimized orders query with proper caching
+  // Optimized orders query with enhanced error handling
   const { data: allOrders, isLoading: ordersLoading, error: ordersError } = useQuery({
     queryKey: queryKeys.orders.list({ userId: user?.id, limit: 50 }),
-    queryFn: () => OrdersAPI.getOrdersForFranchisor(user!.id),
+    queryFn: async () => {
+      try {
+        return await OrdersAPI.getOrdersForFranchisor(user!.id);
+      } catch (error) {
+        handleError(error);
+        throw error;
+      }
+    },
     enabled: !!user?.id,
     staleTime: 2 * 60 * 1000, // 2 minutes
     gcTime: 5 * 60 * 1000, // 5 minutes
     onError: (error) => {
       console.error('Orders error:', error);
-      toast({
-        title: "Orders Error",
-        description: "Failed to load orders data",
-        variant: "destructive",
-      });
+      // Only show toast for non-critical errors
+      if (!error?.message?.includes('Could not find a relationship') &&
+          !error?.message?.includes('foreign key constraint')) {
+        toast({
+          title: "Orders Error",
+          description: "Failed to load orders data",
+          variant: "destructive",
+        });
+      }
     }
   });
 
@@ -1190,4 +1203,11 @@ const FranchisorDashboard = () => {
   );
 };
 
-export default FranchisorDashboard;
+// Wrap the component with database error boundary
+const FranchisorDashboardWithErrorBoundary = () => (
+  <DatabaseErrorBoundary>
+    <FranchisorDashboard />
+  </DatabaseErrorBoundary>
+);
+
+export default FranchisorDashboardWithErrorBoundary;

@@ -30,23 +30,53 @@ const getUserProfile = async (userId: string): Promise<UserProfile | null> => {
 
 // Create or update user profile when user signs up/in
 const upsertUserProfile = async (user: User): Promise<UserProfile> => {
+  // First check if profile already exists
+  const existingProfile = await getUserProfile(user.id);
+
+  const profileData = {
+    id: user.id,
+    email: user.email,
+    full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
+    avatar_url: user.user_metadata?.avatar_url,
+    last_login_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    // Set default role if not exists, preserve existing role
+    role: existingProfile?.role || user.user_metadata?.role || 'franchisee',
+    status: existingProfile?.status || 'active'
+  };
+
   const { data, error } = await supabase
     .from('user_profiles')
-    .upsert({
-      id: user.id,
-      email: user.email,
-      full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
-      avatar_url: user.user_metadata?.avatar_url,
-      last_login_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }, {
+    .upsert(profileData, {
       onConflict: 'id'
     })
     .select()
     .single()
 
   if (error) {
-    console.error('Error upserting user profile:', error)
+    console.error('Error upserting user profile:', error);
+
+    // If it's a 403 error, try a simple update instead
+    if (error.code === '42501' || error.message.includes('403')) {
+      console.log('Attempting profile update instead of upsert...');
+      const { data: updateData, error: updateError } = await supabase
+        .from('user_profiles')
+        .update({
+          last_login_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id)
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error('Profile update also failed:', updateError);
+        throw updateError;
+      }
+
+      return updateData;
+    }
+
     throw error
   }
 

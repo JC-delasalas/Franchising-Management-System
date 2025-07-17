@@ -8,16 +8,29 @@ export const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
       
-      // Retry configuration
+      // Enhanced retry configuration with circuit breaker pattern
       retry: (failureCount, error: any) => {
-        // Don't retry on 4xx errors (client errors)
+        // Don't retry on 4xx errors (client errors) except for 403 which might be temporary RLS issues
         if (error?.status >= 400 && error?.status < 500) {
+          // Allow one retry for 403 errors (RLS policy issues)
+          if (error?.status === 403 && failureCount < 1) {
+            return true;
+          }
+          // Don't retry other 4xx errors
           return false;
         }
-        // Retry up to 3 times for other errors
-        return failureCount < 3;
+
+        // Don't retry on specific database constraint errors
+        if (error?.message?.includes('Could not find a relationship') ||
+            error?.message?.includes('foreign key constraint') ||
+            error?.code === 'PGRST200') {
+          return false;
+        }
+
+        // Retry up to 2 times for other errors (reduced from 3)
+        return failureCount < 2;
       },
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000), // Reduced max delay
       
       // Performance optimizations
       refetchOnWindowFocus: false, // Reduce unnecessary refetches
