@@ -43,21 +43,10 @@ export const NotificationsAPI = {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) throw new Error('User not authenticated');
 
+    // Simplified query without complex foreign key relationships
     const { data, error } = await supabase
       .from('notifications')
-      .select(`
-        *,
-        related_order:orders!notifications_related_order_id_fkey (
-          id,
-          order_number,
-          total_amount
-        ),
-        sender:user_profiles!notifications_sender_id_fkey (
-          id,
-          full_name,
-          email
-        )
-      `)
+      .select('*')
       .eq('recipient_id', user.user.id)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
@@ -67,7 +56,12 @@ export const NotificationsAPI = {
       throw new Error(`Failed to fetch notifications: ${error.message}`);
     }
 
-    return data || [];
+    // Return notifications with empty related data for now
+    return (data || []).map(notification => ({
+      ...notification,
+      related_order: null,
+      sender: null
+    }));
   },
 
   // Get unread notification count

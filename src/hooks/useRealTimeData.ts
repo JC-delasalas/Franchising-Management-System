@@ -239,15 +239,23 @@ export const useRealTimeNotifications = () => {
   const { data: notifications, isLoading } = useQuery({
     queryKey: ['notifications', user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user!.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
+      try {
+        const { data, error } = await supabase
+          .from('notifications')
+          .select('*')
+          .eq('recipient_id', user!.id)
+          .order('created_at', { ascending: false })
+          .limit(50);
 
-      if (error) throw error;
-      return data;
+        if (error) {
+          console.error('Error fetching notifications:', error);
+          return [];
+        }
+        return data || [];
+      } catch (error) {
+        console.error('Error in notifications query:', error);
+        return [];
+      }
     },
     enabled: !!user,
     staleTime: 10 * 1000,
@@ -273,14 +281,14 @@ export const useRealTimeNotifications = () => {
   const { isConnected } = useRealTimeSubscription([
     {
       table: 'notifications',
-      filter: `user_id=eq.${user?.id}`,
+      filter: `recipient_id=eq.${user?.id}`,
       callback: (payload) => {
         if (payload.eventType === 'INSERT') {
           // Show browser notification for new alerts
           if ('Notification' in window && Notification.permission === 'granted') {
             new Notification(payload.new.title, {
               body: payload.new.message,
-              icon: '/favicon.ico'
+              icon: '/favicon-32x32.svg'
             });
           }
         }

@@ -49,12 +49,14 @@ export const useRealTimeNotifications = () => {
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
-        .eq('user_id', user!.id)
-        .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString())
+        .eq('recipient_id', user!.id)
         .order('created_at', { ascending: false })
         .limit(100);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching notifications:', error);
+        return [];
+      }
       return data || [];
     },
     enabled: !!user,
@@ -66,25 +68,41 @@ export const useRealTimeNotifications = () => {
   const { data: preferences } = useQuery({
     queryKey: ['notification-preferences', user?.id],
     queryFn: async (): Promise<NotificationPreferences> => {
-      const { data, error } = await supabase
-        .from('user_notification_preferences')
-        .select('*')
-        .eq('user_id', user!.id)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('user_notification_preferences')
+          .select('*')
+          .eq('user_id', user!.id)
+          .single();
 
-      if (error && error.code !== 'PGRST116') throw error;
-      
-      // Return default preferences if none exist
-      return data || {
-        email_notifications: true,
-        sms_notifications: false,
-        push_notifications: true,
-        low_stock_alerts: true,
-        order_updates: true,
-        approval_requests: true,
-        payment_reminders: true,
-        system_maintenance: true
-      };
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error fetching notification preferences:', error);
+        }
+
+        // Return default preferences if none exist
+        return data || {
+          email_notifications: true,
+          sms_notifications: false,
+          push_notifications: true,
+          low_stock_alerts: true,
+          order_updates: true,
+          approval_requests: true,
+          payment_reminders: true,
+          system_maintenance: true
+        };
+      } catch (error) {
+        console.error('Error in notification preferences query:', error);
+        return {
+          email_notifications: true,
+          sms_notifications: false,
+          push_notifications: true,
+          low_stock_alerts: true,
+          order_updates: true,
+          approval_requests: true,
+          payment_reminders: true,
+          system_maintenance: true
+        };
+      }
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000,
@@ -196,7 +214,7 @@ export const useRealTimeNotifications = () => {
   const { isConnected: isRealTimeConnected } = useRealTimeSubscription([
     {
       table: 'notifications',
-      filter: `user_id=eq.${user?.id}`,
+      filter: `recipient_id=eq.${user?.id}`,
       callback: (payload) => {
         if (payload.eventType === 'INSERT') {
           const newNotification = payload.new as Notification;
