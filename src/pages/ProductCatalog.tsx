@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { useSupplierPermissions } from '@/components/auth/SupplierRouteGuard';
 import { ProductsAPI, ProductCatalogItem } from '@/api/products';
 import { CartAPI } from '@/api/cart';
 import { 
@@ -24,6 +26,8 @@ import {
 } from 'lucide-react';
 
 const ProductCatalog: React.FC = () => {
+  const { user } = useAuth();
+  const { hasSupplierRead } = useSupplierPermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedBrand, setSelectedBrand] = useState<string>('');
@@ -272,6 +276,23 @@ const ProductCatalog: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Franchisee Notice */}
+        {user?.role === 'franchisee' && !hasSupplierRead && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start">
+              <Package className="h-5 w-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+              <div className="text-sm text-blue-800">
+                <div className="font-medium mb-1">Approved Product Catalog</div>
+                <div>
+                  All products shown are pre-approved by your franchisor and sourced from
+                  verified suppliers. You can place orders without needing to manage supplier
+                  relationships directly.
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Filters */}
         <Card className="mb-6">
           <CardHeader>

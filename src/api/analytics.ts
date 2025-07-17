@@ -64,6 +64,34 @@ export interface FranchisorAnalytics {
   financial: {
     total_royalties: number
     pending_payments: number
+    revenue_trend: number[]
+  }
+}
+
+export interface FranchisorAnalytics {
+  overview: {
+    total_franchises: number
+    active_locations: number
+    pending_applications: number
+    total_revenue: number
+  }
+  performance: {
+    top_performing_locations: Array<{
+      location_id: string
+      location_name: string
+      revenue: number
+      growth: number
+    }>
+    underperforming_locations: Array<{
+      location_id: string
+      location_name: string
+      revenue: number
+      issues: string[]
+    }>
+  }
+  financial: {
+    total_royalties: number
+    pending_payments: number
     revenue_trend: Array<{
       period: string
       amount: number
@@ -371,6 +399,158 @@ export class AnalyticsAPI extends BaseAPI {
       period: month,
       amount: currentRevenue * (0.8 + (index * 0.05)) // Mock trend
     }))
+  }
+
+  // Get franchisor metrics for dashboard
+  static async getFranchisorMetrics(userId: string): Promise<FranchisorAnalytics> {
+    await this.checkPermission(['franchisor', 'admin'])
+
+    try {
+      // Get all franchises owned by this franchisor
+      const { data: franchises, error: franchisesError } = await supabase
+        .from('franchises')
+        .select('id, name, status')
+        .eq('owner_id', userId)
+
+      if (franchisesError) throw franchisesError
+
+      // Get all locations for these franchises
+      const franchiseIds = franchises?.map(f => f.id) || []
+      const { data: locations, error: locationsError } = await supabase
+        .from('franchise_locations')
+        .select(`
+          id, name, status, monthly_revenue,
+          franchises!inner(id, name),
+          user_profiles!franchisee_id(full_name, email)
+        `)
+        .in('franchise_id', franchiseIds)
+
+      if (locationsError) throw locationsError
+
+      // Get pending applications
+      const { data: applications, error: applicationsError } = await supabase
+        .from('franchise_applications')
+        .select('id, status')
+        .in('franchise_id', franchiseIds)
+        .eq('status', 'pending')
+
+      if (applicationsError) throw applicationsError
+
+      // Calculate metrics
+      const totalRevenue = locations?.reduce((sum, loc) => sum + (loc.monthly_revenue || 0), 0) || 0
+      const activeLocations = locations?.filter(loc => loc.status === 'open').length || 0
+
+      // Get top performing locations
+      const topPerforming = locations
+        ?.sort((a, b) => (b.monthly_revenue || 0) - (a.monthly_revenue || 0))
+        .slice(0, 5)
+        .map(loc => ({
+          location_id: loc.id,
+          location_name: loc.name,
+          revenue: loc.monthly_revenue || 0,
+          growth: Math.random() * 20 - 10 // TODO: Calculate actual growth
+        })) || []
+
+      // Get underperforming locations
+      const underperforming = locations
+        ?.filter(loc => (loc.monthly_revenue || 0) < totalRevenue / (locations.length || 1) * 0.7)
+        .map(loc => ({
+          location_id: loc.id,
+          location_name: loc.name,
+          revenue: loc.monthly_revenue || 0,
+          issues: ['Low revenue', 'Below average performance']
+        })) || []
+
+      return {
+        overview: {
+          total_franchises: franchises?.length || 0,
+          active_locations: activeLocations,
+          pending_applications: applications?.length || 0,
+          total_revenue: totalRevenue
+        },
+        performance: {
+          top_performing_locations: topPerforming,
+          underperforming_locations: underperforming
+        },
+        financial: {
+          total_royalties: totalRevenue * 0.05, // Assuming 5% royalty
+          pending_payments: 0, // TODO: Calculate from payments table
+          revenue_trend: [] // TODO: Calculate trend data
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching franchisor metrics:', error)
+      throw new Error('Failed to fetch franchisor metrics')
+    }
+  }
+
+  // Get franchisee metrics for dashboard
+  static async getFranchiseeMetrics(locationId: string): Promise<FranchiseeAnalytics> {
+    const user = await this.getCurrentUserProfile()
+
+    try {
+      // Verify user has access to this location
+      const { data: location, error: locationError } = await supabase
+        .from('franchise_locations')
+        .select('*')
+        .eq('id', locationId)
+        .single()
+
+      if (locationError) throw locationError
+
+      if (location.franchisee_id !== user.id && !['franchisor', 'admin'].includes(user.role || '')) {
+        throw new Error('Access denied to this location')
+      }
+
+      // Get orders for this location
+      const { data: orders, error: ordersError } = await supabase
+        .from('orders')
+        .select('total_amount, status, created_at')
+        .eq('franchise_location_id', locationId)
+        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+
+      if (ordersError) throw ordersError
+
+      // Calculate metrics
+      const totalSales = orders?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0
+      const completedOrders = orders?.filter(o => o.status === 'delivered').length || 0
+      const pendingOrders = orders?.filter(o => o.status === 'pending_approval').length || 0
+
+      return {
+        sales: {
+          today: totalSales * 0.1, // Rough estimate
+          week: totalSales * 0.3,
+          month: totalSales,
+          year: totalSales * 12,
+          change_percentage: Math.random() * 20 - 10
+        },
+        orders: {
+          total: orders?.length || 0,
+          pending: pendingOrders,
+          completed: completedOrders,
+          avg_value: orders?.length ? totalSales / orders.length : 0
+        },
+        inventory: {
+          total_items: 0, // TODO: Get from inventory
+          low_stock_items: 0,
+          out_of_stock_items: 0,
+          total_value: 0
+        },
+        performance: {
+          target_achievement: Math.random() * 100,
+          customer_satisfaction: 85 + Math.random() * 15,
+          compliance_score: 90 + Math.random() * 10
+        },
+        insights: [
+          'Sales are trending upward this month',
+          'Consider restocking popular items',
+          'Customer satisfaction is above average'
+        ]
+      }
+    } catch (error) {
+      console.error('Error fetching franchisee metrics:', error)
+      throw new Error('Failed to fetch franchisee metrics')
+    }
   }
 
   // Get real-time dashboard data

@@ -2,7 +2,10 @@
 import React, { useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import Logo from '@/components/Logo';
+import { useAuth } from '@/hooks/useAuth';
+import { useSupplierPermissions } from '@/components/auth/SupplierRouteGuard';
 import {
   TrendingUp,
   Package,
@@ -16,11 +19,17 @@ import {
   Store,
   CreditCard,
   MapPin,
-  Truck
+  Truck,
+  AlertTriangle,
+  BarChart3,
+  Users,
+  Settings
 } from 'lucide-react';
 
 const DashboardSidebar = React.memo(() => {
   const location = useLocation();
+  const { user } = useAuth();
+  const { hasSupplierRead, hasSupplierWrite } = useSupplierPermissions();
 
   const navigationItems = useMemo(() => [
     {
@@ -88,8 +97,17 @@ const DashboardSidebar = React.memo(() => {
       label: 'My Orders',
       icon: Truck,
       isActive: location.pathname.startsWith('/orders')
-    }
-  ], [location.pathname]);
+    },
+    // Supplier Management - Only show for franchisors and admins with read access
+    ...(hasSupplierRead ? [{
+      href: '/suppliers',
+      label: 'Supplier Management',
+      icon: Truck,
+      isActive: location.pathname.startsWith('/suppliers'),
+      badge: hasSupplierWrite ? undefined : 'Read Only',
+      roles: ['franchisor', 'admin']
+    }] : [])
+  ], [location.pathname, hasSupplierRead, hasSupplierWrite]);
 
   return (
     <div className="w-64 bg-white shadow-lg h-screen sticky top-0">
@@ -110,15 +128,22 @@ const DashboardSidebar = React.memo(() => {
               <Link
                 key={item.href}
                 to={item.href}
-                className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
-                  item.isActive 
-                    ? 'text-blue-600 bg-blue-50' 
+                className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${
+                  item.isActive
+                    ? 'text-blue-600 bg-blue-50'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
                 aria-current={item.isActive ? 'page' : undefined}
               >
-                <IconComponent className="w-5 h-5" />
-                <span>{item.label}</span>
+                <div className="flex items-center space-x-3">
+                  <IconComponent className="w-5 h-5" />
+                  <span>{item.label}</span>
+                </div>
+                {item.badge && (
+                  <Badge variant="secondary" className="text-xs">
+                    {item.badge}
+                  </Badge>
+                )}
               </Link>
             );
           })}
@@ -130,6 +155,23 @@ const DashboardSidebar = React.memo(() => {
             </Link>
           </Button>
         </nav>
+
+        {/* Supplier Access Notice for Franchisees */}
+        {user?.role === 'franchisee' && (
+          <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+            <div className="flex items-start">
+              <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 mr-2 flex-shrink-0" />
+              <div className="text-xs text-yellow-800">
+                <div className="font-medium mb-1">Supplier Information</div>
+                <div>
+                  Supplier details are managed by your franchisor.
+                  You can place orders for approved products without
+                  seeing supplier information.
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

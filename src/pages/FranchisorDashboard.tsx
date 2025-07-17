@@ -15,12 +15,14 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { FranchiseAPI } from '@/api/franchises';
 import { AnalyticsAPI } from '@/api/analytics';
+import { OrdersAPI } from '@/api/orders';
 import Logo from '@/components/Logo';
 import ChatAssistant from '@/components/ChatAssistant';
 import KPICharts from '@/components/analytics/KPICharts';
 import { IAMDashboard } from '@/components/iam/IAMDashboard';
 import NotificationCenter from '@/components/notifications/NotificationCenter';
-import { TrendingUp, Users, Package, DollarSign, Bell, Search, Filter, Download, Plus, Check, X, Clock, MessageCircle, AlertTriangle, ArrowLeft, Eye, Mail, Phone, BarChart3, Shield, RefreshCw, CheckCircle, Truck } from 'lucide-react';
+import { FranchisorAPITest } from '@/components/testing/FranchisorAPITest';
+import { TrendingUp, Users, Package, DollarSign, Bell, Search, Filter, Download, Plus, Check, X, Clock, MessageCircle, AlertTriangle, ArrowLeft, Eye, Mail, Phone, BarChart3, Shield, RefreshCw, CheckCircle, Truck, Settings } from 'lucide-react';
 
 const FranchisorDashboard = () => {
   const [selectedBrand, setSelectedBrand] = useState('all');
@@ -36,11 +38,19 @@ const FranchisorDashboard = () => {
   const mockFranchisees = [];
 
   // Fetch franchisor analytics
-  const { data: analytics, isLoading: analyticsLoading } = useQuery({
+  const { data: analytics, isLoading: analyticsLoading, error: analyticsError } = useQuery({
     queryKey: ['franchisor-analytics'],
     queryFn: AnalyticsAPI.getFranchisorAnalytics,
     staleTime: 5 * 60 * 1000,
     refetchInterval: 30 * 1000,
+    onError: (error) => {
+      console.error('Analytics error:', error);
+      toast({
+        title: "Analytics Error",
+        description: "Failed to load analytics data",
+        variant: "destructive",
+      });
+    }
   });
 
   // Fetch all franchises owned by this user
@@ -103,6 +113,30 @@ const FranchisorDashboard = () => {
     staleTime: 2 * 60 * 1000,
   });
 
+  // Fetch all orders for franchisor
+  const { data: allOrders, isLoading: ordersLoading, error: ordersError } = useQuery({
+    queryKey: ['franchisor-orders', user?.id],
+    queryFn: () => OrdersAPI.getOrdersForFranchisor(user!.id),
+    enabled: !!user?.id,
+    staleTime: 2 * 60 * 1000,
+    onError: (error) => {
+      console.error('Orders error:', error);
+      toast({
+        title: "Orders Error",
+        description: "Failed to load orders data",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Fetch pending orders for approval
+  const { data: pendingOrders, isLoading: pendingOrdersLoading } = useQuery({
+    queryKey: ['pending-orders'],
+    queryFn: OrdersAPI.getPendingOrders,
+    staleTime: 1 * 60 * 1000,
+    refetchInterval: 30 * 1000,
+  });
+
   // Update application status mutation
   const updateApplicationMutation = useMutation({
     mutationFn: ({ applicationId, updates }: { applicationId: string; updates: any }) =>
@@ -124,6 +158,32 @@ const FranchisorDashboard = () => {
         variant: "destructive",
       });
     },
+  });
+
+  // Handle order approval/rejection
+  const handleOrderAction = useMutation({
+    mutationFn: async ({ orderId, action, reason }: { orderId: string, action: string, reason?: string }) => {
+      return OrdersAPI.updateOrderStatus(orderId, {
+        status: action as any,
+        approval_comments: action === 'approved' ? reason : undefined,
+        rejection_reason: action === 'rejected' ? reason : undefined
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pending-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['franchisor-orders'] })
+      toast({
+        title: "Success",
+        description: "Order status updated successfully",
+      })
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update order status",
+        variant: "destructive",
+      })
+    }
   });
 
   const getStatusColor = (status: string) => {
@@ -261,6 +321,100 @@ const FranchisorDashboard = () => {
           </Card>
         </div>
 
+        {/* Order Management Section */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">Order Management</h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Package className="w-5 h-5 mr-2" />
+                  Pending Orders ({pendingOrders?.length || 0})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {pendingOrdersLoading ? (
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                ) : pendingOrders && pendingOrders.length > 0 ? (
+                  <div className="space-y-3">
+                    {pendingOrders.slice(0, 3).map((order) => (
+                      <div key={order.id} className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                        <div>
+                          <p className="font-medium">{order.order_number}</p>
+                          <p className="text-sm text-gray-600">₱{order.total_amount?.toLocaleString()}</p>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleOrderAction.mutate({ orderId: order.id, action: 'approved' })}
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleOrderAction.mutate({ orderId: order.id, action: 'rejected', reason: 'Rejected by franchisor' })}
+                          >
+                            Reject
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    {pendingOrders.length > 3 && (
+                      <Button variant="outline" className="w-full">
+                        View All Pending Orders
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">No pending orders</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <TrendingUp className="w-5 h-5 mr-2" />
+                  Recent Orders ({allOrders?.length || 0})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {ordersLoading ? (
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                ) : allOrders && allOrders.length > 0 ? (
+                  <div className="space-y-3">
+                    {allOrders.slice(0, 5).map((order) => (
+                      <div key={order.id} className="flex items-center justify-between p-2 border-b">
+                        <div>
+                          <p className="font-medium">{order.order_number}</p>
+                          <p className="text-sm text-gray-600">
+                            {order.franchise_locations?.name} • ₱{order.total_amount?.toLocaleString()}
+                          </p>
+                        </div>
+                        <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(order.status)}`}>
+                          {order.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">No orders yet</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
         {/* Low Stock Alerts */}
         <Card className="mb-8 border-orange-200 bg-orange-50">
           <CardHeader>
@@ -314,7 +468,7 @@ const FranchisorDashboard = () => {
         {/* Main Content */}
         <Tabs defaultValue="analytics" className="space-y-6">
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2">
-            <TabsList className="grid w-full grid-cols-7 bg-gray-50 rounded-lg p-1 gap-1">
+            <TabsList className="grid w-full grid-cols-8 bg-gray-50 rounded-lg p-1 gap-1">
               <TabsTrigger
                 value="analytics"
                 className="flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=active]:border data-[state=active]:border-blue-100 hover:bg-white/50"
@@ -370,6 +524,14 @@ const FranchisorDashboard = () => {
                 <Shield className="w-4 h-4 mr-2" />
                 <span className="hidden sm:inline">Access Control</span>
                 <span className="sm:hidden">IAM</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="api-test"
+                className="flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=active]:border data-[state=active]:border-blue-100 hover:bg-white/50"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">API Test</span>
+                <span className="sm:hidden">Test</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -958,6 +1120,11 @@ const FranchisorDashboard = () => {
           {/* New IAM Tab */}
           <TabsContent value="iam">
             <IAMDashboard />
+          </TabsContent>
+
+          {/* API Testing Tab */}
+          <TabsContent value="api-test">
+            <FranchisorAPITest />
           </TabsContent>
         </Tabs>
       </div>

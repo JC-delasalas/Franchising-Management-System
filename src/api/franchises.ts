@@ -120,7 +120,7 @@ export class FranchiseAPI extends BaseAPI {
   // Get applications for franchise (franchisor only)
   static async getApplicationsForFranchise(franchiseId: string): Promise<FranchiseApplication[]> {
     await this.checkPermission(['franchisor', 'admin'])
-    
+
     return this.read<FranchiseApplication>('franchise_applications',
       { franchise_id: franchiseId },
       `
@@ -130,6 +130,45 @@ export class FranchiseAPI extends BaseAPI {
       `,
       { column: 'submitted_at', ascending: false }
     )
+  }
+
+  // Get applications for franchisor (all franchises owned by franchisor)
+  static async getApplicationsForFranchisor(franchisorId: string): Promise<FranchiseApplication[]> {
+    await this.checkPermission(['franchisor', 'admin'])
+
+    try {
+      // Get all franchises owned by this franchisor
+      const { data: franchises, error: franchisesError } = await supabase
+        .from('franchises')
+        .select('id')
+        .eq('owner_id', franchisorId)
+
+      if (franchisesError) throw franchisesError
+
+      const franchiseIds = franchises?.map(f => f.id) || []
+
+      if (franchiseIds.length === 0) {
+        return []
+      }
+
+      // Get all applications for these franchises
+      const { data: applications, error: applicationsError } = await supabase
+        .from('franchise_applications')
+        .select(`
+          *,
+          user_profiles!applicant_id (full_name, email, phone),
+          franchises (name)
+        `)
+        .in('franchise_id', franchiseIds)
+        .order('submitted_at', { ascending: false })
+
+      if (applicationsError) throw applicationsError
+
+      return applications || []
+    } catch (error) {
+      console.error('Error fetching franchisor applications:', error)
+      throw new Error('Failed to fetch applications for franchisor')
+    }
   }
 
   // Update application status (franchisor only)
@@ -165,16 +204,148 @@ export class FranchiseAPI extends BaseAPI {
   // Create franchise location after approval
   private static async createFranchiseLocation(application: FranchiseApplication): Promise<FranchiseLocation> {
     const applicantProfile = await this.readSingle('user_profiles', { id: application.applicant_id })
-    
+
     const locationData = {
       franchise_id: application.franchise_id,
       franchisee_id: application.applicant_id,
+      location_code: `LOC-${Date.now()}`,
       name: `${applicantProfile.full_name}'s Location`,
+      description: 'New franchise location',
       status: 'planning' as const,
-      country: 'Philippines'
+      country: 'Philippines',
+      opening_date: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) // 90 days from now
     }
 
-    return this.create<FranchiseLocation>('franchise_locations', locationData)
+    const location = await this.create<FranchiseLocation>('franchise_locations', locationData)
+
+    // Trigger initial package fulfillment
+    await this.fulfillInitialPackage(application, location)
+
+    return location
+  }
+
+  // Fulfill initial package after franchise approval
+  private static async fulfillInitialPackage(
+    application: FranchiseApplication,
+    location: FranchiseLocation
+  ): Promise<void> {
+    try {
+      // Get package details
+      const packageDetails = await this.readSingle('franchise_packages', {
+        id: application.package_id
+      })
+
+      // Create initial inventory allocation
+      await this.allocateInitialInventory(location.id, packageDetails)
+
+      // Create transaction history for package fulfillment
+      await this.createPackageFulfillmentTransaction(application, location, packageDetails)
+
+      // Send welcome notification
+      await this.sendWelcomeNotification(application.applicant_id, location)
+
+    } catch (error) {
+      console.error('Error fulfilling initial package:', error)
+      // Don't throw error to prevent blocking location creation
+    }
+  }
+
+  // Allocate initial inventory based on package
+  private static async allocateInitialInventory(
+    locationId: string,
+    packageDetails: any
+  ): Promise<void> {
+    // Get default products for initial inventory
+    const { data: products } = await supabase
+      .from('products')
+      .select('*')
+      .eq('active', true)
+      .limit(10)
+
+    if (!products) return
+
+    // Get default warehouse
+    const { data: warehouse } = await supabase
+      .from('warehouses')
+      .select('id')
+      .limit(1)
+      .single()
+
+    if (!warehouse) return
+
+    // Create inventory allocations
+    const inventoryAllocations = products.map(product => ({
+      warehouse_id: warehouse.id,
+      product_id: product.id,
+      quantity_on_hand: Math.floor(Math.random() * 50) + 10, // 10-60 units
+      reserved_quantity: 0,
+      reorder_level: 5,
+      max_stock_level: 100,
+      cost_per_unit: product.price * 0.7,
+      batch_number: `INITIAL-${Date.now()}`,
+      location_in_warehouse: `${locationId.slice(0, 8)}-${product.sku}`
+    }))
+
+    await supabase
+      .from('inventory_levels')
+      .insert(inventoryAllocations)
+  }
+
+  // Create transaction history for package fulfillment
+  private static async createPackageFulfillmentTransaction(
+    application: FranchiseApplication,
+    location: FranchiseLocation,
+    packageDetails: any
+  ): Promise<void> {
+    const transactionData = {
+      transaction_number: `TXN-PKG-${Date.now()}`,
+      transaction_type: 'package_fulfillment',
+      reference_id: application.id,
+      reference_type: 'franchise_application',
+      franchise_location_id: location.id,
+      franchisee_id: application.applicant_id,
+      franchisor_id: (await this.readSingle('franchises', { id: application.franchise_id })).owner_id,
+      amount: application.initial_payment_amount,
+      description: `Initial package fulfillment for ${location.name}`,
+      status: 'completed',
+      metadata: {
+        package_name: packageDetails.name,
+        application_number: application.application_number,
+        location_code: location.location_code
+      }
+    }
+
+    await supabase
+      .from('transaction_history')
+      .insert(transactionData)
+  }
+
+  // Send welcome notification to new franchisee
+  private static async sendWelcomeNotification(
+    franchiseeId: string,
+    location: FranchiseLocation
+  ): Promise<void> {
+    const notificationData = {
+      user_id: franchiseeId,
+      type: 'welcome',
+      title: 'Welcome to the Franchise Family!',
+      message: `Congratulations! Your franchise location "${location.name}" has been approved and your initial package is being prepared.`,
+      data: {
+        location_id: location.id,
+        location_name: location.name,
+        next_steps: [
+          'Review your initial inventory allocation',
+          'Schedule your training sessions',
+          'Prepare for grand opening',
+          'Contact your dedicated support team'
+        ]
+      },
+      is_read: false
+    }
+
+    await supabase
+      .from('notifications')
+      .insert(notificationData)
   }
 
   // Get franchise locations
@@ -265,6 +436,25 @@ export class FranchiseAPI extends BaseAPI {
       approved_applications: applications.filter(app => app.status === 'approved').length,
       total_locations: locations.length,
       active_locations: locations.filter(loc => loc.status === 'open').length
+    }
+  }
+
+  // Get franchise packages for a franchise
+  static async getFranchisePackages(franchiseId: string): Promise<any[]> {
+    try {
+      const { data: packages, error } = await supabase
+        .from('franchise_packages')
+        .select('*')
+        .eq('franchise_id', franchiseId)
+        .eq('active', true)
+        .order('sort_order', { ascending: true })
+
+      if (error) throw error
+
+      return packages || []
+    } catch (error) {
+      console.error('Error fetching franchise packages:', error)
+      throw new Error('Failed to fetch franchise packages')
     }
   }
 }

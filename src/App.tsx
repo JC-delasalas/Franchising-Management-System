@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { validateConfig } from "@/config/environment";
 import { AuthorizationProvider } from "@/contexts/AuthorizationContext";
 import { AuthGuard, RequireAuth, GuestOnly } from "@/components/auth/AuthGuard";
+import { SupplierRouteGuard } from "@/components/auth/SupplierRouteGuard";
 import NotificationToast from "@/components/notifications/NotificationToast";
 
 // Lazy load pages for better performance
@@ -67,6 +68,19 @@ const NotificationSettings = React.lazy(() => import("./pages/NotificationSettin
 // Phase 3 Business Logic Pages
 const OrderManagement = React.lazy(() => import("./pages/OrderManagement"));
 const FinancialDashboard = React.lazy(() => import("./pages/FinancialDashboard"));
+
+// Supplier Management Pages
+const SuppliersListPage = React.lazy(() => import("./pages/suppliers/SuppliersListPage"));
+const SupplierDetailsPage = React.lazy(() => import("./pages/suppliers/SupplierDetailsPage"));
+const CreateSupplierPage = React.lazy(() => import("./pages/suppliers/CreateSupplierPage"));
+const SupplierProductsPage = React.lazy(() => import("./pages/suppliers/SupplierProductsPage"));
+const SupplierContractsPage = React.lazy(() => import("./pages/suppliers/SupplierContractsPage"));
+const SupplierPerformancePage = React.lazy(() => import("./pages/suppliers/SupplierPerformancePage"));
+const PurchaseOrdersPage = React.lazy(() => import("./pages/suppliers/PurchaseOrdersPage"));
+const PurchaseOrderDetailsPage = React.lazy(() => import("./pages/suppliers/PurchaseOrderDetailsPage"));
+
+// Testing Components
+const SupplierAccessTest = React.lazy(() => import("./components/testing/SupplierAccessTest"));
 
 // 404 page
 const NotFound = React.lazy(() => import("./pages/NotFound"));
@@ -299,6 +313,55 @@ const App = () => (
                         <Route path="/financial-dashboard" element={
                           <RequireAuth>
                             <FinancialDashboard />
+                          </RequireAuth>
+                        } />
+
+                        {/* Supplier Management Routes - Role-based access control */}
+                        <Route path="/suppliers" element={
+                          <SupplierRouteGuard requiredPermission="read">
+                            <SuppliersListPage />
+                          </SupplierRouteGuard>
+                        } />
+                        <Route path="/suppliers/create" element={
+                          <SupplierRouteGuard requiredPermission="write">
+                            <CreateSupplierPage />
+                          </SupplierRouteGuard>
+                        } />
+                        <Route path="/suppliers/:id" element={
+                          <SupplierRouteGuard requiredPermission="read">
+                            <SupplierDetailsPage />
+                          </SupplierRouteGuard>
+                        } />
+                        <Route path="/suppliers/products" element={
+                          <SupplierRouteGuard requiredPermission="read">
+                            <SupplierProductsPage />
+                          </SupplierRouteGuard>
+                        } />
+                        <Route path="/suppliers/contracts" element={
+                          <SupplierRouteGuard requiredPermission="read">
+                            <SupplierContractsPage />
+                          </SupplierRouteGuard>
+                        } />
+                        <Route path="/suppliers/performance" element={
+                          <SupplierRouteGuard requiredPermission="read">
+                            <SupplierPerformancePage />
+                          </SupplierRouteGuard>
+                        } />
+                        <Route path="/suppliers/purchase-orders" element={
+                          <SupplierRouteGuard requiredPermission="read">
+                            <PurchaseOrdersPage />
+                          </SupplierRouteGuard>
+                        } />
+                        <Route path="/suppliers/purchase-orders/:id" element={
+                          <SupplierRouteGuard requiredPermission="read">
+                            <PurchaseOrderDetailsPage />
+                          </SupplierRouteGuard>
+                        } />
+
+                        {/* Testing Routes - Available to all authenticated users */}
+                        <Route path="/test/supplier-access" element={
+                          <RequireAuth>
+                            <SupplierAccessTest />
                           </RequireAuth>
                         } />
 

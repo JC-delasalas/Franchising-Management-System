@@ -65,6 +65,28 @@ export interface InventoryAlert {
   priority: number
 }
 
+export interface LowStockAlert {
+  product_id: string
+  warehouse_id: string
+  current_stock: number
+  reorder_level: number
+  suggested_reorder_quantity: number
+  product_name: string
+  product_sku: string
+  warehouse_name: string
+  days_until_stockout: number
+  priority: 'low' | 'medium' | 'high' | 'critical'
+}
+
+export interface ReorderRequest {
+  product_id: string
+  warehouse_id: string
+  requested_quantity: number
+  urgency: 'normal' | 'urgent' | 'critical'
+  justification?: string
+  estimated_cost: number
+}
+
 export class InventoryAPI extends BaseAPI {
   // Get inventory by location/warehouse
   static async getInventoryByLocation(locationId: string): Promise<InventoryItem[]> {
@@ -409,5 +431,122 @@ export class InventoryAPI extends BaseAPI {
 
     if (error) throw new Error(error.message)
     return data || []
+  }
+
+  // Get low stock alerts
+  static async getLowStockAlerts(warehouseId?: string): Promise<LowStockAlert[]> {
+    const user = await this.getCurrentUserProfile()
+
+    let query = supabase
+      .from('inventory_levels')
+      .select(`
+        *,
+        products (id, name, sku, price),
+        warehouses (id, name, code)
+      `)
+      .lt('quantity_on_hand', supabase.raw('reorder_level'))
+
+    if (warehouseId) {
+      query = query.eq('warehouse_id', warehouseId)
+    }
+
+    const { data, error } = await query.order('quantity_on_hand', { ascending: true })
+
+    if (error) throw new Error(error.message)
+
+    // Transform to low stock alerts
+    const alerts: LowStockAlert[] = (data || []).map(item => {
+      const stockRatio = item.quantity_on_hand / item.reorder_level
+      const suggestedQuantity = Math.max(
+        item.max_stock_level - item.quantity_on_hand,
+        item.reorder_level * 2
+      )
+
+      // Estimate days until stockout (rough calculation)
+      const avgDailyUsage = Math.max(1, item.reorder_level / 30) // Assume 30-day cycle
+      const daysUntilStockout = Math.floor(item.quantity_on_hand / avgDailyUsage)
+
+      let priority: LowStockAlert['priority'] = 'low'
+      if (item.quantity_on_hand === 0) priority = 'critical'
+      else if (stockRatio < 0.25) priority = 'high'
+      else if (stockRatio < 0.5) priority = 'medium'
+
+      return {
+        product_id: item.product_id,
+        warehouse_id: item.warehouse_id,
+        current_stock: item.quantity_on_hand,
+        reorder_level: item.reorder_level,
+        suggested_reorder_quantity: suggestedQuantity,
+        product_name: item.products?.name || 'Unknown Product',
+        product_sku: item.products?.sku || 'N/A',
+        warehouse_name: item.warehouses?.name || 'Unknown Warehouse',
+        days_until_stockout: daysUntilStockout,
+        priority
+      }
+    })
+
+    return alerts
+  }
+
+  // Create reorder request
+  static async createReorderRequest(requests: ReorderRequest[]): Promise<string> {
+    const user = await this.getCurrentUserProfile()
+
+    // Get user's franchise location
+    const { data: location } = await supabase
+      .from('franchise_locations')
+      .select('id, name')
+      .eq('franchisee_id', user.id)
+      .single()
+
+    if (!location) {
+      throw new Error('No franchise location found for user')
+    }
+
+    // Calculate total estimated cost
+    const totalCost = requests.reduce((sum, req) => sum + req.estimated_cost, 0)
+
+    // Create order for restock
+    const orderData = {
+      order_number: `REORDER-${Date.now()}`,
+      franchise_location_id: location.id,
+      created_by: user.id,
+      status: 'pending_approval',
+      order_type: 'inventory',
+      priority: requests.some(r => r.urgency === 'critical') ? 'high' : 'medium',
+      subtotal: totalCost,
+      tax_amount: totalCost * 0.12,
+      shipping_amount: totalCost > 5000 ? 0 : 200,
+      total_amount: totalCost * 1.12 + (totalCost > 5000 ? 0 : 200),
+      special_instructions: requests
+        .filter(r => r.justification)
+        .map(r => `${r.justification}`)
+        .join('; ')
+    }
+
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .insert(orderData)
+      .select()
+      .single()
+
+    if (orderError) throw new Error(orderError.message)
+
+    // Create order items
+    const orderItems = requests.map(req => ({
+      order_id: order.id,
+      product_id: req.product_id,
+      quantity: req.requested_quantity,
+      unit_price: req.estimated_cost / req.requested_quantity,
+      total_price: req.estimated_cost
+    }))
+
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .insert(orderItems)
+
+    if (itemsError) throw new Error(itemsError.message)
+
+    return order.id
   }
 }
