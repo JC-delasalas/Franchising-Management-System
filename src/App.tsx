@@ -29,6 +29,9 @@ const Blog = React.lazy(() => import("./pages/Blog"));
 const BlogPost = React.lazy(() => import("./pages/BlogPost"));
 const BrandMicrosite = React.lazy(() => import("./pages/BrandMicrosite"));
 
+// Auth components
+const AuthCallback = React.lazy(() => import("./components/auth/AuthCallback"));
+
 // Dashboard pages
 const FranchisorDashboard = React.lazy(() => import("./pages/FranchisorDashboard"));
 const FranchiseeDashboard = React.lazy(() => import("./pages/FranchiseeDashboard"));
@@ -168,7 +171,10 @@ const App = () => (
                         <Route path="/blog" element={<Blog />} />
                         <Route path="/blog/:id" element={<BlogPost />} />
                         <Route path="/brand/:brandId" element={<BrandMicrosite />} />
-                        
+
+                        {/* Auth Callback Route - Handles email confirmation redirects */}
+                        <Route path="/auth/callback" element={<AuthCallback />} />
+
                         {/* Guest Only Routes (redirect if logged in) */}
                         <Route path="/login" element={
                           <GuestOnly>
