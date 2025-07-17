@@ -107,7 +107,7 @@ export class AnalyticsAPI extends BaseAPI {
 
     // Verify user has access to this location
     try {
-      const location = await this.readSingle('franchise_locations', { id: locationId })
+      const location = await this.readSingleWithRetry('franchise_locations', { id: locationId })
       if (location.franchisee_id !== user.id && !['franchisor', 'admin'].includes(user.role || '')) {
         throw new APIError('Access denied to this location', 'PERMISSION_DENIED', 403)
       }
@@ -118,20 +118,15 @@ export class AnalyticsAPI extends BaseAPI {
       throw error
     }
 
-    // Get real-time financial data
-    const [financialData, ordersData, inventoryData] = await Promise.all([
-      supabase
-        .from('financial_summary')
-        .select('*')
-        .eq('location_id', locationId)
-        .single(),
+    // Get real-time financial data (using correct field names)
+    const [ordersData, inventoryData] = await Promise.all([
       supabase
         .from('orders')
         .select('total_amount, created_at, status')
-        .eq('location_id', locationId)
+        .eq('franchise_location_id', locationId)
         .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
       supabase
-        .from('inventory')
+        .from('inventory_items')
         .select('current_stock, unit_cost, reorder_level')
         .eq('location_id', locationId)
     ]);
@@ -164,7 +159,7 @@ export class AnalyticsAPI extends BaseAPI {
     const { data: previousMonthOrders } = await supabase
       .from('orders')
       .select('total_amount')
-      .eq('location_id', locationId)
+      .eq('franchise_location_id', locationId)
       .gte('created_at', previousMonthStart.toISOString())
       .lt('created_at', previousMonthEnd.toISOString())
       .neq('status', 'cancelled');
@@ -187,50 +182,72 @@ export class AnalyticsAPI extends BaseAPI {
   // Get comprehensive analytics for franchisee
   static async getFranchiseeAnalytics(locationId: string): Promise<FranchiseeAnalytics> {
     const user = await this.getCurrentUserProfile()
-    
+
     // Verify access
-    const location = await this.readSingle('franchise_locations', { id: locationId })
+    const location = await this.readSingleWithRetry('franchise_locations', { id: locationId })
     if (location.franchisee_id !== user.id && !['franchisor', 'admin'].includes(user.role || '')) {
-      throw new Error('Access denied to this location')
+      throw new APIError('Access denied to this location', 'PERMISSION_DENIED', 403)
     }
 
-    // Get data from various sources
-    const [financialData, inventoryData, performanceData] = await Promise.all([
-      supabase.from('financial_summary').select('*').eq('location_id', locationId).single(),
-      supabase.from('inventory_status').select('*').eq('warehouse_id', locationId),
-      supabase.from('performance_targets').select('*').eq('franchise_location_id', locationId)
-        .gte('start_date', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+    // Get data from actual tables (using correct field names)
+    const [ordersData, inventoryData] = await Promise.all([
+      supabase.from('orders').select('*').eq('franchise_location_id', locationId)
+        .gte('created_at', new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString()),
+      supabase.from('inventory_items').select('*').eq('location_id', locationId)
     ])
 
-    const financial = financialData.data
+    const orders = ordersData.data || []
     const inventory = inventoryData.data || []
-    const performance = performanceData.data || []
 
-    // Calculate analytics
-    const totalInventoryValue = inventory.reduce((sum, item) => sum + (item.quantity_on_hand * 50), 0)
-    const lowStockCount = inventory.filter(item => item.stock_status === 'Low Stock').length
-    const outOfStockCount = inventory.filter(item => item.stock_status === 'Out of Stock').length
-    
-    const avgAchievement = performance.length > 0 
-      ? performance.reduce((sum, p) => sum + (p.achievement_percentage || 0), 0) / performance.length
-      : 85 // Fallback
+    // Calculate real analytics from actual data
+    const today = new Date().toISOString().split('T')[0]
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    const monthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    const yearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
 
-    // Generate insights
-    const insights = this.generateInsights(financial, inventory, performance)
+    const todayOrders = orders.filter(o => o.created_at.startsWith(today) && o.status !== 'cancelled')
+    const weekOrders = orders.filter(o => new Date(o.created_at) >= weekAgo && o.status !== 'cancelled')
+    const monthOrders = orders.filter(o => new Date(o.created_at) >= monthAgo && o.status !== 'cancelled')
+    const yearOrders = orders.filter(o => new Date(o.created_at) >= yearAgo && o.status !== 'cancelled')
+
+    const todaySales = todayOrders.reduce((sum, o) => sum + o.total_amount, 0)
+    const weekSales = weekOrders.reduce((sum, o) => sum + o.total_amount, 0)
+    const monthSales = monthOrders.reduce((sum, o) => sum + o.total_amount, 0)
+    const yearSales = yearOrders.reduce((sum, o) => sum + o.total_amount, 0)
+
+    // Calculate inventory metrics
+    const totalInventoryValue = inventory.reduce((sum, item) => sum + (item.current_stock * item.unit_cost), 0)
+    const lowStockCount = inventory.filter(item => item.current_stock <= item.reorder_level).length
+    const outOfStockCount = inventory.filter(item => item.current_stock === 0).length
+
+    // Generate insights based on real data
+    const insights = this.generateInsightsFromData(orders, inventory)
+
+    // Calculate previous month for comparison
+    const previousMonthStart = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
+    const previousMonthEnd = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    const previousMonthOrders = orders.filter(o =>
+      new Date(o.created_at) >= previousMonthStart &&
+      new Date(o.created_at) < previousMonthEnd &&
+      o.status !== 'cancelled'
+    )
+    const previousMonthSales = previousMonthOrders.reduce((sum, o) => sum + o.total_amount, 0)
+    const salesChangePercentage = previousMonthSales > 0 ?
+      ((monthSales - previousMonthSales) / previousMonthSales) * 100 : 0
 
     return {
       sales: {
-        today: financial?.sales_total_last_30_days / 30 || 1500,
-        week: financial?.sales_total_last_30_days / 4 || 10500,
-        month: financial?.sales_total_last_30_days || 45000,
-        year: (financial?.sales_total_last_30_days || 45000) * 12,
-        change_percentage: 12.5 // Calculate from historical data
+        today: todaySales,
+        week: weekSales,
+        month: monthSales,
+        year: yearSales,
+        change_percentage: Math.round(salesChangePercentage * 10) / 10
       },
       orders: {
-        total: financial?.orders_last_30_days || 156,
-        pending: 5, // From orders table
-        completed: (financial?.orders_last_30_days || 156) - 5,
-        avg_value: (financial?.order_total_last_30_days || 45000) / (financial?.orders_last_30_days || 156)
+        total: monthOrders.length,
+        pending: orders.filter(o => o.status === 'pending_approval').length,
+        completed: orders.filter(o => o.status === 'delivered').length,
+        avg_value: monthOrders.length > 0 ? monthSales / monthOrders.length : 0
       },
       inventory: {
         total_items: inventory.length,
@@ -239,9 +256,9 @@ export class AnalyticsAPI extends BaseAPI {
         total_value: totalInventoryValue
       },
       performance: {
-        target_achievement: avgAchievement,
-        customer_satisfaction: 4.2, // From reviews
-        compliance_score: 92 // From audits
+        target_achievement: 85, // Default target achievement
+        customer_satisfaction: 4.2, // From reviews (to be implemented)
+        compliance_score: 92 // From audits (to be implemented)
       },
       insights
     }
@@ -296,7 +313,7 @@ export class AnalyticsAPI extends BaseAPI {
       .reduce((sum, order) => sum + order.total_amount, 0);
 
     // Get top and underperforming locations
-    const allLocations = await this.read('franchise_locations', { status: 'open' }, `
+    const allLocations = await this.readWithRetry('franchise_locations', { status: 'open' }, `
       *,
       franchises (name)
     `)
@@ -497,32 +514,23 @@ export class AnalyticsAPI extends BaseAPI {
     const user = await this.getCurrentUserProfile()
 
     try {
-      // Verify user has access to this location
-      const { data: location, error: locationError } = await supabase
-        .from('franchise_locations')
-        .select('*')
-        .eq('id', locationId)
-        .single()
-
-      if (locationError) {
-        if (locationError.code === 'PGRST116') {
-          throw new APIError('Franchise location not found', 'RESOURCE_NOT_FOUND', 404, 'The requested franchise location could not be found')
-        }
-        throw new APIError(`Location error: ${locationError.message}`, 'DATABASE_ERROR', 500)
-      }
+      // Verify user has access to this location using enhanced BaseAPI method
+      const location = await this.readSingleWithRetry('franchise_locations', { id: locationId })
 
       if (location.franchisee_id !== user.id && !['franchisor', 'admin'].includes(user.role || '')) {
         throw new APIError('Access denied to this location', 'PERMISSION_DENIED', 403)
       }
 
-      // Get orders for this location
-      const { data: orders, error: ordersError } = await supabase
-        .from('orders')
-        .select('total_amount, status, created_at')
-        .eq('franchise_location_id', locationId)
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-
-      if (ordersError) throw ordersError
+      // Get orders for this location using enhanced BaseAPI method
+      const orders = await this.handleResponseWithRetry(
+        () => supabase
+          .from('orders')
+          .select('total_amount, status, created_at')
+          .eq('franchise_location_id', locationId)
+          .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+        'analytics/franchisee-orders',
+        'GET'
+      )
 
       // Calculate metrics
       const totalSales = orders?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0
@@ -575,5 +583,33 @@ export class AnalyticsAPI extends BaseAPI {
     } else {
       throw new Error('Invalid role or missing location ID')
     }
+  }
+
+  // Helper method to generate insights from real data
+  private static generateInsightsFromData(orders: any[], inventory: any[]): string[] {
+    const insights: string[] = []
+
+    // Sales insights
+    const recentOrders = orders.filter(o =>
+      new Date(o.created_at) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    )
+    if (recentOrders.length > 0) {
+      const avgOrderValue = recentOrders.reduce((sum, o) => sum + o.total_amount, 0) / recentOrders.length
+      insights.push(`Average order value this week: ₱${avgOrderValue.toFixed(2)}`)
+    }
+
+    // Inventory insights
+    const lowStockItems = inventory.filter(item => item.current_stock <= item.reorder_level)
+    if (lowStockItems.length > 0) {
+      insights.push(`${lowStockItems.length} items need restocking`)
+    }
+
+    // Performance insights
+    const pendingOrders = orders.filter(o => o.status === 'pending_approval')
+    if (pendingOrders.length > 0) {
+      insights.push(`${pendingOrders.length} orders pending approval`)
+    }
+
+    return insights.length > 0 ? insights : ['All systems operating normally']
   }
 }

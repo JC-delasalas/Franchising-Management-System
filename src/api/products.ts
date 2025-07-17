@@ -55,96 +55,88 @@ export class ProductsAPI extends BaseAPI {
             query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%,sku.ilike.%${filters.search}%`);
           }
 
-          return query;
+          if (filters?.min_price) {
+            query = query.gte('price', filters.min_price);
+          }
+
+          if (filters?.max_price) {
+            query = query.lte('price', filters.max_price);
+          }
+
+          // Join with cart data if user is authenticated
+          if (user?.id) {
+            query = query.eq('shopping_cart.user_id', user.id);
+          }
+
+          return query.order('name');
         },
         'products/catalog',
         'GET'
-      );
+      ).then(data => {
+        // Transform data to include cart information
+        return (data || []).map(product => ({
+          ...product,
+          in_cart: product.shopping_cart && product.shopping_cart.length > 0,
+          cart_quantity: product.shopping_cart && product.shopping_cart[0] ? product.shopping_cart[0].quantity : 0,
+          shopping_cart: undefined, // Remove the join data
+        }));
+      });
     } catch (error) {
       logError(error as Error, { context: 'getCatalogProducts', filters });
       throw error;
     }
   }
 
-    if (filters?.min_price) {
-      query = query.gte('price', filters.min_price);
-    }
-
-    if (filters?.max_price) {
-      query = query.lte('price', filters.max_price);
-    }
-
-    // Join with cart data if user is authenticated
-    if (user.user) {
-      query = query.eq('shopping_cart.user_id', user.user.id);
-    }
-
-    query = query.order('name');
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Error fetching catalog products:', error);
-      throw new Error(`Failed to fetch catalog products: ${error.message}`);
-    }
-
-    // Transform data to include cart information
-    return (data || []).map(product => ({
-      ...product,
-      in_cart: product.shopping_cart && product.shopping_cart.length > 0,
-      cart_quantity: product.shopping_cart?.[0]?.quantity || 0,
-      shopping_cart: undefined, // Remove the join data
-    }));
-  },
-
   // Get all products with optional filters
-  async getProducts(filters?: ProductFilters): Promise<Product[]> {
-    let query = supabase.from('products').select('*');
+  static async getProducts(filters?: ProductFilters): Promise<Product[]> {
+    try {
+      return await this.handleResponseWithRetry(
+        () => {
+          let query = supabase.from('products').select('*');
 
-    if (filters?.category) {
-      query = query.eq('category', filters.category);
+          if (filters?.category) {
+            query = query.eq('category', filters.category);
+          }
+
+          if (filters?.subcategory) {
+            query = query.eq('subcategory', filters.subcategory);
+          }
+
+          if (filters?.brand) {
+            query = query.eq('brand', filters.brand);
+          }
+
+          if (filters?.active !== undefined) {
+            query = query.eq('active', filters.active);
+          }
+
+          if (filters?.search) {
+            query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%,sku.ilike.%${filters.search}%`);
+          }
+
+          if (filters?.min_price) {
+            query = query.gte('price', filters.min_price);
+          }
+
+          if (filters?.max_price) {
+            query = query.lte('price', filters.max_price);
+          }
+
+          return query.order('name');
+        },
+        'products/list',
+        'GET'
+      );
+    } catch (error) {
+      logError(error as Error, { context: 'getProducts', filters });
+      throw error;
     }
-
-    if (filters?.subcategory) {
-      query = query.eq('subcategory', filters.subcategory);
-    }
-
-    if (filters?.brand) {
-      query = query.eq('brand', filters.brand);
-    }
-
-    if (filters?.active !== undefined) {
-      query = query.eq('active', filters.active);
-    }
-
-    if (filters?.search) {
-      query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%,sku.ilike.%${filters.search}%`);
-    }
-
-    if (filters?.min_price) {
-      query = query.gte('price', filters.min_price);
-    }
-
-    if (filters?.max_price) {
-      query = query.lte('price', filters.max_price);
-    }
-
-    query = query.order('name');
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Error fetching products:', error);
-      throw new Error(`Failed to fetch products: ${error.message}`);
-    }
-
-    return data || [];
-  },
+  }
 
   // Get product by ID
   static async getProductById(id: string): Promise<Product | null> {
     try {
-      return await this.readSingle<Product>('products', { id }, '*');
+      return await this.readSingleWithRetry<Product>('products', { id }, '*');
     } catch (error: any) {
       // Return null for not found errors, throw others
       if (error.code === 'RESOURCE_NOT_FOUND') {
@@ -156,191 +148,218 @@ export class ProductsAPI extends BaseAPI {
   }
 
   // Get product by SKU
-  async getProductBySku(sku: string): Promise<Product | null> {
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .eq('sku', sku)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      console.error('Error fetching product by SKU:', error);
-      throw new Error(`Failed to fetch product by SKU: ${error.message}`);
+  static async getProductBySku(sku: string): Promise<Product | null> {
+    try {
+      return await this.readSingleWithRetry<Product>('products', { sku }, '*');
+    } catch (error: any) {
+      // Return null for not found errors, throw others
+      if (error.code === 'RESOURCE_NOT_FOUND') {
+        return null;
+      }
+      logError(error, { context: 'getProductBySku', sku });
+      throw error;
     }
-
-    return data;
-  },
+  }
 
   // Get product categories
-  async getCategories(): Promise<string[]> {
-    const { data, error } = await supabase
-      .from('products')
-      .select('category')
-      .not('category', 'is', null)
-      .eq('active', true)
-      .order('category');
+  static async getCategories(): Promise<string[]> {
+    try {
+      const data = await this.handleResponseWithRetry(
+        () => supabase
+          .from('products')
+          .select('category')
+          .not('category', 'is', null)
+          .eq('active', true)
+          .order('category'),
+        'products/categories',
+        'GET'
+      );
 
-    if (error) {
-      console.error('Error fetching categories:', error);
-      throw new Error(`Failed to fetch categories: ${error.message}`);
+      const categories = [...new Set(data?.map(item => item.category).filter(Boolean))];
+      return categories;
+    } catch (error) {
+      logError(error as Error, { context: 'getCategories' });
+      throw error;
     }
-
-    const categories = [...new Set(data?.map(item => item.category).filter(Boolean))];
-    return categories;
-  },
+  }
 
   // Get subcategories for a category
-  async getSubcategories(category: string): Promise<string[]> {
-    const { data, error } = await supabase
-      .from('products')
-      .select('subcategory')
-      .eq('category', category)
-      .not('subcategory', 'is', null)
-      .eq('active', true)
-      .order('subcategory');
+  static async getSubcategories(category: string): Promise<string[]> {
+    try {
+      const data = await this.handleResponseWithRetry(
+        () => supabase
+          .from('products')
+          .select('subcategory')
+          .eq('category', category)
+          .not('subcategory', 'is', null)
+          .eq('active', true)
+          .order('subcategory'),
+        'products/subcategories',
+        'GET'
+      );
 
-    if (error) {
-      console.error('Error fetching subcategories:', error);
-      throw new Error(`Failed to fetch subcategories: ${error.message}`);
+      const subcategories = [...new Set(data?.map(item => item.subcategory).filter(Boolean))];
+      return subcategories;
+    } catch (error) {
+      logError(error as Error, { context: 'getSubcategories', category });
+      throw error;
     }
-
-    const subcategories = [...new Set(data?.map(item => item.subcategory).filter(Boolean))];
-    return subcategories;
-  },
+  }
 
   // Get product brands
-  async getBrands(): Promise<string[]> {
-    const { data, error } = await supabase
-      .from('products')
-      .select('brand')
-      .not('brand', 'is', null)
-      .eq('active', true)
-      .order('brand');
+  static async getBrands(): Promise<string[]> {
+    try {
+      const data = await this.handleResponseWithRetry(
+        () => supabase
+          .from('products')
+          .select('brand')
+          .not('brand', 'is', null)
+          .eq('active', true)
+          .order('brand'),
+        'products/brands',
+        'GET'
+      );
 
-    if (error) {
-      console.error('Error fetching brands:', error);
-      throw new Error(`Failed to fetch brands: ${error.message}`);
+      const brands = [...new Set(data?.map(item => item.brand).filter(Boolean))];
+      return brands;
+    } catch (error) {
+      logError(error as Error, { context: 'getBrands' });
+      throw error;
     }
-
-    const brands = [...new Set(data?.map(item => item.brand).filter(Boolean))];
-    return brands;
-  },
+  }
 
   // Search products
-  async searchProducts(searchTerm: string, limit: number = 20): Promise<Product[]> {
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,sku.ilike.%${searchTerm}%`)
-      .eq('active', true)
-      .order('name')
-      .limit(limit);
-
-    if (error) {
-      console.error('Error searching products:', error);
-      throw new Error(`Failed to search products: ${error.message}`);
+  static async searchProducts(searchTerm: string, limit: number = 20): Promise<Product[]> {
+    try {
+      return await this.handleResponseWithRetry(
+        () => supabase
+          .from('products')
+          .select('*')
+          .or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,sku.ilike.%${searchTerm}%`)
+          .eq('active', true)
+          .order('name')
+          .limit(limit),
+        'products/search',
+        'GET'
+      );
+    } catch (error) {
+      logError(error as Error, { context: 'searchProducts', searchTerm, limit });
+      throw error;
     }
-
-    return data || [];
-  },
+  }
 
   // Get featured products (you can customize this logic)
-  async getFeaturedProducts(limit: number = 8): Promise<Product[]> {
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .eq('active', true)
-      .order('created_at', { ascending: false })
-      .limit(limit);
-
-    if (error) {
-      console.error('Error fetching featured products:', error);
-      throw new Error(`Failed to fetch featured products: ${error.message}`);
+  static async getFeaturedProducts(limit: number = 8): Promise<Product[]> {
+    try {
+      return await this.handleResponseWithRetry(
+        () => supabase
+          .from('products')
+          .select('*')
+          .eq('active', true)
+          .order('created_at', { ascending: false })
+          .limit(limit),
+        'products/featured',
+        'GET'
+      );
+    } catch (error) {
+      logError(error as Error, { context: 'getFeaturedProducts', limit });
+      throw error;
     }
-
-    return data || [];
-  },
+  }
 
   // Get products by category with pagination
-  async getProductsByCategory(
-    category: string, 
-    page: number = 1, 
+  static async getProductsByCategory(
+    category: string,
+    page: number = 1,
     limit: number = 20
   ): Promise<{
     products: Product[];
     totalCount: number;
     hasMore: boolean;
   }> {
-    const offset = (page - 1) * limit;
+    try {
+      const offset = (page - 1) * limit;
 
-    // Get total count
-    const { count } = await supabase
-      .from('products')
-      .select('*', { count: 'exact', head: true })
-      .eq('category', category)
-      .eq('active', true);
+      // Get total count and products in parallel
+      const [countResult, productsResult] = await Promise.all([
+        this.handleResponseWithRetry(
+          () => supabase
+            .from('products')
+            .select('*', { count: 'exact', head: true })
+            .eq('category', category)
+            .eq('active', true),
+          'products/category/count',
+          'GET'
+        ),
+        this.handleResponseWithRetry(
+          () => supabase
+            .from('products')
+            .select('*')
+            .eq('category', category)
+            .eq('active', true)
+            .order('name')
+            .range(offset, offset + limit - 1),
+          'products/category/list',
+          'GET'
+        )
+      ]);
 
-    // Get products
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .eq('category', category)
-      .eq('active', true)
-      .order('name')
-      .range(offset, offset + limit - 1);
-
-    if (error) {
-      console.error('Error fetching products by category:', error);
-      throw new Error(`Failed to fetch products by category: ${error.message}`);
+      return {
+        products: productsResult || [],
+        totalCount: countResult?.length || 0,
+        hasMore: (countResult?.length || 0) > offset + limit,
+      };
+    } catch (error) {
+      logError(error as Error, { context: 'getProductsByCategory', category, page, limit });
+      throw error;
     }
-
-    return {
-      products: data || [],
-      totalCount: count || 0,
-      hasMore: (count || 0) > offset + limit,
-    };
-  },
+  }
 
   // Get recently viewed products (would need to track this in localStorage or database)
-  async getRecentlyViewedProducts(productIds: string[]): Promise<Product[]> {
+  static async getRecentlyViewedProducts(productIds: string[]): Promise<Product[]> {
     if (productIds.length === 0) return [];
 
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .in('id', productIds)
-      .eq('active', true);
+    try {
+      const data = await this.handleResponseWithRetry(
+        () => supabase
+          .from('products')
+          .select('*')
+          .in('id', productIds)
+          .eq('active', true),
+        'products/recently-viewed',
+        'GET'
+      );
 
-    if (error) {
-      console.error('Error fetching recently viewed products:', error);
-      throw new Error(`Failed to fetch recently viewed products: ${error.message}`);
+      // Maintain the order of productIds
+      const productMap = new Map(data?.map(p => [p.id, p]) || []);
+      return productIds.map(id => productMap.get(id)).filter(Boolean) as Product[];
+    } catch (error) {
+      logError(error as Error, { context: 'getRecentlyViewedProducts', productIds });
+      throw error;
     }
-
-    // Maintain the order of productIds
-    const productMap = new Map(data?.map(p => [p.id, p]) || []);
-    return productIds.map(id => productMap.get(id)).filter(Boolean) as Product[];
-  },
+  }
 
   // Get product recommendations (simple implementation based on category)
-  async getRecommendedProducts(productId: string, limit: number = 4): Promise<Product[]> {
-    const product = await this.getProductById(productId);
-    if (!product) return [];
+  static async getRecommendedProducts(productId: string, limit: number = 4): Promise<Product[]> {
+    try {
+      const product = await this.getProductById(productId);
+      if (!product) return [];
 
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .eq('category', product.category)
-      .neq('id', productId)
-      .eq('active', true)
-      .order('name')
-      .limit(limit);
-
-    if (error) {
-      console.error('Error fetching recommended products:', error);
-      return [];
+      return await this.handleResponseWithRetry(
+        () => supabase
+          .from('products')
+          .select('*')
+          .eq('category', product.category)
+          .neq('id', productId)
+          .eq('active', true)
+          .order('name')
+          .limit(limit),
+        'products/recommendations',
+        'GET'
+      );
+    } catch (error) {
+      logError(error as Error, { context: 'getRecommendedProducts', productId, limit });
+      return []; // Return empty array for recommendations on error
     }
-
-    return data || [];
-  },
+  }
 };

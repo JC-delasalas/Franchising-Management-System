@@ -221,96 +221,91 @@ export class BaseAPI {
     );
   }
 
-  protected static async getCurrentUserProfile() {
-    const user = await this.getCurrentUser()
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single()
+  // Remove duplicate - using enhanced version above
 
-    if (error) throw new Error('Failed to fetch user profile')
-    return data
-  }
-
-  protected static async checkPermission(requiredRole: string | string[]) {
-    const profile = await this.getCurrentUserProfile()
-    
-    if (!profile.role) {
-      throw new Error('User role not defined')
-    }
-
-    const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole]
-    
-    if (!roles.includes(profile.role)) {
-      throw new Error('Insufficient permissions')
-    }
-
-    return profile
-  }
-
-  // Generic CRUD operations with RLS
-  protected static async create<T>(
+  // Enhanced CRUD operations with retry logic (replacing duplicates above)
+  protected static async createWithRetry<T>(
     table: keyof Database['public']['Tables'],
     data: any,
-    select = '*'
+    select = '*',
+    retryOptions?: Partial<RetryOptions>
   ): Promise<T> {
-    return this.handleResponse(
-      supabase
+    return this.handleResponseWithRetry(
+      () => supabase
         .from(table)
         .insert(data)
         .select(select)
-        .single()
+        .single(),
+      table as string,
+      'POST',
+      retryOptions
     )
   }
 
-  protected static async read<T>(
+  protected static async readWithRetry<T>(
     table: keyof Database['public']['Tables'],
     filters?: Record<string, any>,
     select = '*',
-    orderBy?: { column: string; ascending?: boolean }
+    orderBy?: { column: string; ascending?: boolean },
+    retryOptions?: Partial<RetryOptions>
   ): Promise<T[]> {
-    let query = supabase.from(table).select(select)
-    
-    if (filters) {
-      Object.entries(filters).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-          query = query.in(key, value)
-        } else if (value !== undefined && value !== null) {
-          query = query.eq(key, value)
+    return this.handleResponseWithRetry(
+      () => {
+        let query = supabase.from(table).select(select)
+
+        if (filters) {
+          Object.entries(filters).forEach(([key, value]) => {
+            if (Array.isArray(value)) {
+              query = query.in(key, value)
+            } else if (value !== undefined && value !== null) {
+              query = query.eq(key, value)
+            }
+          })
         }
-      })
-    }
-    
-    if (orderBy) {
-      query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true })
-    }
-    
-    return this.handleResponse(query)
+
+        if (orderBy) {
+          query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true })
+        }
+
+        return query
+      },
+      table as string,
+      'GET',
+      retryOptions
+    )
   }
 
-  protected static async readSingle<T>(
+  protected static async readSingleWithRetry<T>(
     table: keyof Database['public']['Tables'],
     filters: Record<string, any>,
-    select = '*'
+    select = '*',
+    retryOptions?: Partial<RetryOptions>
   ): Promise<T> {
-    let query = supabase.from(table).select(select)
-    
-    Object.entries(filters).forEach(([key, value]) => {
-      query = query.eq(key, value)
-    })
-    
-    return this.handleResponse(query.single())
+    return this.handleResponseWithRetry(
+      () => {
+        let query = supabase.from(table).select(select)
+
+        Object.entries(filters).forEach(([key, value]) => {
+          query = query.eq(key, value)
+        })
+
+        return query.single()
+      },
+      table as string,
+      'GET',
+      retryOptions
+    )
   }
 
-  protected static async update<T>(
+  protected static async updateWithRetry<T>(
     table: keyof Database['public']['Tables'],
     id: string,
     data: any,
-    select = '*'
+    select = '*',
+    retryOptions?: Partial<RetryOptions>
   ): Promise<T> {
-    return this.handleResponse(
-      supabase
+    return this.handleResponseWithRetry(
+      () => supabase
         .from(table)
         .update({
           ...data,
@@ -318,19 +313,26 @@ export class BaseAPI {
         })
         .eq('id', id)
         .select(select)
-        .single()
+        .single(),
+      table as string,
+      'PUT',
+      retryOptions
     )
   }
 
-  protected static async delete(
+  protected static async deleteWithRetry(
     table: keyof Database['public']['Tables'],
-    id: string
+    id: string,
+    retryOptions?: Partial<RetryOptions>
   ): Promise<void> {
-    await this.handleResponse(
-      supabase
+    await this.handleResponseWithRetry(
+      () => supabase
         .from(table)
         .delete()
-        .eq('id', id)
+        .eq('id', id),
+      table as string,
+      'DELETE',
+      retryOptions
     )
   }
 
