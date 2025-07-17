@@ -1,7 +1,13 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { config } from '@/config/environment';
+
+// Fallback config to prevent import issues
+const appConfig = {
+  app: {
+    name: 'FranchiseHub'
+  }
+};
 
 interface LogoProps {
   className?: string;
@@ -42,7 +48,7 @@ const Logo: React.FC<LogoProps> = ({
       </div>
       {showText && (
         <span className={`font-bold ${className?.includes('text-white') ? 'text-white' : 'text-gray-900'} ${textSizeClasses[size]}`}>
-          {config.app.name}
+          {appConfig.app.name}
         </span>
       )}
     </div>
