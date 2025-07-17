@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuHeader,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
@@ -160,7 +160,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className }) =>
       </DropdownMenuTrigger>
       
       <DropdownMenuContent align="end" className="w-80 p-0">
-        <DropdownMenuHeader className="p-4 pb-2">
+        <DropdownMenuLabel className="p-4 pb-2">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">Notifications</h3>
             <div className="flex items-center space-x-2">
@@ -188,7 +188,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className }) =>
               You have {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
             </p>
           )}
-        </DropdownMenuHeader>
+        </DropdownMenuLabel>
 
         <Separator />
 

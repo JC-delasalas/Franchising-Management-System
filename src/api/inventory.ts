@@ -433,60 +433,7 @@ export class InventoryAPI extends BaseAPI {
     return data || []
   }
 
-  // Get low stock alerts
-  static async getLowStockAlerts(warehouseId?: string): Promise<LowStockAlert[]> {
-    const user = await this.getCurrentUserProfile()
 
-    let query = supabase
-      .from('inventory_levels')
-      .select(`
-        *,
-        products (id, name, sku, price),
-        warehouses (id, name, code)
-      `)
-      .lt('quantity_on_hand', supabase.raw('reorder_level'))
-
-    if (warehouseId) {
-      query = query.eq('warehouse_id', warehouseId)
-    }
-
-    const { data, error } = await query.order('quantity_on_hand', { ascending: true })
-
-    if (error) throw new Error(error.message)
-
-    // Transform to low stock alerts
-    const alerts: LowStockAlert[] = (data || []).map(item => {
-      const stockRatio = item.quantity_on_hand / item.reorder_level
-      const suggestedQuantity = Math.max(
-        item.max_stock_level - item.quantity_on_hand,
-        item.reorder_level * 2
-      )
-
-      // Estimate days until stockout (rough calculation)
-      const avgDailyUsage = Math.max(1, item.reorder_level / 30) // Assume 30-day cycle
-      const daysUntilStockout = Math.floor(item.quantity_on_hand / avgDailyUsage)
-
-      let priority: LowStockAlert['priority'] = 'low'
-      if (item.quantity_on_hand === 0) priority = 'critical'
-      else if (stockRatio < 0.25) priority = 'high'
-      else if (stockRatio < 0.5) priority = 'medium'
-
-      return {
-        product_id: item.product_id,
-        warehouse_id: item.warehouse_id,
-        current_stock: item.quantity_on_hand,
-        reorder_level: item.reorder_level,
-        suggested_reorder_quantity: suggestedQuantity,
-        product_name: item.products?.name || 'Unknown Product',
-        product_sku: item.products?.sku || 'N/A',
-        warehouse_name: item.warehouses?.name || 'Unknown Warehouse',
-        days_until_stockout: daysUntilStockout,
-        priority
-      }
-    })
-
-    return alerts
-  }
 
   // Create reorder request
   static async createReorderRequest(requests: ReorderRequest[]): Promise<string> {

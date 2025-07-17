@@ -439,22 +439,4 @@ export class FranchiseAPI extends BaseAPI {
     }
   }
 
-  // Get franchise packages for a franchise
-  static async getFranchisePackages(franchiseId: string): Promise<any[]> {
-    try {
-      const { data: packages, error } = await supabase
-        .from('franchise_packages')
-        .select('*')
-        .eq('franchise_id', franchiseId)
-        .eq('active', true)
-        .order('sort_order', { ascending: true })
-
-      if (error) throw error
-
-      return packages || []
-    } catch (error) {
-      console.error('Error fetching franchise packages:', error)
-      throw new Error('Failed to fetch franchise packages')
-    }
-  }
 }
