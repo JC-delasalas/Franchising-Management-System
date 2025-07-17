@@ -1,4 +1,8 @@
-# 📚 FranchiseHub Documentation
+<div align="center">
+  <img src="../public/logo.svg" alt="FranchiseHub Logo" width="80" height="80" />
+
+  # 📚 FranchiseHub Documentation
+</div>
 
 Welcome to the comprehensive documentation for FranchiseHub - the enterprise-grade franchise management system with **$7.3M+ validated annual savings**.
 

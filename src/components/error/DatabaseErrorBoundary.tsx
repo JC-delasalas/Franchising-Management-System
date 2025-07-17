@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import ErrorPageLogo from './ErrorPageLogo';
 
 interface Props {
   children: ReactNode;
@@ -130,6 +131,7 @@ const DatabaseErrorFallback: React.FC<FallbackProps> = ({ error, onRetry }) => {
     <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
+          <ErrorPageLogo size="sm" className="mb-4" />
           <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
             <AlertTriangle className="w-6 h-6 text-red-600" />
           </div>

@@ -17,9 +17,17 @@ const Skeleton = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>)
 // Dashboard skeleton loaders
 export const DashboardSkeleton: React.FC = () => (
   <div className="space-y-6">
-    {/* Header skeleton */}
+    {/* Header skeleton with logo */}
     <div className="flex items-center justify-between">
-      <Skeleton className="h-8 w-48" />
+      <div className="flex items-center space-x-3">
+        <img
+          src="/logo-simple.svg"
+          alt="FranchiseHub Logo"
+          className="w-8 h-8 object-contain opacity-50"
+          loading="eager"
+        />
+        <Skeleton className="h-8 w-48" />
+      </div>
       <Skeleton className="h-10 w-32" />
     </div>
     

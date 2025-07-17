@@ -32,8 +32,13 @@ const Logo: React.FC<LogoProps> = ({
 
   const logoContent = (
     <div className={`flex items-center space-x-2 ${clickable ? 'hover:opacity-80 transition-opacity' : ''}`}>
-      <div className={`${sizeClasses[size]} bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center`}>
-        <span className="text-white font-bold text-sm">FH</span>
+      <div className={`${sizeClasses[size]} flex items-center justify-center`}>
+        <img
+          src="/logo-simple.svg"
+          alt="FranchiseHub Logo"
+          className={`${sizeClasses[size]} object-contain`}
+          loading="eager"
+        />
       </div>
       {showText && (
         <span className={`font-bold ${className?.includes('text-white') ? 'text-white' : 'text-gray-900'} ${textSizeClasses[size]}`}>
