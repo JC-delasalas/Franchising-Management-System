@@ -29,6 +29,7 @@ const Contact = React.lazy(() => import("./pages/Contact"));
 const Blog = React.lazy(() => import("./pages/Blog"));
 const BlogPost = React.lazy(() => import("./pages/BlogPost"));
 const BrandMicrosite = React.lazy(() => import("./pages/BrandMicrosite"));
+const Test = React.lazy(() => import("./pages/Test"));
 
 // Auth components
 const AuthCallback = React.lazy(() => import("./components/auth/AuthCallback"));
@@ -139,6 +140,7 @@ const App = () => (
                       <Routes>
                         {/* Public Routes */}
                         <Route path="/" element={<Index />} />
+                        <Route path="/test" element={<Test />} />
                         <Route path="/contact" element={<Contact />} />
                         <Route path="/blog" element={<Blog />} />
                         <Route path="/blog/:id" element={<BlogPost />} />
