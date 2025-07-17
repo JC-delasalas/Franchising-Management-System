@@ -2,8 +2,12 @@
 import React, { useState, useMemo } from 'react';
 import ChatAssistant from '@/components/ChatAssistant';
 import SkipLink from '@/components/SkipLink';
-import Navigation from '@/components/Navigation';
+import SimpleNavigation from '@/components/SimpleNavigation';
+import NavigationErrorBoundary from '@/components/NavigationErrorBoundary';
 import Footer from '@/components/layout/Footer';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import Logo from '@/components/Logo';
 import HeroSection from '@/components/home/HeroSection';
 import BrandSelector from '@/components/home/BrandSelector';
 import BrandCard from '@/components/home/BrandCard';
@@ -124,7 +128,9 @@ const Index = () => {
       />
       <SkipLink />
 
-      <Navigation />
+      <NavigationErrorBoundary>
+        <SimpleNavigation />
+      </NavigationErrorBoundary>
 
       <main id="main-content">
         <HeroSection currentBrand={currentBrand} />

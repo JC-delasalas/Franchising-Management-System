@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth, hasRole } from '@/hooks/useAuth';
 import { PageLoading } from '@/components/ui/loading';
@@ -21,9 +21,25 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   const location = useLocation();
   const { sessionActive } = useSessionManager();
   const { user, isAuthenticated, isLoading, role } = useAuth();
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
 
-  if (isLoading) {
-    return <PageLoading />;
+  // Add timeout to prevent infinite loading
+  useEffect(() => {
+    if (isLoading) {
+      const timer = setTimeout(() => {
+        console.warn('Auth loading timeout - proceeding without full auth check');
+        setLoadingTimeout(true);
+      }, 5000); // 5 second timeout
+
+      return () => clearTimeout(timer);
+    } else {
+      setLoadingTimeout(false);
+    }
+  }, [isLoading]);
+
+  // Show loading only if still loading and not timed out
+  if (isLoading && !loadingTimeout) {
+    return <PageLoading message="Checking authentication..." />;
   }
 
   // If authentication is required but user is not logged in
@@ -32,7 +48,8 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   }
 
   // If authentication is not required but user is logged in (e.g., login page)
-  if (!requireAuth && isAuthenticated) {
+  // Only redirect if we're sure the user is authenticated (not during timeout)
+  if (!requireAuth && isAuthenticated && !loadingTimeout) {
     const dashboardRoute = role === 'franchisor'
       ? '/franchisor-dashboard'
       : '/franchisee-dashboard';

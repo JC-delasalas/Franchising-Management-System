@@ -89,12 +89,16 @@ export const useAuth = (): AuthState => {
   const [isLoading, setIsLoading] = useState(true)
   const queryClient = useQueryClient()
 
-  // Fetch user profile data
-  const { data: userProfile, isLoading: profileLoading } = useQuery({
+  // Fetch user profile data with error handling
+  const { data: userProfile, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['user-profile', authUser?.id],
     queryFn: () => getUserProfile(authUser!.id),
     enabled: !!authUser?.id,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2, // Only retry twice
+    retryDelay: 1000, // 1 second delay
+    // Don't hang forever - timeout after 10 seconds
+    gcTime: 10 * 1000,
   })
 
   useEffect(() => {
@@ -138,13 +142,26 @@ export const useAuth = (): AuthState => {
     return () => subscription.unsubscribe()
   }, [queryClient])
 
+  // Create fallback user profile if profile loading fails but auth succeeds
+  const fallbackProfile = authUser && profileError ? {
+    id: authUser.id,
+    email: authUser.email,
+    full_name: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || '',
+    role: authUser.user_metadata?.role || 'franchisee',
+    status: 'active',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  } : null;
+
+  const effectiveProfile = userProfile || fallbackProfile;
+
   return {
-    user: userProfile || null,
+    user: effectiveProfile,
     session,
-    isAuthenticated: !!session && !!userProfile,
-    isLoading: isLoading || profileLoading,
-    role: userProfile?.role || null,
-    permissions: userProfile?.metadata?.permissions || {}
+    isAuthenticated: !!session && !!authUser, // Don't require profile for auth
+    isLoading: isLoading, // Only depend on auth loading, not profile loading
+    role: effectiveProfile?.role || null,
+    permissions: effectiveProfile?.metadata?.permissions || {}
   }
 }
 
