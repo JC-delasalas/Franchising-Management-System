@@ -10,6 +10,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import AppErrorBoundary from "@/components/AppErrorBoundary";
 import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 import ComponentErrorBoundary from "@/components/ui/ComponentErrorBoundary";
+import AuthErrorBoundary from "@/components/auth/AuthErrorBoundary";
 import { PageLoading } from "@/components/ui/loading";
 import { SessionTimeoutWarning } from "@/components/auth/SessionTimeoutWarning";
 import { useSessionManager } from "@/hooks/useSessionManager";
@@ -86,6 +87,11 @@ const PurchaseOrderDetailsPage = React.lazy(() => import("./pages/suppliers/Purc
 
 // Testing Components
 const SupplierAccessTest = React.lazy(() => import("./components/testing/SupplierAccessTest"));
+const AuthenticationTest = React.lazy(() => import("./components/testing/AuthenticationTest"));
+const LoginModuleTest = React.lazy(() => import("./components/testing/LoginModuleTest"));
+const APIErrorTest = React.lazy(() => import("./components/testing/APIErrorTest"));
+const ReactQueryTest = React.lazy(() => import("./components/testing/ReactQueryTest"));
+const AuthSecurityTest = React.lazy(() => import("./components/testing/AuthSecurityTest"));
 
 // 404 page
 const NotFound = React.lazy(() => import("./pages/NotFound"));
@@ -129,9 +135,10 @@ const App = () => (
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <AuthorizationProvider>
-            <SessionWrapper>
-              <NotificationToast>
-                <TooltipProvider>
+            <AuthErrorBoundary>
+              <SessionWrapper>
+                <NotificationToast>
+                  <TooltipProvider>
                   <Toaster />
                   <Sonner />
                   <BrowserRouter>
@@ -344,6 +351,31 @@ const App = () => (
                             <SupplierAccessTest />
                           </RequireAuth>
                         } />
+                        <Route path="/test/authentication" element={
+                          <RequireAuth>
+                            <AuthenticationTest />
+                          </RequireAuth>
+                        } />
+                        <Route path="/test/login" element={
+                          <RequireAuth>
+                            <LoginModuleTest />
+                          </RequireAuth>
+                        } />
+                        <Route path="/test/api-errors" element={
+                          <RequireAuth>
+                            <APIErrorTest />
+                          </RequireAuth>
+                        } />
+                        <Route path="/test/react-query" element={
+                          <RequireAuth>
+                            <ReactQueryTest />
+                          </RequireAuth>
+                        } />
+                        <Route path="/test/auth-security" element={
+                          <RequireAuth>
+                            <AuthSecurityTest />
+                          </RequireAuth>
+                        } />
 
                         {/* Protected IAM Routes (requires special permissions) */}
                         <Route path="/iam-management" element={
@@ -365,9 +397,10 @@ const App = () => (
                     </Suspense>
                   </ComponentErrorBoundary>
                 </BrowserRouter>
-              </TooltipProvider>
-              </NotificationToast>
-            </SessionWrapper>
+                </TooltipProvider>
+                </NotificationToast>
+              </SessionWrapper>
+            </AuthErrorBoundary>
           </AuthorizationProvider>
         </QueryClientProvider>
       </ErrorBoundary>

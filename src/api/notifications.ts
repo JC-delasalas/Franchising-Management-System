@@ -47,7 +47,7 @@ export const NotificationsAPI = {
     const { data, error } = await supabase
       .from('notifications')
       .select('*')
-      .eq('recipient_id', user.user.id)
+      .eq('user_id', user.user.id)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -72,8 +72,8 @@ export const NotificationsAPI = {
     const { count, error } = await supabase
       .from('notifications')
       .select('*', { count: 'exact', head: true })
-      .eq('recipient_id', user.user.id)
-      .eq('is_read', false);
+      .eq('user_id', user.user.id)
+      .eq('read_at', null); // Use read_at instead of is_read
 
     if (error) {
       console.error('Error fetching unread count:', error);
@@ -90,12 +90,11 @@ export const NotificationsAPI = {
 
     const { error } = await supabase
       .from('notifications')
-      .update({ 
-        is_read: true, 
-        read_at: new Date().toISOString() 
+      .update({
+        read_at: new Date().toISOString()
       })
       .eq('id', notificationId)
-      .eq('recipient_id', user.user.id);
+      .eq('user_id', user.user.id);
 
     if (error) {
       console.error('Error marking notification as read:', error);
@@ -208,7 +207,7 @@ export const NotificationsAPI = {
     const priority = type === 'order_rejected' ? 'high' : type === 'order_delivered' ? 'medium' : 'low';
 
     await this.createNotification({
-      recipient_id: recipientId,
+      user_id: recipientId,
       type,
       title: template.title,
       message: template.message,

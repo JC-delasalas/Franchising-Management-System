@@ -18,7 +18,8 @@ The following environment variables need to be configured in your `.env` file:
 # Supabase Configuration
 VITE_SUPABASE_URL=https://ktugncuiwjoatopnialp.supabase.co
 VITE_SUPABASE_ANON_KEY=your_anon_key_here
-VITE_SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
+# Note: Service role key should NEVER be exposed to client-side code
+# It should only be used in server-side environments
 ```
 
 ### Getting the Anon Key

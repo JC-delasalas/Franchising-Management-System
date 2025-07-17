@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { validateRequired, combineValidations } from '@/lib/validation';
 import { signIn } from '@/hooks/useAuth';
 import { ROUTES } from '@/constants/routes';
+import { AuthenticationError, getUserFriendlyMessage } from '@/lib/errors';
 
 export const useLoginForm = () => {
   const navigate = useNavigate();
@@ -43,6 +44,7 @@ export const useLoginForm = () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setErrors([]); // Clear previous errors
 
     try {
       const result = await signIn(formData.email, formData.password);
@@ -55,10 +57,25 @@ export const useLoginForm = () => {
 
         // Navigation will be handled by auth state change in AuthGuard
         // The user will be redirected based on their role
+      } else {
+        // Handle case where signIn succeeds but no user is returned
+        setErrors(['Login failed. Please try again.']);
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      setErrors([error.message || 'Invalid email or password. Please try again.']);
+
+      // Use the enhanced error handling to get user-friendly messages
+      const userMessage = getUserFriendlyMessage(error);
+      setErrors([userMessage]);
+
+      // Show toast for critical errors
+      if (error instanceof AuthenticationError && error.shouldSignOut) {
+        toast({
+          title: "Authentication Error",
+          description: userMessage,
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsLoading(false);
     }

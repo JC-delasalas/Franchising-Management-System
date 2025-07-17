@@ -42,8 +42,8 @@ const ProductCatalog: React.FC = () => {
     queryKey: ['catalog-products', searchTerm, selectedCategory, selectedBrand, priceRange],
     queryFn: () => ProductsAPI.getCatalogProducts({
       search: searchTerm || undefined,
-      category: selectedCategory || undefined,
-      brand: selectedBrand || undefined,
+      category: selectedCategory && selectedCategory !== 'all' ? selectedCategory : undefined,
+      brand: selectedBrand && selectedBrand !== 'all' ? selectedBrand : undefined,
       min_price: priceRange.min ? parseFloat(priceRange.min) : undefined,
       max_price: priceRange.max ? parseFloat(priceRange.max) : undefined,
     }),
@@ -318,7 +318,7 @@ const ProductCatalog: React.FC = () => {
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Categories</SelectItem>
+                  <SelectItem value="all">All Categories</SelectItem>
                   {categories.map(category => (
                     <SelectItem key={category} value={category}>
                       {category}
@@ -332,7 +332,7 @@ const ProductCatalog: React.FC = () => {
                   <SelectValue placeholder="Brand" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Brands</SelectItem>
+                  <SelectItem value="all">All Brands</SelectItem>
                   {brands.map(brand => (
                     <SelectItem key={brand} value={brand}>
                       {brand}

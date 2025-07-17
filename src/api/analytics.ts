@@ -1,5 +1,6 @@
 import { BaseAPI } from './base'
 import { supabase } from '@/lib/supabase'
+import { APIError } from '@/lib/errors'
 
 export interface KPIMetrics {
   todaySales: number
@@ -105,9 +106,16 @@ export class AnalyticsAPI extends BaseAPI {
     const user = await this.getCurrentUserProfile()
 
     // Verify user has access to this location
-    const location = await this.readSingle('franchise_locations', { id: locationId })
-    if (location.franchisee_id !== user.id && !['franchisor', 'admin'].includes(user.role || '')) {
-      throw new Error('Access denied to this location')
+    try {
+      const location = await this.readSingle('franchise_locations', { id: locationId })
+      if (location.franchisee_id !== user.id && !['franchisor', 'admin'].includes(user.role || '')) {
+        throw new APIError('Access denied to this location', 'PERMISSION_DENIED', 403)
+      }
+    } catch (error: any) {
+      if (error.code === 'RESOURCE_NOT_FOUND') {
+        throw new APIError('Franchise location not found', 'RESOURCE_NOT_FOUND', 404, 'The requested franchise location could not be found')
+      }
+      throw error
     }
 
     // Get real-time financial data
@@ -496,10 +504,15 @@ export class AnalyticsAPI extends BaseAPI {
         .eq('id', locationId)
         .single()
 
-      if (locationError) throw locationError
+      if (locationError) {
+        if (locationError.code === 'PGRST116') {
+          throw new APIError('Franchise location not found', 'RESOURCE_NOT_FOUND', 404, 'The requested franchise location could not be found')
+        }
+        throw new APIError(`Location error: ${locationError.message}`, 'DATABASE_ERROR', 500)
+      }
 
       if (location.franchisee_id !== user.id && !['franchisor', 'admin'].includes(user.role || '')) {
-        throw new Error('Access denied to this location')
+        throw new APIError('Access denied to this location', 'PERMISSION_DENIED', 403)
       }
 
       // Get orders for this location

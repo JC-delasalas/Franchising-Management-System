@@ -243,7 +243,7 @@ export const useRealTimeNotifications = () => {
         const { data, error } = await supabase
           .from('notifications')
           .select('*')
-          .eq('recipient_id', user!.id)
+          .eq('user_id', user!.id)
           .order('created_at', { ascending: false })
           .limit(50);
 
@@ -281,7 +281,7 @@ export const useRealTimeNotifications = () => {
   const { isConnected } = useRealTimeSubscription([
     {
       table: 'notifications',
-      filter: `recipient_id=eq.${user?.id}`,
+      filter: `user_id=eq.${user?.id}`,
       callback: (payload) => {
         if (payload.eventType === 'INSERT') {
           // Show browser notification for new alerts

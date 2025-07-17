@@ -2,8 +2,18 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Logo from '@/components/Logo';
+import { User, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/lib/supabase';
 
 const SimpleNavigation: React.FC = () => {
+  const { isAuthenticated, user, role } = useAuth();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/';
+  };
+
   return (
     <nav className="bg-white shadow-sm border-b sticky top-0 z-40" role="navigation" aria-label="Main navigation">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -33,23 +43,59 @@ const SimpleNavigation: React.FC = () => {
 
             {/* Auth Buttons */}
             <div className="flex items-center space-x-3 ml-4">
-              <Button asChild variant="outline" size="sm">
-                <Link to="/login">Sign In</Link>
-              </Button>
-              <Button asChild size="sm" className="bg-blue-600 hover:bg-blue-700">
-                <Link to="/signup">Sign Up</Link>
-              </Button>
-              <Button asChild className="bg-green-600 hover:bg-green-700">
-                <Link to="/apply">Apply Now</Link>
-              </Button>
+              {isAuthenticated ? (
+                // Show user info and logout when authenticated
+                <>
+                  <div className="text-sm text-gray-600">
+                    <span className="font-medium">{user?.email}</span>
+                    <span className="text-xs text-gray-500 ml-1">({role})</span>
+                  </div>
+                  <Button asChild variant="outline" size="sm">
+                    <Link to={role === 'franchisor' ? '/franchisor-dashboard' : '/franchisee-dashboard'}>
+                      <User className="w-4 h-4 mr-2" />
+                      Dashboard
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSignOut}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                // Show login/signup when not authenticated
+                <>
+                  <Button asChild variant="outline" size="sm">
+                    <Link to="/login">Sign In</Link>
+                  </Button>
+                  <Button asChild size="sm" className="bg-blue-600 hover:bg-blue-700">
+                    <Link to="/signup">Sign Up</Link>
+                  </Button>
+                  <Button asChild className="bg-green-600 hover:bg-green-700">
+                    <Link to="/apply">Apply Now</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
 
           {/* Mobile Menu Button */}
           <div className="md:hidden">
-            <Button asChild size="sm" className="bg-blue-600 hover:bg-blue-700">
-              <Link to="/apply">Apply</Link>
-            </Button>
+            {isAuthenticated ? (
+              <Button asChild size="sm" className="bg-blue-600 hover:bg-blue-700">
+                <Link to={role === 'franchisor' ? '/franchisor-dashboard' : '/franchisee-dashboard'}>
+                  Dashboard
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild size="sm" className="bg-blue-600 hover:bg-blue-700">
+                <Link to="/apply">Apply</Link>
+              </Button>
+            )}
           </div>
         </div>
       </div>

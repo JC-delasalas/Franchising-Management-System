@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/types/database';
+import { BaseAPI } from './base';
+import { handleAPIError, logError } from '@/lib/errors';
 
 type Product = Database['public']['Tables']['products']['Row'];
 
@@ -18,37 +20,51 @@ export interface ProductCatalogItem extends Product {
   cart_quantity?: number;
 }
 
-export const ProductsAPI = {
+export class ProductsAPI extends BaseAPI {
   // Get all products with optional filters for catalog
-  async getCatalogProducts(filters?: ProductFilters): Promise<ProductCatalogItem[]> {
-    const { data: user } = await supabase.auth.getUser();
-    
-    let query = supabase.from('products').select(`
-      *,
-      shopping_cart!left (
-        id,
-        quantity
-      )
-    `);
+  static async getCatalogProducts(filters?: ProductFilters): Promise<ProductCatalogItem[]> {
+    try {
+      const user = await this.getCurrentUser();
 
-    // Only show active products in catalog
-    query = query.eq('active', true);
+      return await this.handleResponseWithRetry(
+        () => {
+          let query = supabase.from('products').select(`
+            *,
+            shopping_cart!left (
+              id,
+              quantity
+            )
+          `);
 
-    if (filters?.category) {
-      query = query.eq('category', filters.category);
+          // Only show active products in catalog
+          query = query.eq('active', true);
+
+          if (filters?.category) {
+            query = query.eq('category', filters.category);
+          }
+
+          if (filters?.subcategory) {
+            query = query.eq('subcategory', filters.subcategory);
+          }
+
+          if (filters?.brand) {
+            query = query.eq('brand', filters.brand);
+          }
+
+          if (filters?.search) {
+            query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%,sku.ilike.%${filters.search}%`);
+          }
+
+          return query;
+        },
+        'products/catalog',
+        'GET'
+      );
+    } catch (error) {
+      logError(error as Error, { context: 'getCatalogProducts', filters });
+      throw error;
     }
-
-    if (filters?.subcategory) {
-      query = query.eq('subcategory', filters.subcategory);
-    }
-
-    if (filters?.brand) {
-      query = query.eq('brand', filters.brand);
-    }
-
-    if (filters?.search) {
-      query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%,sku.ilike.%${filters.search}%`);
-    }
+  }
 
     if (filters?.min_price) {
       query = query.gte('price', filters.min_price);
@@ -126,21 +142,18 @@ export const ProductsAPI = {
   },
 
   // Get product by ID
-  async getProductById(id: string): Promise<Product | null> {
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      console.error('Error fetching product:', error);
-      throw new Error(`Failed to fetch product: ${error.message}`);
+  static async getProductById(id: string): Promise<Product | null> {
+    try {
+      return await this.readSingle<Product>('products', { id }, '*');
+    } catch (error: any) {
+      // Return null for not found errors, throw others
+      if (error.code === 'RESOURCE_NOT_FOUND') {
+        return null;
+      }
+      logError(error, { context: 'getProductById', productId: id });
+      throw error;
     }
-
-    return data;
-  },
+  }
 
   // Get product by SKU
   async getProductBySku(sku: string): Promise<Product | null> {

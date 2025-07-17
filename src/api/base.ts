@@ -1,28 +1,224 @@
 import { supabase } from '@/lib/supabase'
 import { Database } from '@/types/database'
+import { APIError, handleAPIError, withRetry, logError, RetryOptions } from '@/lib/errors'
 
 export class BaseAPI {
   protected static async handleResponse<T>(
-    promise: Promise<{ data: T | null; error: any }>
+    promise: Promise<{ data: T | null; error: any }>,
+    endpoint?: string,
+    method?: string
   ): Promise<T> {
     const { data, error } = await promise
-    
+
     if (error) {
-      console.error('API Error:', error)
-      throw new Error(error.message || 'An error occurred')
+      const apiError = handleAPIError(error, endpoint, method);
+      logError(apiError, { endpoint, method, context: 'api_response' });
+      throw apiError;
     }
-    
+
     if (!data) {
-      throw new Error('No data returned')
+      const apiError = new APIError('No data returned', 'NO_DATA', undefined, 'No data was returned from the server', false, endpoint, method);
+      logError(apiError, { endpoint, method, context: 'no_data' });
+      throw apiError;
     }
-    
+
     return data
   }
 
+  protected static async handleResponseWithRetry<T>(
+    operation: () => Promise<{ data: T | null; error: any }>,
+    endpoint?: string,
+    method?: string,
+    retryOptions?: Partial<RetryOptions>
+  ): Promise<T> {
+    return withRetry(
+      async () => {
+        const result = await operation();
+        return this.handleResponse(Promise.resolve(result), endpoint, method);
+      },
+      retryOptions,
+      { endpoint, method }
+    );
+  }
+
   protected static async getCurrentUser() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('User not authenticated')
-    return user
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser()
+
+      if (error) {
+        throw handleAPIError(error, 'auth/user', 'GET');
+      }
+
+      if (!user) {
+        throw new APIError('User not authenticated', 'AUTHENTICATION_ERROR', 401, 'Please sign in to continue');
+      }
+
+      return user;
+    } catch (error) {
+      if (error instanceof APIError) {
+        throw error;
+      }
+      throw handleAPIError(error, 'auth/user', 'GET');
+    }
+  }
+
+  protected static async getCurrentUserProfile() {
+    try {
+      const user = await this.getCurrentUser();
+
+      const { data: profile, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        throw handleAPIError(error, 'user_profiles', 'GET');
+      }
+
+      if (!profile) {
+        throw new APIError('User profile not found', 'PROFILE_NOT_FOUND', 404, 'Your user profile could not be found');
+      }
+
+      return profile;
+    } catch (error) {
+      if (error instanceof APIError) {
+        throw error;
+      }
+      throw handleAPIError(error, 'user_profiles', 'GET');
+    }
+  }
+
+  protected static async checkPermission(allowedRoles: string[]) {
+    try {
+      const profile = await this.getCurrentUserProfile();
+
+      if (!profile.role || !allowedRoles.includes(profile.role)) {
+        throw new APIError(
+          `Access denied. Required roles: ${allowedRoles.join(', ')}`,
+          'PERMISSION_DENIED',
+          403,
+          'You do not have permission to perform this action'
+        );
+      }
+
+      return profile;
+    } catch (error) {
+      if (error instanceof APIError) {
+        throw error;
+      }
+      throw handleAPIError(error, 'permission_check', 'GET');
+    }
+  }
+
+  // Generic CRUD operations with enhanced error handling
+  protected static async create<T>(
+    table: string,
+    data: Partial<T>,
+    select: string = '*',
+    retryOptions?: Partial<RetryOptions>
+  ): Promise<T> {
+    return this.handleResponseWithRetry(
+      () => supabase.from(table).insert(data).select(select).single(),
+      table,
+      'POST',
+      retryOptions
+    );
+  }
+
+  protected static async read<T>(
+    table: string,
+    filters?: Record<string, any>,
+    select: string = '*',
+    orderBy?: { column: string; ascending?: boolean },
+    retryOptions?: Partial<RetryOptions>
+  ): Promise<T[]> {
+    return this.handleResponseWithRetry(
+      () => {
+        let query = supabase.from(table).select(select);
+
+        if (filters) {
+          Object.entries(filters).forEach(([key, value]) => {
+            query = query.eq(key, value);
+          });
+        }
+
+        if (orderBy) {
+          query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true });
+        }
+
+        return query;
+      },
+      table,
+      'GET',
+      retryOptions
+    );
+  }
+
+  protected static async readSingle<T>(
+    table: string,
+    filters: Record<string, any>,
+    select: string = '*',
+    retryOptions?: Partial<RetryOptions>
+  ): Promise<T> {
+    return this.handleResponseWithRetry(
+      () => {
+        let query = supabase.from(table).select(select);
+
+        Object.entries(filters).forEach(([key, value]) => {
+          query = query.eq(key, value);
+        });
+
+        return query.single();
+      },
+      table,
+      'GET',
+      retryOptions
+    );
+  }
+
+  protected static async update<T>(
+    table: string,
+    filters: Record<string, any>,
+    data: Partial<T>,
+    select: string = '*',
+    retryOptions?: Partial<RetryOptions>
+  ): Promise<T[]> {
+    return this.handleResponseWithRetry(
+      () => {
+        let query = supabase.from(table).update(data).select(select);
+
+        Object.entries(filters).forEach(([key, value]) => {
+          query = query.eq(key, value);
+        });
+
+        return query;
+      },
+      table,
+      'PATCH',
+      retryOptions
+    );
+  }
+
+  protected static async delete<T>(
+    table: string,
+    filters: Record<string, any>,
+    retryOptions?: Partial<RetryOptions>
+  ): Promise<void> {
+    await this.handleResponseWithRetry(
+      () => {
+        let query = supabase.from(table).delete();
+
+        Object.entries(filters).forEach(([key, value]) => {
+          query = query.eq(key, value);
+        });
+
+        return query;
+      },
+      table,
+      'DELETE',
+      retryOptions
+    );
   }
 
   protected static async getCurrentUserProfile() {
