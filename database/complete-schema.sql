@@ -277,15 +277,13 @@ CREATE TABLE addresses (
 -- SHOPPING CART TABLES
 -- =============================================
 
--- Cart items
-CREATE TABLE cart_items (
+-- Shopping cart (actual table name in database)
+CREATE TABLE shopping_cart (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES user_profiles(id) ON DELETE CASCADE,
     product_id UUID REFERENCES products(id) ON DELETE CASCADE,
     quantity INTEGER NOT NULL CHECK (quantity > 0),
-    unit_price DECIMAL(15,2) NOT NULL,
-    line_total DECIMAL(15,2) GENERATED ALWAYS AS (quantity * unit_price) STORED,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
+    added_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(user_id, product_id)
 );
@@ -451,9 +449,9 @@ CREATE INDEX idx_orders_created_at ON orders(created_at);
 CREATE INDEX idx_order_items_order_id ON order_items(order_id);
 CREATE INDEX idx_order_items_product_id ON order_items(product_id);
 
--- Cart items indexes
-CREATE INDEX idx_cart_items_user_id ON cart_items(user_id);
-CREATE INDEX idx_cart_items_product_id ON cart_items(product_id);
+-- Shopping cart indexes
+CREATE INDEX idx_shopping_cart_user_id ON shopping_cart(user_id);
+CREATE INDEX idx_shopping_cart_product_id ON shopping_cart(product_id);
 
 -- Payment methods indexes
 CREATE INDEX idx_payment_methods_user_id ON payment_methods(user_id);

@@ -26,7 +26,7 @@ ALTER TABLE payment_methods ENABLE ROW LEVEL SECURITY;
 ALTER TABLE addresses ENABLE ROW LEVEL SECURITY;
 
 -- Shopping cart table
-ALTER TABLE cart_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE shopping_cart ENABLE ROW LEVEL SECURITY;
 
 -- Order management tables
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
@@ -148,11 +148,11 @@ CREATE POLICY "Franchisors can manage inventory" ON inventory
         )
     );
 
--- STEP 6: CREATE RLS POLICIES FOR CART ITEMS
+-- STEP 6: CREATE RLS POLICIES FOR SHOPPING CART
 -- =============================================
 
--- Users can only access their own cart items
-CREATE POLICY "Users can manage own cart" ON cart_items
+-- Users can only access their own shopping cart items
+CREATE POLICY "Users can manage own cart" ON shopping_cart
     FOR ALL USING (user_id = auth.uid());
 
 -- STEP 7: CREATE RLS POLICIES FOR PAYMENT METHODS AND ADDRESSES

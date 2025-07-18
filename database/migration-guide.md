@@ -39,7 +39,7 @@ Our application has implemented comprehensive functionality that requires a comp
 1. **Product Management**: `products`, `product_categories`, `inventory`, `warehouses`
 2. **Order System**: `orders`, `order_items`, `order_status_history`, `order_approvals`
 3. **Payment & Address**: `payment_methods`, `addresses`
-4. **Shopping Cart**: `cart_items`
+4. **Shopping Cart**: `shopping_cart`
 5. **Notifications**: `notifications`, `user_notification_preferences`
 6. **Enhanced Franchise**: Updated franchise tables with all required fields
 
@@ -115,7 +115,7 @@ INSERT INTO inventory (warehouse_id, product_id, quantity_on_hand) VALUES
 
 ### **Current Status:**
 - ❌ **Orders cannot be created** - No orders table
-- ❌ **Cart functionality broken** - No cart_items table  
+- ❌ **Cart functionality broken** - No shopping_cart table
 - ❌ **Product catalog empty** - No products table
 - ❌ **Notifications system broken** - No notifications table
 - ❌ **Payment methods broken** - No payment_methods table

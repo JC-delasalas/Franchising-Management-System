@@ -51,26 +51,25 @@ ORDER BY p.name, w.name;
 -- STEP 3: TEST SHOPPING CART FUNCTIONALITY
 -- =============================================
 
--- Test cart item insertion (simulate adding items to cart)
+-- Test shopping cart insertion (simulate adding items to cart)
 -- Note: Replace 'user-uuid-here' with actual user ID from auth.users
 
 -- Example cart operations (you'll test these through the application)
 /*
-INSERT INTO cart_items (user_id, product_id, quantity, unit_price) VALUES 
-('user-uuid-here', (SELECT id FROM products WHERE sku = 'FB-001'), 2, 450.00),
-('user-uuid-here', (SELECT id FROM products WHERE sku = 'KE-002'), 1, 35000.00);
+INSERT INTO shopping_cart (user_id, product_id, quantity) VALUES
+('user-uuid-here', (SELECT id FROM products WHERE sku = 'FB-001'), 2),
+('user-uuid-here', (SELECT id FROM products WHERE sku = 'KE-002'), 1);
 */
 
--- Test cart total calculation
+-- Test cart item count calculation
 /*
-SELECT 
-    ci.user_id,
-    COUNT(ci.id) as item_count,
-    SUM(ci.quantity) as total_quantity,
-    SUM(ci.line_total) as cart_total
-FROM cart_items ci
-WHERE ci.user_id = 'user-uuid-here'
-GROUP BY ci.user_id;
+SELECT
+    sc.user_id,
+    COUNT(sc.id) as item_count,
+    SUM(sc.quantity) as total_quantity
+FROM shopping_cart sc
+WHERE sc.user_id = 'user-uuid-here'
+GROUP BY sc.user_id;
 */
 
 -- STEP 4: TEST ORDER CREATION AND WORKFLOW

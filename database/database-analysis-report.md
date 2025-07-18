@@ -60,7 +60,7 @@
 **Status**: 🔴 **NON-FUNCTIONAL**
 
 **Missing Tables**:
-- `cart_items` - Shopping cart storage
+- `shopping_cart` - Shopping cart storage
 
 **Impact**:
 - ❌ Cannot add items to cart
