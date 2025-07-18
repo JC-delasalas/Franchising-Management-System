@@ -9,6 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
@@ -22,7 +25,7 @@ import { queryKeys, prefetchStrategies } from '@/lib/queryClient';
 import { DashboardSkeleton, TableSkeleton } from '@/components/ui/SkeletonLoaders';
 import DatabaseErrorBoundary, { useDatabaseErrorHandler } from '@/components/error/DatabaseErrorBoundary';
 import Logo from '@/components/Logo';
-import { TrendingUp, Users, Package, DollarSign, Bell, Search, Filter, Download, Plus, Check, X, Clock, MessageCircle, AlertTriangle, ArrowLeft, Eye, Mail, Phone, BarChart3, Shield, RefreshCw, CheckCircle, Truck, Settings } from 'lucide-react';
+import { TrendingUp, Users, Package, DollarSign, Bell, Search, Filter, Download, Plus, Check, X, Clock, MessageCircle, AlertTriangle, ArrowLeft, Eye, Mail, Phone, BarChart3, Shield, RefreshCw, CheckCircle, Truck, Settings, LogOut, User } from 'lucide-react';
 
 // Lazy load heavy components for better performance
 const ChatAssistant = lazy(() => import('@/components/ChatAssistant'));
@@ -37,6 +40,7 @@ const FranchisorDashboard = () => {
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [actionType, setActionType] = useState('');
   const [actionReason, setActionReason] = useState('');
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -317,6 +321,46 @@ const FranchisorDashboard = () => {
     console.log(`Sending low stock notification to ${franchisee.name} for items:`, franchisee.lowStock);
   }, []);
 
+  // Logout functionality with proper cleanup
+  const handleLogout = useCallback(async () => {
+    try {
+      // Clear all cached data
+      queryClient.clear();
+
+      // Clear local storage
+      localStorage.clear();
+      sessionStorage.clear();
+
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        console.error('Logout error:', error);
+        toast({
+          title: "Logout Error",
+          description: "There was an issue logging out. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
+
+      // Redirect to login page
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast({
+        title: "Logout Error",
+        description: "Failed to logout. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [queryClient, toast]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
@@ -343,6 +387,50 @@ const FranchisorDashboard = () => {
                 <Plus className="w-4 h-4 mr-2" />
                 New Announcement
               </Button>
+
+              {/* User Profile Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user?.avatar_url} alt={user?.full_name || user?.email} />
+                      <AvatarFallback>
+                        {user?.full_name ? user.full_name.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user?.full_name || 'Franchisor'}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                      <p className="text-xs leading-none text-blue-600 font-medium">Franchisor Account</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/user-profile" className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/iam-management" className="cursor-pointer">
+                      <Shield className="mr-2 h-4 w-4" />
+                      <span>Access Control</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="cursor-pointer text-red-600 focus:text-red-600"
+                    onClick={() => setShowLogoutDialog(true)}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
@@ -350,7 +438,7 @@ const FranchisorDashboard = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* KPI Cards */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Applications Received</CardTitle>
@@ -391,12 +479,12 @@ const FranchisorDashboard = () => {
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              {locationsLoading ? (
+              {kpiLoading ? (
                 <Skeleton className="h-8 w-20" />
               ) : (
                 <>
-                  <div className="text-2xl font-bold">{locations?.length || 0}</div>
-                  <p className="text-xs text-muted-foreground">Total franchise locations</p>
+                  <div className="text-2xl font-bold">{kpiData?.activeLocations || 0}</div>
+                  <p className="text-xs text-muted-foreground">Active franchise locations</p>
                 </>
               )}
             </CardContent>
@@ -404,20 +492,37 @@ const FranchisorDashboard = () => {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
+              <CardTitle className="text-sm font-medium">Network Revenue</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              {analyticsLoading ? (
+              {kpiLoading ? (
                 <Skeleton className="h-8 w-20" />
               ) : (
                 <>
                   <div className="text-2xl font-bold">
-                    ₱{analytics?.totalRevenue ? (analytics.totalRevenue / 1000000).toFixed(1) + 'M' : '0'}
+                    ₱{kpiData?.totalRevenue ? (kpiData.totalRevenue / 1000000).toFixed(1) + 'M' : '0'}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {analytics?.revenueGrowth ? `+${analytics.revenueGrowth}%` : '+0%'} from last month
+                    {kpiData?.totalOrders || 0} orders • Avg: ₱{kpiData?.averageOrderValue ? kpiData.averageOrderValue.toLocaleString() : '0'}
                   </p>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {kpiLoading ? (
+                <Skeleton className="h-8 w-20" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">{kpiData?.totalOrders || 0}</div>
+                  <p className="text-xs text-muted-foreground">Last 30 days</p>
                 </>
               )}
             </CardContent>
@@ -1262,6 +1367,27 @@ const FranchisorDashboard = () => {
       <Suspense fallback={null}>
         <ChatAssistant />
       </Suspense>
+
+      {/* Logout Confirmation Dialog */}
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to logout? You will be redirected to the login page and all cached data will be cleared.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLogout}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Logout
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
