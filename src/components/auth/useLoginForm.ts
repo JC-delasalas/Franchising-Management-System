@@ -1,9 +1,9 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { validateRequired, combineValidations } from '@/lib/validation';
-import { signIn } from '@/hooks/useAuth';
+import { signIn, useAuth } from '@/hooks/useAuth';
 import { ROUTES } from '@/constants/routes';
 import { AuthenticationError, getUserFriendlyMessage } from '@/lib/errors';
 import { supabase } from '@/lib/supabase';
@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase';
 export const useLoginForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -18,6 +19,17 @@ export const useLoginForm = () => {
     password: ''
   });
   const [errors, setErrors] = useState<string[]>([]);
+  const [loginSuccess, setLoginSuccess] = useState(false);
+
+  // Handle navigation when authentication completes
+  useEffect(() => {
+    if (loginSuccess && isAuthenticated && !authLoading) {
+      console.log('Authentication completed, navigating to dashboard');
+      navigate(ROUTES.FRANCHISEE_DASHBOARD);
+      setIsLoading(false);
+      setLoginSuccess(false);
+    }
+  }, [isAuthenticated, authLoading, loginSuccess, navigate]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -46,25 +58,38 @@ export const useLoginForm = () => {
 
     setIsLoading(true);
     setErrors([]); // Clear previous errors
+    setLoginSuccess(false);
 
     try {
       // SECURITY FIX: Always clear any existing sessions before new login
       await supabase.auth.signOut();
 
+      console.log('Attempting login...');
       const result = await signIn(formData.email, formData.password);
 
       if (result.user) {
+        console.log('Login successful, waiting for authentication state...');
         toast({
           title: "Login Successful",
           description: `Welcome back, ${result.user.email}!`,
         });
 
-        // Navigate based on session - don't wait for profile loading
-        // Profile will load in background after navigation
-        navigate(ROUTES.FRANCHISEE_DASHBOARD);
+        // Set flag to trigger navigation when auth state updates
+        setLoginSuccess(true);
+
+        // Fallback navigation after 3 seconds if auth state doesn't update
+        setTimeout(() => {
+          if (loginSuccess) {
+            console.log('Fallback navigation triggered');
+            navigate(ROUTES.FRANCHISEE_DASHBOARD);
+            setIsLoading(false);
+            setLoginSuccess(false);
+          }
+        }, 3000);
       } else {
         // Handle case where signIn succeeds but no user is returned
         setErrors(['Login failed. Please try again.']);
+        setIsLoading(false);
       }
     } catch (error: any) {
       console.error('Login error:', error);
@@ -81,8 +106,9 @@ export const useLoginForm = () => {
           variant: "destructive",
         });
       }
-    } finally {
+
       setIsLoading(false);
+      setLoginSuccess(false);
     }
   };
 

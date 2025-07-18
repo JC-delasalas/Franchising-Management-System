@@ -31,7 +31,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
       const timer = setTimeout(() => {
         console.warn('Auth loading timeout - forcing authentication check');
         setLoadingTimeout(true);
-      }, 5000); // Reduced to 5 seconds since profile loading no longer blocks
+      }, 3000); // Reduced to 3 seconds for faster feedback
 
       return () => clearTimeout(timer);
     } else {

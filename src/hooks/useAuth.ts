@@ -88,7 +88,7 @@ export const useAuth = (): AuthState => {
   const [isLoading, setIsLoading] = useState(true)
   const queryClient = useQueryClient()
 
-  // Fetch user profile data with optimized error handling
+  // Fetch user profile data with optimized error handling - DISABLED during initial auth
   const { data: userProfile, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['user-profile', authUser?.id],
     queryFn: async () => {
@@ -97,9 +97,10 @@ export const useAuth = (): AuthState => {
       try {
         const profile = await getUserProfile(authUser.id);
         if (!profile) {
-          // If profile doesn't exist, try to create it
-          console.log('Profile not found, attempting to create...');
-          return await upsertUserProfile(authUser);
+          // Profile creation happens in background via auth state change
+          // Don't create here to avoid race conditions
+          console.log('Profile not found, will be created in background');
+          return null;
         }
         return profile;
       } catch (error) {
@@ -108,13 +109,11 @@ export const useAuth = (): AuthState => {
         return null;
       }
     },
-    enabled: !!authUser?.id && !!session, // Only load profile when session is established
+    // CRITICAL: Only enable profile loading after authentication is established
+    // This prevents profile loading from interfering with login process
+    enabled: !!authUser?.id && !!session && !isLoading,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: (failureCount, error) => {
-      // Limit retries to prevent infinite loading
-      return failureCount < 1;
-    },
-    retryDelay: 2000, // 2 second delay
+    retry: false, // No retries to prevent blocking
     gcTime: 10 * 1000,
     // Run in background, don't block UI
     refetchOnWindowFocus: false,
@@ -128,9 +127,12 @@ export const useAuth = (): AuthState => {
       setAuthUser(session?.user ?? null)
       setIsLoading(false)
 
-      // Create/update user profile if user exists
+      // Profile creation happens in background, doesn't block authentication
       if (session?.user) {
-        upsertUserProfile(session.user).catch(console.error)
+        // Use setTimeout to ensure this doesn't block the authentication state
+        setTimeout(() => {
+          upsertUserProfile(session.user).catch(console.error)
+        }, 0)
       }
     })
 
@@ -143,14 +145,15 @@ export const useAuth = (): AuthState => {
       setIsLoading(false)
 
       if (event === 'SIGNED_IN' && session?.user) {
-        // Create/update user profile on sign in
-        try {
-          await upsertUserProfile(session.user)
-          // Invalidate user profile query to refetch
-          queryClient.invalidateQueries({ queryKey: ['user-profile', session.user.id] })
-        } catch (error) {
-          console.error('Error updating user profile:', error)
-        }
+        // Profile creation in background - doesn't block authentication
+        setTimeout(() => {
+          upsertUserProfile(session.user)
+            .then(() => {
+              // Invalidate user profile query to refetch
+              queryClient.invalidateQueries({ queryKey: ['user-profile', session.user.id] })
+            })
+            .catch(console.error)
+        }, 100) // Small delay to ensure auth state is fully updated
       }
 
       if (event === 'SIGNED_OUT') {
@@ -184,13 +187,27 @@ export const useAuth = (): AuthState => {
 
   // Optimize loading state - don't block on profile loading
   const authLoadingComplete = !isLoading && hasValidSession;
-  const shouldStopLoading = authLoadingComplete || profileError;
+  const finalIsLoading = isLoading && !authLoadingComplete;
+
+  // Debug logging for authentication state
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Auth State:', {
+      hasValidSession,
+      isValidAuthentication,
+      isLoading,
+      authLoadingComplete,
+      finalIsLoading,
+      hasProfile: !!userProfile,
+      profileLoading,
+      profileError: !!profileError
+    });
+  }
 
   return {
     user: userProfile, // Return profile if available, null if not
     session,
     isAuthenticated: isValidAuthentication,
-    isLoading: isLoading && !authLoadingComplete, // Only show loading for session, not profile
+    isLoading: finalIsLoading, // Only show loading for session, not profile
     role: userProfile?.role || 'franchisee', // Default role if profile unavailable
     permissions: userProfile?.metadata?.permissions || {}
   }
