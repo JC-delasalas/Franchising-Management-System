@@ -133,24 +133,38 @@ export const CartAPI = {
         };
       }).filter(Boolean); // Remove null entries
 
-      console.log('📡 Cart query result:', { data, error, itemCount: data?.length || 0 });
+      console.log('📡 Cart query result:', { cartItems, error, itemCount: cartItems?.length || 0 });
 
       if (error) {
         console.error('❌ Error fetching cart items:', error);
         throw new Error(`Failed to fetch cart items: ${error.message}`);
       }
 
-      const cartItems = data || [];
-      console.log('📡 Final cart items:', cartItems);
+      console.log('📡 Raw cart items:', cartItems);
+
+      // Combine cart items with product data
+      const finalCartItems = cartItems.map(cartItem => {
+        const product = products?.find(p => p.id === cartItem.product_id);
+        if (!product) {
+          console.warn('⚠️ Product not found for cart item:', cartItem.product_id);
+          return null;
+        }
+        return {
+          ...cartItem,
+          products: product
+        };
+      }).filter(Boolean); // Remove null entries
+
+      console.log('📡 Final cart items with products:', finalCartItems);
 
       // Cache the result
       cartCache = {
-        data: cartItems,
+        data: finalCartItems,
         timestamp: Date.now(),
         userId: user.id
       };
 
-      return cartItems;
+      return finalCartItems;
     } catch (error) {
       console.error('Unexpected error in getCartItems:', error);
       throw error; // Re-throw to allow proper error handling
