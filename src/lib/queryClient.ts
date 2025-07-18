@@ -173,6 +173,15 @@ export const queryKeys = {
     categories: ['products', 'categories'] as const,
   },
 
+  // Cart - real-time data, short cache
+  cart: {
+    summary: ['cart-summary'] as const,
+    items: ['cart-items'] as const,
+    count: ['cart-count'] as const,
+    validation: ['cart-validation'] as const,
+    itemForProduct: (productId: string) => ['cart-item', productId] as const,
+  },
+
   // Franchises - semi-static data
   franchises: {
     all: ['franchises'] as const,

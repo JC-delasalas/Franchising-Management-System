@@ -32,17 +32,23 @@ export const CartAPI = {
   // Get cart items for current user with enhanced error handling
   async getCartItems(): Promise<CartItemWithProduct[]> {
     try {
-      const { data: user } = await supabase.auth.getUser();
+      const { data: user, error: authError } = await supabase.auth.getUser();
+
+      if (authError) {
+        console.error('Authentication error in getCartItems:', authError);
+        throw new Error(`Authentication failed: ${authError.message}`);
+      }
+
       if (!user.user) {
         console.warn('User not authenticated for cart items');
-        return []; // Return empty array instead of throwing
+        throw new Error('User not authenticated');
       }
 
       const { data, error } = await supabase
         .from('shopping_cart')
         .select(`
           *,
-          products (
+          products!inner (
             id,
             name,
             sku,
@@ -60,14 +66,13 @@ export const CartAPI = {
 
       if (error) {
         console.error('Error fetching cart items:', error);
-        // Return empty array instead of throwing to prevent infinite loading
-        return [];
+        throw new Error(`Failed to fetch cart items: ${error.message}`);
       }
 
       return data || [];
     } catch (error) {
       console.error('Unexpected error in getCartItems:', error);
-      return []; // Always return empty array on error
+      throw error; // Re-throw to allow proper error handling
     }
   },
 
@@ -98,7 +103,7 @@ export const CartAPI = {
         })
         .select(`
           *,
-          products (
+          products!inner (
             id,
             name,
             sku,
@@ -142,7 +147,7 @@ export const CartAPI = {
       .eq('user_id', user.user.id)
       .select(`
         *,
-        products (
+        products!inner (
           id,
           name,
           sku,
@@ -219,34 +224,38 @@ export const CartAPI = {
       };
     } catch (error) {
       console.error('Error getting cart summary:', error);
-      // Return empty cart summary on error to prevent infinite loading
-      return {
-        items: [],
-        itemCount: 0,
-        subtotal: 0,
-        taxAmount: 0,
-        shippingCost: 0,
-        total: 0,
-      };
+      // Re-throw the error to allow proper error handling in the component
+      throw error;
     }
   },
 
   // Get cart item count
   async getCartItemCount(): Promise<number> {
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user) return 0;
+    try {
+      const { data: user, error: authError } = await supabase.auth.getUser();
 
-    const { data, error } = await supabase
-      .from('shopping_cart')
-      .select('quantity')
-      .eq('user_id', user.user.id);
+      if (authError) {
+        console.error('Authentication error in getCartItemCount:', authError);
+        return 0;
+      }
 
-    if (error) {
-      console.error('Error fetching cart count:', error);
+      if (!user.user) return 0;
+
+      const { data, error } = await supabase
+        .from('shopping_cart')
+        .select('quantity')
+        .eq('user_id', user.user.id);
+
+      if (error) {
+        console.error('Error fetching cart count:', error);
+        return 0;
+      }
+
+      return data?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+    } catch (error) {
+      console.error('Unexpected error in getCartItemCount:', error);
       return 0;
     }
-
-    return data?.reduce((sum, item) => sum + item.quantity, 0) || 0;
   },
 
   // Check if product is in cart
@@ -273,7 +282,7 @@ export const CartAPI = {
       .from('shopping_cart')
       .select(`
         *,
-        products (
+        products!inner (
           id,
           name,
           sku,
@@ -305,45 +314,59 @@ export const CartAPI = {
     errors: string[];
     warnings: string[];
   }> {
-    const items = await this.getCartItems();
-    const errors: string[] = [];
-    const warnings: string[] = [];
+    try {
+      const items = await this.getCartItems();
+      const errors: string[] = [];
+      const warnings: string[] = [];
 
-    if (items.length === 0) {
-      errors.push('Cart is empty');
-      return { isValid: false, errors, warnings };
+      if (items.length === 0) {
+        return { isValid: true, errors: [], warnings: ['Cart is empty'] };
+      }
+
+      for (const item of items) {
+        const product = item.products;
+
+        // Skip validation if product data is missing
+        if (!product) {
+          errors.push(`Product data missing for cart item ${item.id}`);
+          continue;
+        }
+
+        // Check if product is still active
+        if (!product.active) {
+          errors.push(`${product.name} is no longer available`);
+          continue;
+        }
+
+        // Check minimum order quantity
+        if (item.quantity < product.minimum_order_qty) {
+          errors.push(`${product.name} requires a minimum order of ${product.minimum_order_qty} ${product.unit_of_measure}`);
+        }
+
+        // Check maximum order quantity
+        if (product.maximum_order_qty && item.quantity > product.maximum_order_qty) {
+          errors.push(`${product.name} has a maximum order limit of ${product.maximum_order_qty} ${product.unit_of_measure}`);
+        }
+
+        // Add warnings for large quantities
+        if (product.maximum_order_qty && item.quantity > product.maximum_order_qty * 0.8) {
+          warnings.push(`${product.name}: You're ordering close to the maximum limit`);
+        }
+      }
+
+      return {
+        isValid: errors.length === 0,
+        errors,
+        warnings,
+      };
+    } catch (error) {
+      console.error('Error validating cart:', error);
+      return {
+        isValid: false,
+        errors: ['Unable to validate cart. Please try again.'],
+        warnings: [],
+      };
     }
-
-    for (const item of items) {
-      const product = item.products;
-
-      // Check if product is still active
-      if (!product.active) {
-        errors.push(`${product.name} is no longer available`);
-        continue;
-      }
-
-      // Check minimum order quantity
-      if (item.quantity < product.minimum_order_qty) {
-        errors.push(`${product.name} requires a minimum order of ${product.minimum_order_qty} ${product.unit_of_measure}`);
-      }
-
-      // Check maximum order quantity
-      if (product.maximum_order_qty && item.quantity > product.maximum_order_qty) {
-        errors.push(`${product.name} has a maximum order limit of ${product.maximum_order_qty} ${product.unit_of_measure}`);
-      }
-
-      // Add warnings for large quantities
-      if (product.maximum_order_qty && item.quantity > product.maximum_order_qty * 0.8) {
-        warnings.push(`${product.name}: You're ordering close to the maximum limit`);
-      }
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      warnings,
-    };
   },
 
   // Sync cart with product updates (remove inactive products, update prices)

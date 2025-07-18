@@ -26,13 +26,20 @@ const ShoppingCart: React.FC = () => {
   const queryClient = useQueryClient();
 
   // Fetch cart summary with error handling and timeout
-  const { data: cartSummary, isLoading, refetch, error } = useQuery<CartSummary>({
+  const { data: cartSummary, isLoading, refetch, error, isError } = useQuery<CartSummary>({
     queryKey: ['cart-summary'],
     queryFn: CartAPI.getCartSummary,
-    retry: 2, // Only retry twice
+    retry: (failureCount, error) => {
+      // Don't retry on authentication errors
+      if (error?.message?.includes('not authenticated')) {
+        return false;
+      }
+      return failureCount < 2;
+    },
     retryDelay: 1000, // 1 second delay
     staleTime: 30 * 1000, // 30 seconds
     gcTime: 5 * 60 * 1000, // 5 minutes
+    throwOnError: false, // Prevent error boundary from catching
   });
 
   // Validate cart with proper error handling
@@ -42,6 +49,7 @@ const ShoppingCart: React.FC = () => {
     enabled: !!cartSummary?.items.length,
     retry: 1, // Only retry once for validation
     staleTime: 30 * 1000, // 30 seconds
+    throwOnError: false,
   });
 
   // Update quantity mutation
@@ -52,11 +60,14 @@ const ShoppingCart: React.FC = () => {
       refetch();
       queryClient.invalidateQueries({ queryKey: ['cart-count'] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error updating quantity:', error);
+      const errorMessage = error?.message || 'Failed to update quantity';
       toast({
         title: "Error",
-        description: "Failed to update quantity. Please try again.",
+        description: errorMessage.includes('not authenticated')
+          ? 'Please sign in to update your cart.'
+          : 'Failed to update quantity. Please try again.',
         variant: "destructive",
       });
     },
@@ -73,11 +84,14 @@ const ShoppingCart: React.FC = () => {
         description: "Item has been removed from your cart.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error removing item:', error);
+      const errorMessage = error?.message || 'Failed to remove item';
       toast({
         title: "Error",
-        description: "Failed to remove item. Please try again.",
+        description: errorMessage.includes('not authenticated')
+          ? 'Please sign in to modify your cart.'
+          : 'Failed to remove item. Please try again.',
         variant: "destructive",
       });
     },
@@ -94,11 +108,14 @@ const ShoppingCart: React.FC = () => {
         description: "All items have been removed from your cart.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error clearing cart:', error);
+      const errorMessage = error?.message || 'Failed to clear cart';
       toast({
         title: "Error",
-        description: "Failed to clear cart. Please try again.",
+        description: errorMessage.includes('not authenticated')
+          ? 'Please sign in to modify your cart.'
+          : 'Failed to clear cart. Please try again.',
         variant: "destructive",
       });
     },
@@ -145,21 +162,45 @@ const ShoppingCart: React.FC = () => {
   }
 
   // Handle cart loading errors
-  if (error) {
+  if (isError || error) {
+    const errorMessage = error?.message || 'Unknown error occurred';
+    const isAuthError = errorMessage.includes('not authenticated');
+
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
           <ShoppingCart className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Cart Loading Error</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            {isAuthError ? 'Authentication Required' : 'Cart Loading Error'}
+          </h2>
           <p className="text-gray-600 mb-4">
-            We're having trouble loading your cart. Please try again.
+            {isAuthError
+              ? 'Please sign in to view your cart.'
+              : 'We\'re having trouble loading your cart. Please try again.'
+            }
           </p>
-          <Button onClick={() => refetch()} className="mr-2">
-            Try Again
-          </Button>
-          <Button variant="outline" onClick={() => navigate('/products')}>
-            Continue Shopping
-          </Button>
+          <div className="space-x-2">
+            {isAuthError ? (
+              <Button onClick={() => navigate('/login')}>
+                Sign In
+              </Button>
+            ) : (
+              <Button onClick={() => refetch()}>
+                Try Again
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => navigate('/product-catalog')}>
+              Continue Shopping
+            </Button>
+          </div>
+          {process.env.NODE_ENV === 'development' && (
+            <details className="mt-4 text-left">
+              <summary className="text-sm text-gray-500 cursor-pointer">Error Details</summary>
+              <pre className="text-xs text-red-600 mt-2 p-2 bg-red-50 rounded overflow-auto">
+                {errorMessage}
+              </pre>
+            </details>
+          )}
         </div>
       </div>
     );
