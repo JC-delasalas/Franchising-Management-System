@@ -416,11 +416,11 @@ export class InventoryAPI extends BaseAPI {
 
     // Process each count
     for (const count of counts) {
-      // Get current inventory level
+      // Get current inventory level using unified view
       const { data: currentInventory } = await supabase
-        .from('inventory_levels')
-        .select('quantity_on_hand')
-        .eq('warehouse_id', warehouseId)
+        .from('unified_inventory')
+        .select('quantity')
+        .eq('location_id', warehouseId)
         .eq('product_id', count.product_id)
         .single()
 

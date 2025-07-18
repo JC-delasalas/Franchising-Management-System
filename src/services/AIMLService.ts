@@ -123,15 +123,13 @@ export class AIMLService {
     franchiseLocationId: string
   ): Promise<InventoryOptimization[]> {
     try {
-      // Get current inventory levels
+      // Get current inventory levels using unified inventory view
       const { data: inventoryData, error: inventoryError } = await supabase
-        .from('inventory_levels')
+        .from('unified_inventory')
         .select(`
-          *,
-          products!inner(id, name, category, price, cost_price),
-          warehouses!inner(id, name)
+          *
         `)
-        .eq('warehouse_id', franchiseLocationId);
+        .eq('location_id', franchiseLocationId);
 
       if (inventoryError) throw inventoryError;
 

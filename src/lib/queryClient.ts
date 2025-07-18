@@ -210,11 +210,15 @@ export const queryKeys = {
     detail: (id: string) => ['suppliers', 'detail', id] as const,
   },
 
-  // Inventory - frequently changing, short cache
+  // Inventory - frequently changing, short cache (updated for unified system)
   inventory: {
-    levels: (warehouseId: string) => ['inventory', 'levels', warehouseId] as const,
-    movements: (warehouseId: string, period: string) => ['inventory', 'movements', warehouseId, period] as const,
+    unified: (locationId: string) => ['inventory', 'unified', locationId] as const,
+    summary: (locationId?: string) => ['inventory', 'summary', locationId] as const,
+    network: () => ['inventory', 'network'] as const,
+    movements: (locationId: string, period: string) => ['inventory', 'movements', locationId, period] as const,
     alerts: (userId: string) => ['inventory', 'alerts', userId] as const,
+    // Legacy key for backward compatibility
+    levels: (warehouseId: string) => ['inventory', 'unified', warehouseId] as const,
   },
 };
 

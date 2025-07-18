@@ -107,11 +107,11 @@ export class DatabaseOptimizer {
           limit: 5
         }).then(({ data }) => data),
         
-        // Inventory alerts
+        // Inventory alerts using unified inventory view
         () => supabase
-          .from('inventory_levels')
-          .select('product_id, current_stock, minimum_stock, product:products(name)')
-          .lt('current_stock', supabase.raw('minimum_stock'))
+          .from('unified_inventory')
+          .select('product_id, quantity, reorder_point, product_name')
+          .lt('quantity', supabase.raw('reorder_point'))
           .limit(5)
           .then(({ data }) => data),
         

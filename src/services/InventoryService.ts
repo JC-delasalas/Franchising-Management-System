@@ -259,15 +259,15 @@ export class InventoryService {
   static async getStockLevels(locationId: string, productIds?: string[]): Promise<StockLevel[]> {
     try {
       let query = supabase
-        .from('inventory')
+        .from('unified_inventory')
         .select(`
           product_id,
           location_id,
-          current_stock,
-          reserved_stock,
-          reorder_level,
-          max_stock,
-          last_updated
+          quantity as current_stock,
+          reserved_quantity as reserved_stock,
+          reorder_point as reorder_level,
+          max_stock_level as max_stock,
+          updated_at as last_updated
         `)
         .eq('location_id', locationId);
 

@@ -286,6 +286,8 @@ export class FranchiseAPI extends BaseAPI {
       location_in_warehouse: `${locationId.slice(0, 8)}-${product.sku}`
     }))
 
+    // Note: This should now use the inventory_items table for location-based inventory
+    // or inventory_levels for warehouse inventory depending on the business model
     await supabase
       .from('inventory_levels')
       .insert(inventoryAllocations)
