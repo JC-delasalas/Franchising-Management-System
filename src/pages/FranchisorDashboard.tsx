@@ -130,21 +130,7 @@ const FranchisorDashboard = () => {
     staleTime: 10 * 60 * 1000,
   });
 
-  // Fetch pending applications across all franchises
-  const { data: applications, isLoading: applicationsLoading } = useQuery({
-    queryKey: ['pending-applications'],
-    queryFn: async () => {
-      if (!franchises) return [];
-      const allApplications = await Promise.all(
-        franchises.map(franchise =>
-          FranchiseAPI.getApplicationsForFranchise(franchise.id)
-        )
-      );
-      return allApplications.flat();
-    },
-    enabled: !!franchises,
-    staleTime: 5 * 60 * 1000,
-  });
+  // Remove duplicate applications query - using the database query above instead
 
   // Fetch franchise locations with franchisee data
   const { data: locations, isLoading: locationsLoading } = useQuery({
