@@ -77,96 +77,111 @@ export class OrderManagementService {
 
   // Create new order with inventory validation and automatic pricing
   static async createOrder(orderData: Omit<Order, 'id' | 'order_number' | 'created_at' | 'updated_at'>): Promise<Order> {
+    // Use database transaction for atomic order creation
+    const { data: transactionResult, error: transactionError } = await supabase.rpc('create_order_transaction', {
+      order_data: orderData
+    });
+
+    if (transactionError) {
+      console.error('Transaction error creating order:', transactionError);
+      throw new Error(`Order creation failed: ${transactionError.message}`);
+    }
+
+    if (!transactionResult) {
+      throw new Error('Order creation transaction returned no result');
+    }
+
     try {
-      // Generate order number
-      const orderNumber = await this.generateOrderNumber(orderData.location_id);
+      // The transaction function handles all the atomic operations
+      // Now we just need to handle post-creation workflows
+      const createdOrder = transactionResult;
 
-      // Validate inventory availability
-      const inventoryValidation = await this.validateInventoryAvailability(orderData.items, orderData.location_id);
-      if (!inventoryValidation.isValid) {
-        throw new Error(`Insufficient inventory: ${inventoryValidation.errors.join(', ')}`);
-      }
-
-      // Calculate pricing with franchise-specific rates
-      const pricingResult = await this.pricingService.calculateOrderPricing(orderData.items, orderData.location_id);
-      
-      // Determine approval level required
-      const approvalLevel = await this.determineApprovalLevel(pricingResult.grand_total, orderData.location_id);
-
-      // Create order record
-      const order: Order = {
-        ...orderData,
-        order_number: orderNumber,
-        total_amount: pricingResult.subtotal,
-        tax_amount: pricingResult.tax_amount,
-        shipping_amount: pricingResult.shipping_amount,
-        grand_total: pricingResult.grand_total,
-        approval_level: approvalLevel,
-        status: approvalLevel === 0 ? 'approved' : 'pending_approval',
-        approval_history: [],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-
-      // Insert order into database
-      const { data: createdOrder, error } = await supabase
-        .from('orders')
-        .insert(order)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Insert order items
-      const orderItems = order.items.map(item => ({
-        order_id: createdOrder.id,
-        product_id: item.product_id,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        total_price: item.total_price
-      }));
-
-      await supabase.from('order_items').insert(orderItems);
-
-      // Reserve inventory
-      await this.inventoryService.reserveInventory(order.items, orderData.location_id, createdOrder.id);
-
-      // Start approval workflow if needed
-      if (approvalLevel > 0) {
+      // Start approval workflow if needed (outside transaction)
+      if (createdOrder.approval_level > 0) {
         await this.initiateApprovalWorkflow(createdOrder);
       } else {
         // Auto-approve and process
         await this.processApprovedOrder(createdOrder);
       }
 
-      // Send notifications
+      // Send notifications (outside transaction)
       await this.notificationService.sendOrderCreatedNotification(createdOrder);
 
       return createdOrder;
     } catch (error) {
-      console.error('Error creating order:', error);
+      console.error('Error in post-order creation workflow:', error);
+
+      // If post-creation workflow fails, we need to clean up
+      try {
+        await this.rollbackOrderCreation(transactionResult.id);
+      } catch (rollbackError) {
+        console.error('Failed to rollback order creation:', rollbackError);
+      }
+
       throw error;
     }
   }
 
-  // Three-tier approval system
-  static async processApproval(orderId: string, approverId: string, action: 'approved' | 'rejected', comments?: string): Promise<Order> {
+  // Rollback order creation if post-creation workflow fails
+  private static async rollbackOrderCreation(orderId: string): Promise<void> {
     try {
-      // Get current order
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .select('*, order_items(*)')
-        .eq('id', orderId)
-        .single();
+      // Release reserved inventory
+      await this.inventoryService.releaseReservedInventory(orderId);
 
-      if (orderError || !order) throw new Error('Order not found');
+      // Delete order items
+      await supabase.from('order_items').delete().eq('order_id', orderId);
 
-      // Get approver details
-      const { data: approver } = await supabase
-        .from('user_profiles')
-        .select('full_name, role')
-        .eq('id', approverId)
-        .single();
+      // Delete order
+      await supabase.from('orders').delete().eq('id', orderId);
+
+      console.log(`Order ${orderId} rolled back successfully`);
+    } catch (error) {
+      console.error(`Failed to rollback order ${orderId}:`, error);
+      throw error;
+    }
+  }
+
+  // Three-tier approval system with race condition protection
+  static async processApproval(orderId: string, approverId: string, action: 'approved' | 'rejected', comments?: string): Promise<Order> {
+    // Use database transaction to prevent race conditions
+    const { data: approvalResult, error: approvalError } = await supabase.rpc('process_order_approval', {
+      p_order_id: orderId,
+      p_approver_id: approverId,
+      p_action: action,
+      p_comments: comments || null
+    });
+
+    if (approvalError) {
+      console.error('Approval processing error:', approvalError);
+      throw new Error(`Approval processing failed: ${approvalError.message}`);
+    }
+
+    if (!approvalResult) {
+      throw new Error('Approval processing returned no result');
+    }
+
+    try {
+      const updatedOrder = approvalResult.order;
+      const approvalRecord = approvalResult.approval_record;
+
+      // Handle post-approval actions (outside transaction)
+      if (action === 'approved' && updatedOrder.status === 'approved') {
+        await this.processApprovedOrder(updatedOrder);
+      } else if (action === 'rejected') {
+        await this.rejectOrder(updatedOrder, approverId, comments);
+      } else if (action === 'approved' && updatedOrder.status === 'pending_approval') {
+        // Escalate to next level
+        await this.escalateToNextLevel(updatedOrder);
+      }
+
+      // Send notifications
+      await this.notificationService.sendApprovalNotification(updatedOrder, approvalRecord);
+
+      return updatedOrder;
+    } catch (error) {
+      console.error('Error in post-approval workflow:', error);
+      throw error;
+    }
 
       if (!approver) throw new Error('Approver not found');
 

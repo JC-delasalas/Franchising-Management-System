@@ -103,6 +103,18 @@ const TestSuiteDashboard: React.FC = () => {
       tests: 4,
       coverage: ['Error Classification', 'User Messages', 'Error Boundaries', 'Recovery'],
       color: 'text-yellow-600 bg-yellow-50 border-yellow-200'
+    },
+    {
+      id: 'bug-tracker',
+      name: 'System Bug Tracker & Fixer',
+      description: 'CRITICAL: Comprehensive bug detection and systematic fixing across the entire FranchiseHub application.',
+      icon: TestTube,
+      path: '/test/bug-tracker',
+      category: 'Bug Fixing',
+      priority: 'Critical',
+      tests: 15,
+      coverage: ['Order Lifecycle', 'Dashboard Issues', 'API Problems', 'Auth Bugs', 'UI/UX Issues'],
+      color: 'text-red-600 bg-red-50 border-red-200'
     }
   ];
 

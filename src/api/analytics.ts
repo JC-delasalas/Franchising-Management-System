@@ -612,4 +612,63 @@ export class AnalyticsAPI extends BaseAPI {
 
     return insights.length > 0 ? insights : ['All systems operating normally']
   }
+
+  // Consistent KPI calculation methods to prevent dashboard inconsistencies
+  static async getConsistentFranchisorKPIs(userId: string): Promise<any> {
+    try {
+      // Use database function for consistent calculations
+      const { data: kpiData, error } = await supabase.rpc('calculate_franchisor_kpis', {
+        franchisor_id: userId
+      });
+
+      if (error) {
+        console.warn('Database KPI calculation failed, using fallback:', error);
+        // Fallback to existing method
+        return this.getFranchisorMetrics(userId);
+      }
+
+      return kpiData || {
+        totalRevenue: 0,
+        totalOrders: 0,
+        activeLocations: 0,
+        averageOrderValue: 0,
+        revenueGrowth: 0,
+        orderGrowth: 0
+      };
+    } catch (error) {
+      logError(error as Error, { context: 'getConsistentFranchisorKPIs', userId });
+      // Fallback to existing method
+      return this.getFranchisorMetrics(userId);
+    }
+  }
+
+  static async getConsistentFranchiseeKPIs(locationId: string): Promise<any> {
+    try {
+      // Use database function for consistent calculations
+      const { data: kpiData, error } = await supabase.rpc('calculate_franchisee_kpis', {
+        location_id: locationId
+      });
+
+      if (error) {
+        console.warn('Database KPI calculation failed, using fallback:', error);
+        // Fallback to existing method
+        return this.getFranchiseeMetrics(locationId);
+      }
+
+      return kpiData || {
+        todaySales: 0,
+        weekSales: 0,
+        monthSales: 0,
+        salesChange: 0,
+        orderCount: 0,
+        avgOrderValue: 0,
+        inventoryValue: 0,
+        lowStockItems: 0
+      };
+    } catch (error) {
+      logError(error as Error, { context: 'getConsistentFranchiseeKPIs', locationId });
+      // Fallback to existing method
+      return this.getFranchiseeMetrics(locationId);
+    }
+  }
 }

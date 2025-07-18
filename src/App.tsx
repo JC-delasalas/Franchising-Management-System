@@ -97,6 +97,7 @@ const ProductionFixesTest = React.lazy(() => import("./components/testing/Produc
 const IntegrationTest = React.lazy(() => import("./components/testing/IntegrationTest"));
 const TestSuiteDashboard = React.lazy(() => import("./components/testing/TestSuiteDashboard"));
 const RLSSecurityTest = React.lazy(() => import("./components/testing/RLSSecurityTest"));
+const SystemBugTracker = React.lazy(() => import("./components/testing/SystemBugTracker"));
 
 // 404 page
 const NotFound = React.lazy(() => import("./pages/NotFound"));
@@ -400,6 +401,11 @@ const App = () => (
                         <Route path="/test/rls-security" element={
                           <RequireAuth>
                             <RLSSecurityTest />
+                          </RequireAuth>
+                        } />
+                        <Route path="/test/bug-tracker" element={
+                          <RequireAuth>
+                            <SystemBugTracker />
                           </RequireAuth>
                         } />
 

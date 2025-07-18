@@ -49,13 +49,39 @@ export const queryClient = new QueryClient({
       staleTime: 2 * 60 * 1000, // Reduced to 2 minutes for more fresh data
       gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
 
-      // Enhanced retry configuration using our error management system
+      // Enhanced retry configuration with circuit breaker
       retry: (failureCount, error: any) => {
+        // Prevent infinite retry loops with hard limits
+        if (failureCount >= 3) {
+          console.warn('Max retry attempts reached, stopping retries');
+          return false;
+        }
+
         // Convert to our error system for consistent handling
         const apiError = error instanceof APIError ? error : handleAPIError(error);
 
-        // Use our centralized retry logic
-        return shouldRetryError(apiError, failureCount + 1, { maxAttempts: 3 });
+        // Circuit breaker: stop retrying if we've seen too many failures recently
+        const circuitBreakerKey = `circuit_breaker_${apiError.endpoint || 'unknown'}`;
+        const recentFailures = parseInt(sessionStorage.getItem(circuitBreakerKey) || '0');
+
+        if (recentFailures >= 5) {
+          console.warn(`Circuit breaker activated for ${apiError.endpoint}, stopping retries`);
+          return false;
+        }
+
+        // Use our centralized retry logic with additional safety checks
+        const shouldRetry = shouldRetryError(apiError, failureCount + 1, { maxAttempts: 3 });
+
+        if (!shouldRetry) {
+          // Increment circuit breaker counter
+          sessionStorage.setItem(circuitBreakerKey, (recentFailures + 1).toString());
+          // Reset circuit breaker after 5 minutes
+          setTimeout(() => {
+            sessionStorage.removeItem(circuitBreakerKey);
+          }, 5 * 60 * 1000);
+        }
+
+        return shouldRetry;
       },
 
       // Optimized retry delay using our error system

@@ -27,17 +27,21 @@ export const KPICards: React.FC<KPICardsProps> = ({ locationId }) => {
   const effectiveLocationId = locationId || user?.metadata?.primary_location_id;
 
   const { data: kpiData, isLoading, error, refetch } = useQuery({
-    queryKey: ['kpi-metrics', effectiveLocationId, role],
+    queryKey: ['kpi-metrics', effectiveLocationId, role, 'v2'], // Version to force cache invalidation
     queryFn: async () => {
+      // Use consistent KPI calculation endpoint
       if (role === 'franchisor') {
-        return AnalyticsAPI.getFranchisorMetrics(user!.id);
+        return AnalyticsAPI.getConsistentFranchisorKPIs(user!.id);
       } else {
-        return AnalyticsAPI.getFranchiseeMetrics(effectiveLocationId!);
+        return AnalyticsAPI.getConsistentFranchiseeKPIs(effectiveLocationId!);
       }
     },
     enabled: !!user?.id && (role === 'franchisor' || !!effectiveLocationId),
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    refetchInterval: 30 * 1000, // 30 seconds
+    staleTime: 5 * 60 * 1000, // Increased to 5 minutes for consistency
+    refetchInterval: false, // Disable auto-refresh to prevent inconsistencies
+    // Manual refresh only to ensure data consistency
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
   });
 
   if (isLoading) {
