@@ -29,24 +29,42 @@ const ShoppingCart: React.FC = () => {
   const queryClient = useQueryClient();
   const [debugResults, setDebugResults] = useState<any[]>([]);
   const [showDebugPanel, setShowDebugPanel] = useState(false);
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
 
-  // Fetch cart summary - independent of full authentication state
+  // Add timeout to prevent infinite loading
+  useEffect(() => {
+    if (isLoading) {
+      const timer = setTimeout(() => {
+        console.warn('Cart loading timeout - this may indicate an authentication or query issue');
+        setLoadingTimeout(true);
+      }, 5000); // 5 second timeout
+
+      return () => clearTimeout(timer);
+    } else {
+      setLoadingTimeout(false);
+    }
+  }, [isLoading]);
+
+  // Fetch cart summary with optimized configuration
   const { data: cartSummary, isLoading, refetch, error, isError, isFetching, status, fetchStatus } = useQuery<CartSummary>({
     queryKey: queryKeys.cart.summary,
     queryFn: CartAPI.getCartSummary,
     retry: (failureCount, error) => {
       // Don't retry on authentication errors
-      if (error?.message?.includes('not authenticated')) {
+      if (error?.message?.includes('Authentication failed') || error?.message?.includes('not authenticated')) {
         return false;
       }
-      return failureCount < 2;
+      return failureCount < 1; // Reduced retries for faster feedback
     },
-    retryDelay: 1000, // 1 second delay
-    staleTime: 30 * 1000, // 30 seconds
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    retryDelay: 500, // Faster retry delay
+    staleTime: 15 * 1000, // Reduced stale time for more responsive updates
+    gcTime: 2 * 60 * 1000, // Reduced garbage collection time
     throwOnError: false, // Prevent error boundary from catching
-    // Don't wait for authentication profile - only need session
+    // Enable immediately - authentication is handled in API layer
     enabled: true,
+    // Prevent background refetching to reduce load
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
   });
 
   // Validate cart with proper error handling
@@ -58,6 +76,22 @@ const ShoppingCart: React.FC = () => {
     staleTime: 30 * 1000, // 30 seconds
     throwOnError: false,
   });
+
+  // Debug logging for development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Cart Query State:', {
+        isLoading,
+        isError,
+        isFetching,
+        status,
+        fetchStatus,
+        error: error?.message,
+        dataPresent: !!cartSummary,
+        itemCount: cartSummary?.itemCount
+      });
+    }
+  }, [isLoading, isError, isFetching, status, fetchStatus, error, cartSummary]);
 
   // Simplified error handling without excessive logging
   const hasCartData = cartSummary && cartSummary.items.length > 0;
@@ -159,14 +193,39 @@ const ShoppingCart: React.FC = () => {
     navigate('/checkout');
   };
 
-  // Handle loading and error states
-  if (isLoading) {
+  // Handle loading and error states with timeout
+  if (isLoading && !loadingTimeout) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <ShoppingCart className="w-12 h-12 text-gray-400 mx-auto mb-4 animate-pulse" />
           <p>Loading your cart...</p>
           <p className="text-sm text-gray-500 mt-2">This should only take a moment</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle loading timeout
+  if (loadingTimeout && isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <ShoppingCart className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Cart Loading Timeout
+          </h2>
+          <p className="text-gray-600 mb-4">
+            Your cart is taking longer than expected to load. This might be a temporary issue.
+          </p>
+          <div className="space-x-2">
+            <Button onClick={() => refetch()}>
+              Try Again
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/product-catalog')}>
+              Browse Products
+            </Button>
+          </div>
         </div>
       </div>
     );

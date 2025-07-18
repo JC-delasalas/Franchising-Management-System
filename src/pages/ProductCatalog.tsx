@@ -62,10 +62,24 @@ const ProductCatalog: React.FC = () => {
     queryFn: ProductsAPI.getBrands,
   });
 
-  // Get cart count
+  // Get cart count with optimized configuration
   const { data: cartCount = 0 } = useQuery({
     queryKey: queryKeys.cart.count,
     queryFn: CartAPI.getCartItemCount,
+    retry: (failureCount, error) => {
+      // Don't retry on authentication errors
+      if (error?.message?.includes('Authentication failed') || error?.message?.includes('not authenticated')) {
+        return false;
+      }
+      return failureCount < 1; // Reduced retries
+    },
+    retryDelay: 500,
+    staleTime: 15 * 1000, // 15 seconds
+    gcTime: 2 * 60 * 1000, // 2 minutes
+    throwOnError: false,
+    // Prevent background refetching to reduce conflicts with cart summary
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
   });
 
   // Initialize cart items from products

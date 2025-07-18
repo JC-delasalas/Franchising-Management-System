@@ -28,22 +28,37 @@ export interface CartSummary {
   total: number;
 }
 
+// Cache authentication check to prevent multiple simultaneous calls
+let authCache: { user: any; timestamp: number } | null = null;
+const AUTH_CACHE_DURATION = 5000; // 5 seconds
+
+const getAuthenticatedUser = async () => {
+  // Use cached auth if available and recent
+  if (authCache && (Date.now() - authCache.timestamp) < AUTH_CACHE_DURATION) {
+    return authCache.user;
+  }
+
+  const { data: user, error: authError } = await supabase.auth.getUser();
+
+  if (authError) {
+    console.error('Authentication error:', authError);
+    throw new Error(`Authentication failed: ${authError.message}`);
+  }
+
+  if (!user.user) {
+    throw new Error('User not authenticated');
+  }
+
+  // Cache the result
+  authCache = { user: user.user, timestamp: Date.now() };
+  return user.user;
+};
+
 export const CartAPI = {
   // Get cart items for current user with enhanced error handling
   async getCartItems(): Promise<CartItemWithProduct[]> {
     try {
-      const { data: user, error: authError } = await supabase.auth.getUser();
-
-      if (authError) {
-        console.error('Authentication error in getCartItems:', authError);
-        throw new Error(`Authentication failed: ${authError.message}`);
-      }
-
-      if (!user.user) {
-        console.warn('User not authenticated for cart items');
-        // Return empty array instead of throwing to prevent infinite loading
-        return [];
-      }
+      const user = await getAuthenticatedUser();
 
       const { data, error } = await supabase
         .from('shopping_cart')
@@ -62,7 +77,7 @@ export const CartAPI = {
             active
           )
         `)
-        .eq('user_id', user.user.id)
+        .eq('user_id', user.id)
         .order('added_at', { ascending: false });
 
       if (error) {
@@ -206,50 +221,48 @@ export const CartAPI = {
 
   // Get cart summary with calculations and error handling
   async getCartSummary(): Promise<CartSummary> {
-    const items = await this.getCartItems();
+    try {
+      const items = await this.getCartItems();
 
-    const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-    const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.products.price), 0);
-    const taxAmount = subtotal * 0.12; // 12% VAT
-    const shippingCost = subtotal > 5000 ? 0 : 200; // Free shipping over ₱5,000
-    const total = subtotal + taxAmount + shippingCost;
+      const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+      const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.products.price), 0);
+      const taxAmount = subtotal * 0.12; // 12% VAT
+      const shippingCost = subtotal > 5000 ? 0 : 200; // Free shipping over ₱5,000
+      const total = subtotal + taxAmount + shippingCost;
 
-    return {
-      items,
-      itemCount,
-      subtotal,
-      taxAmount,
-      shippingCost,
-      total,
-    };
+      return {
+        items,
+        itemCount,
+        subtotal,
+        taxAmount,
+        shippingCost,
+        total,
+      };
+    } catch (error) {
+      console.error('Error in getCartSummary:', error);
+      throw error; // Re-throw to allow proper error handling
+    }
   },
 
-  // Get cart item count
+  // Get cart item count - optimized to use cached authentication
   async getCartItemCount(): Promise<number> {
     try {
-      const { data: user, error: authError } = await supabase.auth.getUser();
-
-      if (authError) {
-        console.error('Authentication error in getCartItemCount:', authError);
-        return 0;
-      }
-
-      if (!user.user) return 0;
+      const user = await getAuthenticatedUser();
 
       const { data, error } = await supabase
         .from('shopping_cart')
         .select('quantity')
-        .eq('user_id', user.user.id);
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Error fetching cart count:', error);
-        return 0;
+        throw new Error(`Failed to fetch cart count: ${error.message}`);
       }
 
       return data?.reduce((sum, item) => sum + item.quantity, 0) || 0;
     } catch (error) {
       console.error('Unexpected error in getCartItemCount:', error);
-      return 0;
+      throw error; // Re-throw to allow proper error handling
     }
   },
 
