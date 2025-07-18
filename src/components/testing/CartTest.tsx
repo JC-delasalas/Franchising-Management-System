@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { quickCartTest } from '@/utils/quickCartTest';
+import { cartStatusDiagnostic } from '@/utils/cartStatusDiagnostic';
 import { useToast } from '@/hooks/use-toast';
 import { ShoppingCart, Play, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 
@@ -30,6 +31,30 @@ const CartTest: React.FC = () => {
       console.error('Error running cart tests:', error);
       toast({
         title: "Tests Failed",
+        description: "Check console for details",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const runStatusDiagnostic = async () => {
+    setIsRunning(true);
+    try {
+      console.log('🔍 Running cart status diagnostic...');
+      const { results, report } = await cartStatusDiagnostic.runAndReport();
+      setTestResults({ diagnostic: results, report });
+
+      toast({
+        title: "Diagnostic Complete",
+        description: `Cart status: ${results.status.toUpperCase()}`,
+        duration: 5000,
+      });
+    } catch (error) {
+      console.error('Diagnostic failed:', error);
+      toast({
+        title: "Diagnostic Failed",
         description: "Check console for details",
         variant: "destructive",
       });
@@ -70,14 +95,25 @@ const CartTest: React.FC = () => {
               It checks authentication, cart data fetching, and API responses.
             </p>
             
-            <Button 
-              onClick={runTests} 
-              disabled={isRunning}
-              className="w-full sm:w-auto"
-            >
-              <Play className="w-4 h-4 mr-2" />
-              {isRunning ? 'Running Tests...' : 'Run Cart Tests'}
-            </Button>
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                onClick={runStatusDiagnostic}
+                disabled={isRunning}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                <AlertTriangle className="w-4 h-4 mr-2" />
+                {isRunning ? 'Running...' : 'URGENT: Cart Status Check'}
+              </Button>
+
+              <Button
+                onClick={runTests}
+                disabled={isRunning}
+                variant="outline"
+              >
+                <Play className="w-4 h-4 mr-2" />
+                {isRunning ? 'Running Tests...' : 'Full Test Suite'}
+              </Button>
+            </div>
 
             {summary && (
               <Alert>
