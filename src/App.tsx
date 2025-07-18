@@ -99,6 +99,7 @@ const TestSuiteDashboard = React.lazy(() => import("./components/testing/TestSui
 const RLSSecurityTest = React.lazy(() => import("./components/testing/RLSSecurityTest"));
 const SystemBugTracker = React.lazy(() => import("./components/testing/SystemBugTracker"));
 const CartTest = React.lazy(() => import("./components/testing/CartTest"));
+const CartLoadingDebugger = React.lazy(() => import("./components/testing/CartLoadingDebugger"));
 
 // 404 page
 const NotFound = React.lazy(() => import("./pages/NotFound"));
@@ -412,6 +413,11 @@ const App = () => (
                         <Route path="/test/cart" element={
                           <RequireAuth>
                             <CartTest />
+                          </RequireAuth>
+                        } />
+                        <Route path="/test/cart-debug" element={
+                          <RequireAuth>
+                            <CartLoadingDebugger />
                           </RequireAuth>
                         } />
 

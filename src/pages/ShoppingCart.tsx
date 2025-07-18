@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,29 +9,56 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { CartAPI, CartSummary } from '@/api/cart';
-import { 
-  ArrowLeft, 
-  Plus, 
-  Minus, 
-  Trash2, 
-  ShoppingCart, 
+import { cartDebugger } from '@/utils/cartDebugger';
+import {
+  ArrowLeft,
+  Plus,
+  Minus,
+  Trash2,
+  ShoppingCart,
   Package,
   AlertTriangle,
-  CreditCard
+  CreditCard,
+  Bug
 } from 'lucide-react';
 
 const ShoppingCart: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [debugResults, setDebugResults] = useState<any[]>([]);
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
 
-  // Fetch cart summary with error handling and timeout
-  const { data: cartSummary, isLoading, refetch, error, isError } = useQuery<CartSummary>({
+  // Fetch cart summary with detailed logging for debugging
+  const { data: cartSummary, isLoading, refetch, error, isError, isFetching, status, fetchStatus } = useQuery<CartSummary>({
     queryKey: ['cart-summary'],
-    queryFn: CartAPI.getCartSummary,
+    queryFn: async () => {
+      console.log('🔄 CartAPI.getCartSummary() called at:', new Date().toISOString());
+      const startTime = performance.now();
+      try {
+        const result = await CartAPI.getCartSummary();
+        const endTime = performance.now();
+        console.log('✅ CartAPI.getCartSummary() completed:', {
+          result,
+          timing: endTime - startTime,
+          timestamp: new Date().toISOString()
+        });
+        return result;
+      } catch (error) {
+        const endTime = performance.now();
+        console.error('❌ CartAPI.getCartSummary() failed:', {
+          error,
+          timing: endTime - startTime,
+          timestamp: new Date().toISOString()
+        });
+        throw error;
+      }
+    },
     retry: (failureCount, error) => {
+      console.log('🔄 Query retry attempt:', { failureCount, error: error?.message });
       // Don't retry on authentication errors
       if (error?.message?.includes('not authenticated')) {
+        console.log('🚫 Skipping retry due to auth error');
         return false;
       }
       return failureCount < 2;
@@ -51,6 +78,29 @@ const ShoppingCart: React.FC = () => {
     staleTime: 30 * 1000, // 30 seconds
     throwOnError: false,
   });
+
+  // Debug logging for React Query state changes
+  useEffect(() => {
+    console.log('🔍 React Query State Update:', {
+      isLoading,
+      isError,
+      isFetching,
+      status,
+      fetchStatus,
+      error: error?.message,
+      dataPresent: !!cartSummary,
+      itemCount: cartSummary?.itemCount,
+      timestamp: new Date().toISOString()
+    });
+  }, [isLoading, isError, isFetching, status, fetchStatus, error, cartSummary]);
+
+  // Run comprehensive debugging analysis
+  const runDebugAnalysis = async () => {
+    console.log('🚀 Starting comprehensive cart debug analysis...');
+    const results = await cartDebugger.runCompleteAnalysis();
+    setDebugResults(results);
+    setShowDebugPanel(true);
+  };
 
   // Update quantity mutation
   const updateQuantityMutation = useMutation({
@@ -259,18 +309,66 @@ const ShoppingCart: React.FC = () => {
               </Link>
               <h1 className="text-xl font-semibold ml-4">Shopping Cart</h1>
             </div>
-            
-            <Button 
-              variant="outline" 
-              onClick={handleClearCart}
-              disabled={clearCartMutation.isPending}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Clear Cart
-            </Button>
+
+            <div className="flex items-center space-x-2">
+              {process.env.NODE_ENV === 'development' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={runDebugAnalysis}
+                >
+                  <Bug className="w-4 h-4 mr-2" />
+                  Debug
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                onClick={handleClearCart}
+                disabled={clearCartMutation.isPending}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Clear Cart
+              </Button>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Debug Panel */}
+      {showDebugPanel && process.env.NODE_ENV === 'development' && (
+        <div className="bg-yellow-50 border-b border-yellow-200">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-yellow-800">Debug Analysis Results</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowDebugPanel(false)}
+              >
+                ✕
+              </Button>
+            </div>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {debugResults.map((result, index) => (
+                <div key={index} className="bg-white p-3 rounded border">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">{result.step}</span>
+                    <Badge variant={result.success ? "default" : "destructive"}>
+                      {result.success ? "PASS" : "FAIL"}
+                    </Badge>
+                  </div>
+                  {result.error && (
+                    <p className="text-red-600 text-sm mt-1">{result.error}</p>
+                  )}
+                  {result.timing && (
+                    <p className="text-gray-500 text-xs">Timing: {result.timing.toFixed(2)}ms</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
