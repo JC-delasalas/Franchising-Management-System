@@ -3,59 +3,40 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { quickCartTest } from '@/utils/quickCartTest';
-import { cartStatusDiagnostic } from '@/utils/cartStatusDiagnostic';
+import { CartAPI } from '@/api/cart';
+import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { ShoppingCart, Play, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 
 const CartTest: React.FC = () => {
   const { toast } = useToast();
   const [isRunning, setIsRunning] = useState(false);
-  const [testResults, setTestResults] = useState<any>(null);
+  const [cartData, setCartData] = useState<any>(null);
 
-  const runTests = async () => {
-    setIsRunning(true);
-    setTestResults(null);
-
-    try {
-      console.log('🚀 Running quick cart tests...');
-      const results = await quickCartTest.runAllTests();
-      setTestResults(results);
-
-      toast({
-        title: "Cart Tests Complete",
-        description: `Found ${results.diagnosis.filter((d: string) => d.includes('❌')).length} issues`,
-        duration: 5000,
-      });
-    } catch (error) {
-      console.error('Error running cart tests:', error);
-      toast({
-        title: "Tests Failed",
-        description: "Check console for details",
-        variant: "destructive",
-      });
-    } finally {
-      setIsRunning(false);
-    }
-  };
-
-  const runStatusDiagnostic = async () => {
+  const testCartAPI = async () => {
     setIsRunning(true);
     try {
-      console.log('🔍 Running cart status diagnostic...');
-      const { results, report } = await cartStatusDiagnostic.runAndReport();
-      setTestResults({ diagnostic: results, report });
+      console.log('🛒 Testing CartAPI directly...');
+
+      // Test authentication
+      const { data: user } = await supabase.auth.getUser();
+      console.log('Auth:', user.user?.id);
+
+      // Test cart summary
+      const summary = await CartAPI.getCartSummary();
+      console.log('Cart Summary:', summary);
+      setCartData(summary);
 
       toast({
-        title: "Diagnostic Complete",
-        description: `Cart status: ${results.status.toUpperCase()}`,
+        title: "Cart API Test Complete",
+        description: `Found ${summary.itemCount} items in cart`,
         duration: 5000,
       });
-    } catch (error) {
-      console.error('Diagnostic failed:', error);
+    } catch (error: any) {
+      console.error('Cart API test failed:', error);
       toast({
-        title: "Diagnostic Failed",
-        description: "Check console for details",
+        title: "Cart API Failed",
+        description: error.message || "Check console for details",
         variant: "destructive",
       });
     } finally {
@@ -95,25 +76,14 @@ const CartTest: React.FC = () => {
               It checks authentication, cart data fetching, and API responses.
             </p>
             
-            <div className="flex gap-2 flex-wrap">
-              <Button
-                onClick={runStatusDiagnostic}
-                disabled={isRunning}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                <AlertTriangle className="w-4 h-4 mr-2" />
-                {isRunning ? 'Running...' : 'URGENT: Cart Status Check'}
-              </Button>
-
-              <Button
-                onClick={runTests}
-                disabled={isRunning}
-                variant="outline"
-              >
-                <Play className="w-4 h-4 mr-2" />
-                {isRunning ? 'Running Tests...' : 'Full Test Suite'}
-              </Button>
-            </div>
+            <Button
+              onClick={testCartAPI}
+              disabled={isRunning}
+              className="w-full sm:w-auto"
+            >
+              <Play className="w-4 h-4 mr-2" />
+              {isRunning ? 'Testing...' : 'Test Cart API'}
+            </Button>
 
             {summary && (
               <Alert>

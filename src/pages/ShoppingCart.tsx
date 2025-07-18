@@ -9,9 +9,6 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { CartAPI, CartSummary } from '@/api/cart';
-import { cartDebugger } from '@/utils/cartDebugger';
-import { cartPerformanceProfiler } from '@/utils/cartPerformanceProfiler';
-import { quickCartTest } from '@/utils/quickCartTest';
 import { queryKeys } from '@/lib/queryClient';
 import {
   ArrowLeft,
@@ -84,66 +81,12 @@ const ShoppingCart: React.FC = () => {
     }
   }, [isLoading]);
 
-  // Quick cart test for immediate debugging
-  const runQuickCartTest = async () => {
-    try {
-      console.log('🚀 Running quick cart test...');
-      const { results, diagnosis } = await quickCartTest.runAllTests();
 
-      toast({
-        title: "Cart Test Complete",
-        description: `${diagnosis.length} issues found. Check console for details.`,
-        duration: 5000,
-      });
-    } catch (error) {
-      console.error('Quick cart test failed:', error);
-      toast({
-        title: "Cart Test Failed",
-        description: "Check console for error details",
-        variant: "destructive",
-      });
-    }
-  };
 
-  // Performance profiling for development
-  const runPerformanceProfile = async () => {
-    try {
-      console.log('🔍 Running cart performance profile...');
-      const results = await cartPerformanceProfiler.profileCartLoading();
-      setPerformanceMetrics(results);
-      console.log('📊 Performance Results:', results);
-      console.log(cartPerformanceProfiler.generateReport());
-
-      toast({
-        title: "Performance Profile Complete",
-        description: `Total time: ${results.totalTime.toFixed(2)}ms. Check console for details.`,
-        duration: 5000,
-      });
-    } catch (error) {
-      console.error('Performance profiling failed:', error);
-      toast({
-        title: "Performance Profile Failed",
-        description: "Check console for error details",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Debug logging for development
+  // Simple debug logging
   useEffect(() => {
-    console.log('🛒 CART COMPONENT - Query State:', {
-      isLoading,
-      isError,
-      isFetching,
-      status,
-      fetchStatus,
-      error: error?.message,
-      dataPresent: !!cartSummary,
-      itemCount: cartSummary?.itemCount,
-      items: cartSummary?.items?.length || 0,
-      cartSummary: cartSummary
-    });
-  }, [isLoading, isError, isFetching, status, fetchStatus, error, cartSummary]);
+    console.log('🛒 CART - Status:', { isLoading, isError, itemCount: cartSummary?.itemCount });
+  }, [isLoading, isError, cartSummary]);
 
   // Simplified error handling without excessive logging
   const hasCartData = cartSummary && cartSummary.items.length > 0;
@@ -388,38 +331,14 @@ const ShoppingCart: React.FC = () => {
               <h1 className="text-xl font-semibold ml-4">Shopping Cart</h1>
             </div>
 
-            <div className="flex items-center gap-2">
-              {process.env.NODE_ENV === 'development' && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={runQuickCartTest}
-                    className="text-xs bg-red-50 border-red-200 text-red-700"
-                  >
-                    <Bug className="w-3 h-3 mr-1" />
-                    Quick Test
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={runPerformanceProfile}
-                    className="text-xs"
-                  >
-                    <Bug className="w-3 h-3 mr-1" />
-                    Performance
-                  </Button>
-                </>
-              )}
-              <Button
-                variant="outline"
-                onClick={handleClearCart}
-                disabled={clearCartMutation.isPending}
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Clear Cart
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              onClick={handleClearCart}
+              disabled={clearCartMutation.isPending}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Clear Cart
+            </Button>
           </div>
         </div>
       </div>
