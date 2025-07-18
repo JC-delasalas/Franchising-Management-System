@@ -222,10 +222,10 @@ const SalesUpload = () => {
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium mb-2">Sales Date *</label>
-                        <Input 
-                          type="date" 
-                          value={salesData.date}
-                          onChange={(e) => setSalesData({...salesData, date: e.target.value})}
+                        <Input
+                          type="date"
+                          value={salesData.sale_date}
+                          onChange={(e) => setSalesData({...salesData, sale_date: e.target.value})}
                           required
                         />
                       </div>
@@ -234,13 +234,13 @@ const SalesUpload = () => {
                         <label className="block text-sm font-medium mb-2">Total Sales Amount *</label>
                         <div className="relative">
                           <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                          <Input 
-                            placeholder="0.00" 
+                          <Input
+                            placeholder="0.00"
                             type="number"
                             step="0.01"
                             className="pl-10"
-                            value={salesData.totalSales}
-                            onChange={(e) => setSalesData({...salesData, totalSales: e.target.value})}
+                            value={salesData.total_amount}
+                            onChange={(e) => setSalesData({...salesData, total_amount: e.target.value})}
                             required
                           />
                         </div>
@@ -248,11 +248,11 @@ const SalesUpload = () => {
                       
                       <div>
                         <label className="block text-sm font-medium mb-2">Number of Transactions *</label>
-                        <Input 
-                          placeholder="0" 
+                        <Input
+                          placeholder="0"
                           type="number"
-                          value={salesData.transactions}
-                          onChange={(e) => setSalesData({...salesData, transactions: e.target.value})}
+                          value={salesData.customer_count}
+                          onChange={(e) => setSalesData({...salesData, customer_count: parseInt(e.target.value) || 1})}
                           required
                         />
                       </div>
@@ -295,8 +295,8 @@ const SalesUpload = () => {
 
                   <div className="flex justify-end space-x-4">
                     <Button type="button" variant="outline">Save as Draft</Button>
-                    <Button type="submit" disabled={isSubmitting}>
-                      {isSubmitting ? 'Submitting...' : 'Submit Report'}
+                    <Button type="submit" disabled={isUploading}>
+                      {isUploading ? 'Submitting...' : 'Submit Report'}
                     </Button>
                   </div>
                 </form>

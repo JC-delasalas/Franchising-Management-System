@@ -188,10 +188,14 @@ export const useRealTimeSales = (locationId?: string) => {
       const { data, error } = await supabase
         .from('sales_records')
         .insert({
-          ...salesData,
-          location_id: effectiveLocationId,
-          created_by: user!.id,
-          created_at: new Date().toISOString()
+          franchise_location_id: salesData.location_id || effectiveLocationId,
+          sale_date: salesData.sale_date,
+          total_amount: salesData.total_amount,
+          items_sold: salesData.items_sold,
+          payment_method: salesData.payment_method,
+          customer_count: salesData.customer_count,
+          notes: salesData.notes,
+          uploaded_by: user!.id,
         })
         .select()
         .single();
@@ -221,10 +225,13 @@ export const useRealTimeSales = (locationId?: string) => {
         description: `Sale of ₱${data.total_amount.toLocaleString()} recorded successfully`,
       });
       
-      // Invalidate related queries
+      // Invalidate related queries to trigger dashboard updates
       queryClient.invalidateQueries({ queryKey: ['sales-metrics'] });
+      queryClient.invalidateQueries({ queryKey: ['kpi-metrics'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-data'] });
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
+      refetch();
     },
     onError: (error: any) => {
       toast({
