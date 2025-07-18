@@ -83,7 +83,7 @@ export const CartAPI = {
         return cartCache.data;
       }
 
-      console.log('📡 Fetching fresh cart data from database');
+      console.log('📡 Fetching fresh cart data from database for user:', user.id);
 
       // Optimized query with specific field selection and better join strategy
       const { data, error } = await supabase
@@ -113,12 +113,15 @@ export const CartAPI = {
         .order('added_at', { ascending: false })
         .limit(50); // Reasonable limit to prevent excessive data loading
 
+      console.log('📡 Cart query result:', { data, error, itemCount: data?.length || 0 });
+
       if (error) {
-        console.error('Error fetching cart items:', error);
+        console.error('❌ Error fetching cart items:', error);
         throw new Error(`Failed to fetch cart items: ${error.message}`);
       }
 
       const cartItems = data || [];
+      console.log('📡 Final cart items:', cartItems);
 
       // Cache the result
       cartCache = {
@@ -136,10 +139,15 @@ export const CartAPI = {
 
   // Add item to cart
   async addToCart(productId: string, quantity: number): Promise<CartItemWithProduct> {
+    console.log('🛒 ADD TO CART - Starting:', { productId, quantity });
+
     const { data: user } = await supabase.auth.getUser();
+    console.log('🛒 ADD TO CART - User:', { userId: user.user?.id, authenticated: !!user.user });
+
     if (!user.user) throw new Error('User not authenticated');
 
     // Check if item already exists in cart
+    console.log('🛒 ADD TO CART - Checking existing item...');
     const { data: existingItem } = await supabase
       .from('shopping_cart')
       .select('*')
@@ -147,18 +155,25 @@ export const CartAPI = {
       .eq('product_id', productId)
       .single();
 
+    console.log('🛒 ADD TO CART - Existing item check:', { existingItem });
+
     if (existingItem) {
+      console.log('🛒 ADD TO CART - Updating existing item quantity');
       // Update quantity if item exists
       return this.updateCartItemQuantity(existingItem.id, existingItem.quantity + quantity);
     } else {
+      console.log('🛒 ADD TO CART - Creating new cart item');
       // Create new cart item
+      const insertData = {
+        user_id: user.user.id,
+        product_id: productId,
+        quantity,
+      };
+      console.log('🛒 ADD TO CART - Insert data:', insertData);
+
       const { data, error } = await supabase
         .from('shopping_cart')
-        .insert({
-          user_id: user.user.id,
-          product_id: productId,
-          quantity,
-        })
+        .insert(insertData)
         .select(`
           *,
           products!inner (
@@ -176,13 +191,16 @@ export const CartAPI = {
         `)
         .single();
 
+      console.log('🛒 ADD TO CART - Insert result:', { data, error });
+
       if (error) {
-        console.error('Error adding to cart:', error);
+        console.error('🛒 ADD TO CART - ERROR:', error);
         throw new Error(`Failed to add item to cart: ${error.message}`);
       }
 
       // Invalidate cache after successful mutation
       invalidateCartCache();
+      console.log('🛒 ADD TO CART - SUCCESS:', data);
 
       return data;
     }

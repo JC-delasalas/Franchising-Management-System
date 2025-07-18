@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { CartAPI, CartSummary } from '@/api/cart';
 import { cartDebugger } from '@/utils/cartDebugger';
 import { cartPerformanceProfiler } from '@/utils/cartPerformanceProfiler';
+import { quickCartTest } from '@/utils/quickCartTest';
 import { queryKeys } from '@/lib/queryClient';
 import {
   ArrowLeft,
@@ -83,6 +84,27 @@ const ShoppingCart: React.FC = () => {
     }
   }, [isLoading]);
 
+  // Quick cart test for immediate debugging
+  const runQuickCartTest = async () => {
+    try {
+      console.log('🚀 Running quick cart test...');
+      const { results, diagnosis } = await quickCartTest.runAllTests();
+
+      toast({
+        title: "Cart Test Complete",
+        description: `${diagnosis.length} issues found. Check console for details.`,
+        duration: 5000,
+      });
+    } catch (error) {
+      console.error('Quick cart test failed:', error);
+      toast({
+        title: "Cart Test Failed",
+        description: "Check console for error details",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Performance profiling for development
   const runPerformanceProfile = async () => {
     try {
@@ -109,18 +131,18 @@ const ShoppingCart: React.FC = () => {
 
   // Debug logging for development
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Cart Query State:', {
-        isLoading,
-        isError,
-        isFetching,
-        status,
-        fetchStatus,
-        error: error?.message,
-        dataPresent: !!cartSummary,
-        itemCount: cartSummary?.itemCount
-      });
-    }
+    console.log('🛒 CART COMPONENT - Query State:', {
+      isLoading,
+      isError,
+      isFetching,
+      status,
+      fetchStatus,
+      error: error?.message,
+      dataPresent: !!cartSummary,
+      itemCount: cartSummary?.itemCount,
+      items: cartSummary?.items?.length || 0,
+      cartSummary: cartSummary
+    });
   }, [isLoading, isError, isFetching, status, fetchStatus, error, cartSummary]);
 
   // Simplified error handling without excessive logging
@@ -362,15 +384,26 @@ const ShoppingCart: React.FC = () => {
 
             <div className="flex items-center gap-2">
               {process.env.NODE_ENV === 'development' && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={runPerformanceProfile}
-                  className="text-xs"
-                >
-                  <Bug className="w-3 h-3 mr-1" />
-                  Test Performance
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={runQuickCartTest}
+                    className="text-xs bg-red-50 border-red-200 text-red-700"
+                  >
+                    <Bug className="w-3 h-3 mr-1" />
+                    Quick Test
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={runPerformanceProfile}
+                    className="text-xs"
+                  >
+                    <Bug className="w-3 h-3 mr-1" />
+                    Performance
+                  </Button>
+                </>
               )}
               <Button
                 variant="outline"
