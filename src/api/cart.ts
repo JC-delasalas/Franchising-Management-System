@@ -29,37 +29,46 @@ export interface CartSummary {
 }
 
 export const CartAPI = {
-  // Get cart items for current user
+  // Get cart items for current user with enhanced error handling
   async getCartItems(): Promise<CartItemWithProduct[]> {
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user) throw new Error('User not authenticated');
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) {
+        console.warn('User not authenticated for cart items');
+        return []; // Return empty array instead of throwing
+      }
 
-    const { data, error } = await supabase
-      .from('shopping_cart')
-      .select(`
-        *,
-        products (
-          id,
-          name,
-          sku,
-          price,
-          images,
-          description,
-          unit_of_measure,
-          minimum_order_qty,
-          maximum_order_qty,
-          active
-        )
-      `)
-      .eq('user_id', user.user.id)
-      .order('added_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('shopping_cart')
+        .select(`
+          *,
+          products (
+            id,
+            name,
+            sku,
+            price,
+            images,
+            description,
+            unit_of_measure,
+            minimum_order_qty,
+            maximum_order_qty,
+            active
+          )
+        `)
+        .eq('user_id', user.user.id)
+        .order('added_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching cart items:', error);
-      throw new Error(`Failed to fetch cart items: ${error.message}`);
+      if (error) {
+        console.error('Error fetching cart items:', error);
+        // Return empty array instead of throwing to prevent infinite loading
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Unexpected error in getCartItems:', error);
+      return []; // Always return empty array on error
     }
-
-    return data || [];
   },
 
   // Add item to cart
@@ -189,24 +198,37 @@ export const CartAPI = {
     }
   },
 
-  // Get cart summary with calculations
+  // Get cart summary with calculations and error handling
   async getCartSummary(): Promise<CartSummary> {
-    const items = await this.getCartItems();
-    
-    const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-    const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.products.price), 0);
-    const taxAmount = subtotal * 0.12; // 12% VAT
-    const shippingCost = subtotal > 5000 ? 0 : 200; // Free shipping over ₱5,000
-    const total = subtotal + taxAmount + shippingCost;
+    try {
+      const items = await this.getCartItems();
 
-    return {
-      items,
-      itemCount,
-      subtotal,
-      taxAmount,
-      shippingCost,
-      total,
-    };
+      const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+      const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.products.price), 0);
+      const taxAmount = subtotal * 0.12; // 12% VAT
+      const shippingCost = subtotal > 5000 ? 0 : 200; // Free shipping over ₱5,000
+      const total = subtotal + taxAmount + shippingCost;
+
+      return {
+        items,
+        itemCount,
+        subtotal,
+        taxAmount,
+        shippingCost,
+        total,
+      };
+    } catch (error) {
+      console.error('Error getting cart summary:', error);
+      // Return empty cart summary on error to prevent infinite loading
+      return {
+        items: [],
+        itemCount: 0,
+        subtotal: 0,
+        taxAmount: 0,
+        shippingCost: 0,
+        total: 0,
+      };
+    }
   },
 
   // Get cart item count

@@ -50,46 +50,14 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
-  // If authentication is not required but user is logged in (e.g., login page)
-  // Only redirect if we're sure the user is authenticated (not during timeout)
-  // SECURITY FIX: Don't auto-redirect from login page - let users explicitly choose to go to dashboard
+  // SECURITY FIX: Never auto-redirect authenticated users from login page
+  // Always require explicit user action to proceed to dashboard
   if (!requireAuth && isAuthenticated && !loadingTimeout) {
-    // Check if we're on the login page specifically
+    // For login page, always show the login form - no auto-redirect
     if (location.pathname === '/login') {
-      // Show a notice that user is already logged in, but don't force redirect
-      // This allows users to explicitly log out or choose to go to dashboard
-      return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-md p-6">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Already Logged In</h2>
-              <p className="text-gray-600 mb-6">
-                You are currently logged in as <strong>{user?.email}</strong> ({role}).
-              </p>
-              <div className="space-y-3">
-                <Button
-                  asChild
-                  className="w-full"
-                >
-                  <Link to={role === 'franchisor' ? '/franchisor-dashboard' : '/franchisee-dashboard'}>
-                    Go to Dashboard
-                  </Link>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={async () => {
-                    await supabase.auth.signOut();
-                    window.location.reload();
-                  }}
-                >
-                  Sign Out & Login as Different User
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
+      // Allow users to see login page even if authenticated
+      // This prevents authentication bypass and allows manual account selection
+      return <>{children}</>;
     }
 
     // For other guest-only pages (like signup), redirect to dashboard

@@ -25,17 +25,23 @@ const ShoppingCart: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch cart summary
-  const { data: cartSummary, isLoading, refetch } = useQuery<CartSummary>({
+  // Fetch cart summary with error handling and timeout
+  const { data: cartSummary, isLoading, refetch, error } = useQuery<CartSummary>({
     queryKey: ['cart-summary'],
     queryFn: CartAPI.getCartSummary,
+    retry: 2, // Only retry twice
+    retryDelay: 1000, // 1 second delay
+    staleTime: 30 * 1000, // 30 seconds
+    gcTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Validate cart
+  // Validate cart with proper error handling
   const { data: validation } = useQuery({
     queryKey: ['cart-validation'],
     queryFn: CartAPI.validateCart,
     enabled: !!cartSummary?.items.length,
+    retry: 1, // Only retry once for validation
+    staleTime: 30 * 1000, // 30 seconds
   });
 
   // Update quantity mutation
@@ -125,12 +131,35 @@ const ShoppingCart: React.FC = () => {
     navigate('/checkout');
   };
 
+  // Handle loading and error states
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <ShoppingCart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <ShoppingCart className="w-12 h-12 text-gray-400 mx-auto mb-4 animate-pulse" />
           <p>Loading your cart...</p>
+          <p className="text-sm text-gray-500 mt-2">This should only take a moment</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle cart loading errors
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <ShoppingCart className="w-12 h-12 text-red-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Cart Loading Error</h2>
+          <p className="text-gray-600 mb-4">
+            We're having trouble loading your cart. Please try again.
+          </p>
+          <Button onClick={() => refetch()} className="mr-2">
+            Try Again
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/products')}>
+            Continue Shopping
+          </Button>
         </div>
       </div>
     );

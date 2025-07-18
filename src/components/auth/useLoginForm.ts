@@ -6,6 +6,7 @@ import { validateRequired, combineValidations } from '@/lib/validation';
 import { signIn } from '@/hooks/useAuth';
 import { ROUTES } from '@/constants/routes';
 import { AuthenticationError, getUserFriendlyMessage } from '@/lib/errors';
+import { supabase } from '@/lib/supabase';
 
 export const useLoginForm = () => {
   const navigate = useNavigate();
@@ -47,16 +48,32 @@ export const useLoginForm = () => {
     setErrors([]); // Clear previous errors
 
     try {
+      // SECURITY FIX: Always clear any existing sessions before new login
+      await supabase.auth.signOut();
+
       const result = await signIn(formData.email, formData.password);
 
       if (result.user) {
         toast({
           title: "Login Successful",
-          description: `Welcome back!`,
+          description: `Welcome back, ${result.user.email}! (${result.user.role})`,
         });
 
-        // Navigation will be handled by auth state change in AuthGuard
-        // The user will be redirected based on their role
+        // Navigate based on user role to prevent auth bypass
+        const role = result.user.role;
+        switch (role) {
+          case 'franchisor':
+            navigate(ROUTES.FRANCHISOR_DASHBOARD);
+            break;
+          case 'franchisee':
+            navigate(ROUTES.FRANCHISEE_DASHBOARD);
+            break;
+          case 'admin':
+            navigate(ROUTES.IAM_MANAGEMENT);
+            break;
+          default:
+            navigate(ROUTES.FRANCHISEE_DASHBOARD);
+        }
       } else {
         // Handle case where signIn succeeds but no user is returned
         setErrors(['Login failed. Please try again.']);
