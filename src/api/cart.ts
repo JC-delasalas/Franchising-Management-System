@@ -85,33 +85,53 @@ export const CartAPI = {
 
       console.log('📡 Fetching fresh cart data from database for user:', user.id);
 
-      // Optimized query with specific field selection and better join strategy
-      const { data, error } = await supabase
+      // Simplified query to avoid 406 error - fetch cart items first, then products separately
+      const { data: cartItems, error } = await supabase
         .from('shopping_cart')
-        .select(`
-          id,
-          user_id,
-          product_id,
-          quantity,
-          added_at,
-          updated_at,
-          products!inner (
-            id,
-            name,
-            sku,
-            price,
-            images,
-            description,
-            unit_of_measure,
-            minimum_order_qty,
-            maximum_order_qty,
-            active
-          )
-        `)
+        .select('*')
         .eq('user_id', user.id)
-        .eq('products.active', true)
         .order('added_at', { ascending: false })
-        .limit(50); // Reasonable limit to prevent excessive data loading
+        .limit(50);
+
+      if (error) {
+        console.error('❌ Error fetching cart items:', error);
+        throw new Error(`Failed to fetch cart items: ${error.message}`);
+      }
+
+      console.log('📡 Raw cart items:', cartItems);
+
+      if (!cartItems || cartItems.length === 0) {
+        console.log('📡 No cart items found');
+        return [];
+      }
+
+      // Fetch product details separately
+      const productIds = cartItems.map(item => item.product_id);
+      const { data: products, error: productsError } = await supabase
+        .from('products')
+        .select('*')
+        .in('id', productIds)
+        .eq('active', true);
+
+      if (productsError) {
+        console.error('❌ Error fetching products:', productsError);
+        throw new Error(`Failed to fetch products: ${productsError.message}`);
+      }
+
+      console.log('📡 Products fetched:', products);
+
+      // Combine cart items with product data
+      const data = cartItems.map(cartItem => {
+        const product = products?.find(p => p.id === cartItem.product_id);
+        if (!product) {
+          console.warn('⚠️ Product not found for cart item:', cartItem.product_id);
+          return null;
+        }
+        return {
+          ...cartItem,
+          products: product
+        };
+      }).filter(Boolean); // Remove null entries
 
       console.log('📡 Cart query result:', { data, error, itemCount: data?.length || 0 });
 
@@ -173,25 +193,33 @@ export const CartAPI = {
       };
       console.log('🛒 ADD TO CART - Insert data:', insertData);
 
-      const { data, error } = await supabase
+      const { data: cartItem, error } = await supabase
         .from('shopping_cart')
         .insert(insertData)
-        .select(`
-          *,
-          products!inner (
-            id,
-            name,
-            sku,
-            price,
-            images,
-            description,
-            unit_of_measure,
-            minimum_order_qty,
-            maximum_order_qty,
-            active
-          )
-        `)
+        .select('*')
         .single();
+
+      if (error) {
+        console.error('🛒 ADD TO CART - INSERT ERROR:', error);
+        throw new Error(`Failed to add item to cart: ${error.message}`);
+      }
+
+      // Fetch product details separately
+      const { data: product, error: productError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', productId)
+        .single();
+
+      if (productError) {
+        console.error('🛒 ADD TO CART - PRODUCT FETCH ERROR:', productError);
+        throw new Error(`Failed to fetch product details: ${productError.message}`);
+      }
+
+      const data = {
+        ...cartItem,
+        products: product
+      };
 
       console.log('🛒 ADD TO CART - Insert result:', { data, error });
 
@@ -218,7 +246,7 @@ export const CartAPI = {
       throw new Error('Item removed from cart');
     }
 
-    const { data, error } = await supabase
+    const { data: cartItem, error } = await supabase
       .from('shopping_cart')
       .update({
         quantity,
@@ -226,27 +254,30 @@ export const CartAPI = {
       })
       .eq('id', cartItemId)
       .eq('user_id', user.user.id)
-      .select(`
-        *,
-        products!inner (
-          id,
-          name,
-          sku,
-          price,
-          images,
-          description,
-          unit_of_measure,
-          minimum_order_qty,
-          maximum_order_qty,
-          active
-        )
-      `)
+      .select('*')
       .single();
 
     if (error) {
       console.error('Error updating cart item:', error);
       throw new Error(`Failed to update cart item: ${error.message}`);
     }
+
+    // Fetch product details separately
+    const { data: product, error: productError } = await supabase
+      .from('products')
+      .select('*')
+      .eq('id', cartItem.product_id)
+      .single();
+
+    if (productError) {
+      console.error('Error fetching product for update:', productError);
+      throw new Error(`Failed to fetch product details: ${productError.message}`);
+    }
+
+    const data = {
+      ...cartItem,
+      products: product
+    };
 
     // Invalidate cache after successful mutation
     invalidateCartCache();
