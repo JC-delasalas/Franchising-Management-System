@@ -56,24 +56,12 @@ export const useLoginForm = () => {
       if (result.user) {
         toast({
           title: "Login Successful",
-          description: `Welcome back, ${result.user.email}! (${result.user.role})`,
+          description: `Welcome back, ${result.user.email}!`,
         });
 
-        // Navigate based on user role to prevent auth bypass
-        const role = result.user.role;
-        switch (role) {
-          case 'franchisor':
-            navigate(ROUTES.FRANCHISOR_DASHBOARD);
-            break;
-          case 'franchisee':
-            navigate(ROUTES.FRANCHISEE_DASHBOARD);
-            break;
-          case 'admin':
-            navigate(ROUTES.IAM_MANAGEMENT);
-            break;
-          default:
-            navigate(ROUTES.FRANCHISEE_DASHBOARD);
-        }
+        // Navigate based on session - don't wait for profile loading
+        // Profile will load in background after navigation
+        navigate(ROUTES.FRANCHISEE_DASHBOARD);
       } else {
         // Handle case where signIn succeeds but no user is returned
         setErrors(['Login failed. Please try again.']);

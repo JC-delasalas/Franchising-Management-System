@@ -88,7 +88,7 @@ export const useAuth = (): AuthState => {
   const [isLoading, setIsLoading] = useState(true)
   const queryClient = useQueryClient()
 
-  // Fetch user profile data with error handling
+  // Fetch user profile data with optimized error handling
   const { data: userProfile, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['user-profile', authUser?.id],
     queryFn: async () => {
@@ -104,21 +104,21 @@ export const useAuth = (): AuthState => {
         return profile;
       } catch (error) {
         console.error('Profile query failed:', error);
-        // Don't throw - return null to prevent infinite loading
+        // Return null instead of throwing to prevent blocking authentication
         return null;
       }
     },
-    enabled: !!authUser?.id,
+    enabled: !!authUser?.id && !!session, // Only load profile when session is established
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: (failureCount, error) => {
-      // Don't retry if it's a profile creation issue
-      if (failureCount >= 2) return false;
-      return true;
+      // Limit retries to prevent infinite loading
+      return failureCount < 1;
     },
-    retryDelay: 1000, // 1 second delay
+    retryDelay: 2000, // 2 second delay
     gcTime: 10 * 1000,
-    // Prevent infinite loading by setting a timeout
-    networkMode: 'online',
+    // Run in background, don't block UI
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   })
 
   useEffect(() => {
@@ -162,10 +162,10 @@ export const useAuth = (): AuthState => {
     return () => subscription.unsubscribe()
   }, [queryClient])
 
-  // SECURITY: Allow authentication with session even if profile is temporarily unavailable
+  // SECURITY: Authentication based on session, profile loading doesn't block auth
   // This prevents infinite loading while maintaining security
   const hasValidSession = !!session && !!authUser;
-  const isValidAuthentication = hasValidSession && (!profileLoading || !!userProfile);
+  const isValidAuthentication = hasValidSession; // Session is sufficient for authentication
 
   // Handle profile loading errors securely but don't block authentication
   if (authUser && profileError && !profileLoading) {
@@ -182,14 +182,15 @@ export const useAuth = (): AuthState => {
     }
   }
 
-  // Don't stay in loading state indefinitely - timeout after profile loading attempts
-  const shouldStopLoading = hasValidSession && (!profileLoading || profileError);
+  // Optimize loading state - don't block on profile loading
+  const authLoadingComplete = !isLoading && hasValidSession;
+  const shouldStopLoading = authLoadingComplete || profileError;
 
   return {
     user: userProfile, // Return profile if available, null if not
     session,
     isAuthenticated: isValidAuthentication,
-    isLoading: isLoading && !shouldStopLoading, // Don't hang on profile issues
+    isLoading: isLoading && !authLoadingComplete, // Only show loading for session, not profile
     role: userProfile?.role || 'franchisee', // Default role if profile unavailable
     permissions: userProfile?.metadata?.permissions || {}
   }
