@@ -51,8 +51,8 @@ export const queryClient = new QueryClient({
 
       // Enhanced retry configuration with circuit breaker
       retry: (failureCount, error: any) => {
-        // Prevent infinite retry loops with hard limits
-        if (failureCount >= 3) {
+        // Prevent infinite retry loops with hard limits - reduced for faster feedback
+        if (failureCount >= 2) {
           console.warn('Max retry attempts reached, stopping retries');
           return false;
         }
