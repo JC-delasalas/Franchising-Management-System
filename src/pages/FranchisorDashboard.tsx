@@ -16,6 +16,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { FranchiseAPI } from '@/api/franchises';
 import { AnalyticsAPI } from '@/api/analytics';
 import { OrdersAPI } from '@/api/orders';
+import { supabase } from '@/lib/supabase';
+import { useFranchisorKPIs } from '@/hooks/useKPIMetrics';
 import { queryKeys, prefetchStrategies } from '@/lib/queryClient';
 import { DashboardSkeleton, TableSkeleton } from '@/components/ui/SkeletonLoaders';
 import DatabaseErrorBoundary, { useDatabaseErrorHandler } from '@/components/error/DatabaseErrorBoundary';
@@ -40,6 +42,9 @@ const FranchisorDashboard = () => {
   const queryClient = useQueryClient();
   const { handleError } = useDatabaseErrorHandler();
 
+  // Fetch real KPI data from database functions
+  const { data: kpiData, isLoading: kpiLoading, error: kpiError } = useFranchisorKPIs();
+
   // Prefetch dashboard data on component mount
   React.useEffect(() => {
     if (user?.id && user?.role === 'franchisor') {
@@ -47,8 +52,59 @@ const FranchisorDashboard = () => {
     }
   }, [user?.id, user?.role]);
 
-  // Temporary fallback for missing mockFranchisees - will be removed when fully integrated
-  const mockFranchisees = [];
+  // Real database queries - no more mock data
+  const { data: applications = [], isLoading: applicationsLoading } = useQuery({
+    queryKey: ['franchise-applications'],
+    queryFn: async () => {
+      // Query real franchise applications from database with proper joins
+      const { data, error } = await supabase
+        .from('franchise_applications')
+        .select(`
+          id,
+          application_number,
+          status,
+          overall_status,
+          created_at,
+          submitted_at,
+          application_data,
+          notes,
+          franchises:franchise_id (
+            name,
+            brand_name
+          ),
+          packages:package_id (
+            name,
+            package_type
+          ),
+          users:applicant_id (
+            email,
+            full_name,
+            phone
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching applications:', error);
+        return []; // Return empty array instead of throwing
+      }
+
+      // Transform data to match expected format
+      return (data || []).map(app => ({
+        id: app.id,
+        applicant_name: app.users?.full_name || 'Unknown Applicant',
+        brand_name: app.franchises?.brand_name || app.franchises?.name || 'Unknown Brand',
+        package_type: app.packages?.package_type || app.packages?.name || 'Unknown Package',
+        status: app.overall_status || app.status || 'pending',
+        created_at: app.created_at || app.submitted_at,
+        email: app.users?.email || '',
+        phone: app.users?.phone || '',
+        application_number: app.application_number || app.id.slice(0, 8)
+      }));
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    retry: 2,
+  });
 
   // Fetch franchisor analytics
   const { data: analytics, isLoading: analyticsLoading, error: analyticsError } = useQuery({
@@ -664,18 +720,37 @@ const FranchisorDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {mockApplications.map((app) => (
-                      <TableRow key={app.id}>
-                        <TableCell className="font-medium">{app.id}</TableCell>
-                        <TableCell>{app.name}</TableCell>
-                        <TableCell>{app.brand}</TableCell>
-                        <TableCell>{app.package}</TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(app.status)}>
-                            {app.status}
-                          </Badge>
+                    {applicationsLoading ? (
+                      // Loading skeleton
+                      Array.from({ length: 3 }).map((_, i) => (
+                        <TableRow key={i}>
+                          <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                        </TableRow>
+                      ))
+                    ) : applications.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                          No franchise applications found
                         </TableCell>
-                        <TableCell>{app.date}</TableCell>
+                      </TableRow>
+                    ) : (
+                      applications.map((app) => (
+                        <TableRow key={app.id}>
+                          <TableCell className="font-medium">{app.application_number}</TableCell>
+                          <TableCell>{app.applicant_name}</TableCell>
+                          <TableCell>{app.brand_name}</TableCell>
+                          <TableCell>{app.package_type}</TableCell>
+                          <TableCell>
+                            <Badge className={getStatusColor(app.status)}>
+                              {app.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{new Date(app.created_at).toLocaleDateString()}</TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
                             <Dialog>
@@ -687,21 +762,21 @@ const FranchisorDashboard = () => {
                               </DialogTrigger>
                               <DialogContent className="max-w-2xl">
                                 <DialogHeader>
-                                  <DialogTitle>Application Details - {app.id}</DialogTitle>
+                                  <DialogTitle>Application Details - {app.application_number}</DialogTitle>
                                 </DialogHeader>
                                 <div className="space-y-4">
                                   <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                      <label className="text-sm font-medium text-gray-700">Name</label>
-                                      <p className="text-gray-900">{app.name}</p>
+                                      <label className="text-sm font-medium text-gray-700">Applicant Name</label>
+                                      <p className="text-gray-900">{app.applicant_name}</p>
                                     </div>
                                     <div>
                                       <label className="text-sm font-medium text-gray-700">Brand</label>
-                                      <p className="text-gray-900">{app.brand}</p>
+                                      <p className="text-gray-900">{app.brand_name}</p>
                                     </div>
                                     <div>
                                       <label className="text-sm font-medium text-gray-700">Package</label>
-                                      <p className="text-gray-900">{app.package}</p>
+                                      <p className="text-gray-900">{app.package_type}</p>
                                     </div>
                                     <div>
                                       <label className="text-sm font-medium text-gray-700">Status</label>
@@ -751,7 +826,7 @@ const FranchisorDashboard = () => {
                                       <DialogTitle>Approve Application</DialogTitle>
                                     </DialogHeader>
                                     <div className="space-y-4">
-                                      <p>Are you sure you want to approve {app.name}'s application?</p>
+                                      <p>Are you sure you want to approve {app.applicant_name}'s application?</p>
                                       <Textarea
                                         placeholder="Add approval notes (optional)"
                                         value={actionReason}
@@ -781,7 +856,7 @@ const FranchisorDashboard = () => {
                                       <DialogTitle>Semi-Approve Application</DialogTitle>
                                     </DialogHeader>
                                     <div className="space-y-4">
-                                      <p>What additional requirements does {app.name} need to complete?</p>
+                                      <p>What additional requirements does {app.applicant_name} need to complete?</p>
                                       <Textarea
                                         placeholder="List additional requirements..."
                                         value={actionReason}
@@ -811,7 +886,7 @@ const FranchisorDashboard = () => {
                                       <DialogTitle>Reject Application</DialogTitle>
                                     </DialogHeader>
                                     <div className="space-y-4">
-                                      <p>Please provide a reason for rejecting {app.name}'s application:</p>
+                                      <p>Please provide a reason for rejecting {app.applicant_name}'s application:</p>
                                       <Textarea
                                         placeholder="Rejection reason..."
                                         value={actionReason}
@@ -828,8 +903,9 @@ const FranchisorDashboard = () => {
                             )}
                           </div>
                         </TableCell>
-                      </TableRow>
-                    ))}
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
