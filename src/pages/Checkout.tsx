@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
 import { CartAPI, CartSummary } from '@/api/cart';
+import { queryKeys } from '@/lib/queryClient';
 import { PaymentMethodsAPI } from '@/api/paymentMethods';
 import { AddressesAPI } from '@/api/addresses';
 import { OrdersAPI } from '@/api/ordersNew';
@@ -39,7 +40,7 @@ const Checkout: React.FC = () => {
 
   // Fetch cart summary with error handling and timeout
   const { data: cartSummary, isLoading: cartLoading, error: cartError } = useQuery<CartSummary>({
-    queryKey: ['cart-summary'],
+    queryKey: queryKeys.cart.summary,
     queryFn: CartAPI.getCartSummary,
     retry: 2, // Only retry twice
     retryDelay: 1000, // 1 second delay
@@ -49,7 +50,7 @@ const Checkout: React.FC = () => {
 
   // Validate cart with proper error handling
   const { data: validation, error: validationError } = useQuery({
-    queryKey: ['cart-validation'],
+    queryKey: queryKeys.cart.validation,
     queryFn: CartAPI.validateCart,
     enabled: !!cartSummary?.items.length,
     retry: 1, // Only retry once for validation

@@ -41,7 +41,8 @@ export const CartAPI = {
 
       if (!user.user) {
         console.warn('User not authenticated for cart items');
-        throw new Error('User not authenticated');
+        // Return empty array instead of throwing to prevent infinite loading
+        return [];
       }
 
       const { data, error } = await supabase

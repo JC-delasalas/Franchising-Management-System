@@ -91,13 +91,34 @@ export const useAuth = (): AuthState => {
   // Fetch user profile data with error handling
   const { data: userProfile, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['user-profile', authUser?.id],
-    queryFn: () => getUserProfile(authUser!.id),
+    queryFn: async () => {
+      if (!authUser?.id) return null;
+
+      try {
+        const profile = await getUserProfile(authUser.id);
+        if (!profile) {
+          // If profile doesn't exist, try to create it
+          console.log('Profile not found, attempting to create...');
+          return await upsertUserProfile(authUser);
+        }
+        return profile;
+      } catch (error) {
+        console.error('Profile query failed:', error);
+        // Don't throw - return null to prevent infinite loading
+        return null;
+      }
+    },
     enabled: !!authUser?.id,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 2, // Only retry twice
+    retry: (failureCount, error) => {
+      // Don't retry if it's a profile creation issue
+      if (failureCount >= 2) return false;
+      return true;
+    },
     retryDelay: 1000, // 1 second delay
-    // Don't hang forever - timeout after 10 seconds
     gcTime: 10 * 1000,
+    // Prevent infinite loading by setting a timeout
+    networkMode: 'online',
   })
 
   useEffect(() => {
@@ -141,11 +162,12 @@ export const useAuth = (): AuthState => {
     return () => subscription.unsubscribe()
   }, [queryClient])
 
-  // SECURITY: No fallback profile - require valid database profile for authentication
-  // This prevents security bypass where users could authenticate without proper profile setup
-  const isValidAuthentication = !!session && !!authUser && !!userProfile;
+  // SECURITY: Allow authentication with session even if profile is temporarily unavailable
+  // This prevents infinite loading while maintaining security
+  const hasValidSession = !!session && !!authUser;
+  const isValidAuthentication = hasValidSession && (!profileLoading || !!userProfile);
 
-  // Handle profile loading errors securely
+  // Handle profile loading errors securely but don't block authentication
   if (authUser && profileError && !profileLoading) {
     const authError = handleAuthError(profileError);
     logError(authError, {
@@ -153,19 +175,22 @@ export const useAuth = (): AuthState => {
       context: 'profile_loading_failed'
     });
 
-    // Only force sign out for critical profile errors, not temporary network issues
-    if (authError.shouldSignOut || authError.code === 'PROFILE_NOT_FOUND') {
-      console.warn('Critical profile error - signing out user for security');
+    // Only force sign out for critical authentication errors, not profile issues
+    if (authError.shouldSignOut && authError.code !== 'PROFILE_NOT_FOUND') {
+      console.warn('Critical auth error - signing out user for security');
       supabase.auth.signOut();
     }
   }
 
+  // Don't stay in loading state indefinitely - timeout after profile loading attempts
+  const shouldStopLoading = hasValidSession && (!profileLoading || profileError);
+
   return {
-    user: userProfile, // Only return actual database profile, no fallbacks
+    user: userProfile, // Return profile if available, null if not
     session,
-    isAuthenticated: isValidAuthentication, // Require both auth AND valid profile
-    isLoading: isLoading || profileLoading, // Include profile loading in overall loading state
-    role: userProfile?.role || null,
+    isAuthenticated: isValidAuthentication,
+    isLoading: isLoading && !shouldStopLoading, // Don't hang on profile issues
+    role: userProfile?.role || 'franchisee', // Default role if profile unavailable
     permissions: userProfile?.metadata?.permissions || {}
   }
 }

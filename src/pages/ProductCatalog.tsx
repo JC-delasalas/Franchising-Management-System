@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSupplierPermissions } from '@/components/auth/SupplierRouteGuard';
 import { ProductsAPI, ProductCatalogItem } from '@/api/products';
 import { CartAPI } from '@/api/cart';
+import { queryKeys } from '@/lib/queryClient';
 import { 
   Search, 
   Filter, 
@@ -63,7 +64,7 @@ const ProductCatalog: React.FC = () => {
 
   // Get cart count
   const { data: cartCount = 0 } = useQuery({
-    queryKey: ['cart-count'],
+    queryKey: queryKeys.cart.count,
     queryFn: CartAPI.getCartItemCount,
   });
 

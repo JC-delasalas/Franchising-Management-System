@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { CartAPI, CartSummary } from '@/api/cart';
 import { cartDebugger } from '@/utils/cartDebugger';
+import { queryKeys } from '@/lib/queryClient';
 import {
   ArrowLeft,
   Plus,
@@ -31,12 +32,22 @@ const ShoppingCart: React.FC = () => {
 
   // Fetch cart summary with detailed logging for debugging
   const { data: cartSummary, isLoading, refetch, error, isError, isFetching, status, fetchStatus } = useQuery<CartSummary>({
-    queryKey: ['cart-summary'],
+    queryKey: queryKeys.cart.summary,
     queryFn: async () => {
       console.log('🔄 CartAPI.getCartSummary() called at:', new Date().toISOString());
       const startTime = performance.now();
+
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Cart query timeout after 10 seconds')), 10000);
+      });
+
       try {
-        const result = await CartAPI.getCartSummary();
+        const result = await Promise.race([
+          CartAPI.getCartSummary(),
+          timeoutPromise
+        ]) as CartSummary;
+
         const endTime = performance.now();
         console.log('✅ CartAPI.getCartSummary() completed:', {
           result,
@@ -71,7 +82,7 @@ const ShoppingCart: React.FC = () => {
 
   // Validate cart with proper error handling
   const { data: validation } = useQuery({
-    queryKey: ['cart-validation'],
+    queryKey: queryKeys.cart.validation,
     queryFn: CartAPI.validateCart,
     enabled: !!cartSummary?.items.length,
     retry: 1, // Only retry once for validation
@@ -108,7 +119,7 @@ const ShoppingCart: React.FC = () => {
       CartAPI.updateCartItemQuantity(cartItemId, quantity),
     onSuccess: () => {
       refetch();
-      queryClient.invalidateQueries({ queryKey: ['cart-count'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.cart.count });
     },
     onError: (error: any) => {
       console.error('Error updating quantity:', error);
@@ -128,7 +139,7 @@ const ShoppingCart: React.FC = () => {
     mutationFn: (cartItemId: string) => CartAPI.removeFromCart(cartItemId),
     onSuccess: () => {
       refetch();
-      queryClient.invalidateQueries({ queryKey: ['cart-count'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.cart.count });
       toast({
         title: "Item removed",
         description: "Item has been removed from your cart.",
@@ -152,7 +163,7 @@ const ShoppingCart: React.FC = () => {
     mutationFn: CartAPI.clearCart,
     onSuccess: () => {
       refetch();
-      queryClient.invalidateQueries({ queryKey: ['cart-count'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.cart.count });
       toast({
         title: "Cart cleared",
         description: "All items have been removed from your cart.",
