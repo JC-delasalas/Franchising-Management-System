@@ -86,7 +86,7 @@ export const useRealTimeInventory = (locationId?: string) => {
           *,
           products (name, sku)
         `)
-        .eq('location_id', effectiveLocationId)
+        .eq('franchise_location_id', effectiveLocationId)
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -222,7 +222,7 @@ export const useRealTimeInventory = (locationId?: string) => {
           .from('inventory_transactions')
           .insert({
             product_id: update.productId,
-            location_id: effectiveLocationId,
+            franchise_location_id: effectiveLocationId,
             transaction_type: 'adjustment',
             quantity_change: quantityChange,
             notes: update.notes || 'Bulk adjustment',
@@ -276,7 +276,7 @@ export const useRealTimeInventory = (locationId?: string) => {
     },
     {
       table: 'inventory_transactions',
-      filter: `location_id=eq.${effectiveLocationId}`,
+      filter: `franchise_location_id=eq.${effectiveLocationId}`,
       callback: () => {
         queryClient.invalidateQueries({ queryKey: ['inventory-transactions'] });
       }

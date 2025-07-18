@@ -214,7 +214,7 @@ export const useRealTimeNotifications = () => {
   const { isConnected: isRealTimeConnected } = useRealTimeSubscription([
     {
       table: 'notifications',
-      filter: `recipient_id=eq.${user?.id}`,
+      filter: `user_id=eq.${user?.id}`,
       callback: (payload) => {
         if (payload.eventType === 'INSERT') {
           const newNotification = payload.new as Notification;

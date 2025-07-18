@@ -109,12 +109,11 @@ export const NotificationsAPI = {
 
     const { error } = await supabase
       .from('notifications')
-      .update({ 
-        is_read: true, 
-        read_at: new Date().toISOString() 
+      .update({
+        read_at: new Date().toISOString()
       })
-      .eq('recipient_id', user.user.id)
-      .eq('is_read', false);
+      .eq('user_id', user.user.id)
+      .is('read_at', null);
 
     if (error) {
       console.error('Error marking all notifications as read:', error);
