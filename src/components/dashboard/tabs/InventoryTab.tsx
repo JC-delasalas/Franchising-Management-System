@@ -5,28 +5,18 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ShoppingCart, Package, AlertTriangle, RefreshCw } from 'lucide-react';
+import { ShoppingCart, Package, AlertTriangle, RefreshCw, Warehouse, MapPin } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { InventoryAPI, UnifiedInventoryItem } from '@/api/inventory';
 
-interface InventoryItem {
-  id: string;
-  product_id: string;
-  quantity: number;
-  unit_cost: number;
-  reorder_point: number;
-  max_stock_level: number;
-  products: {
-    name: string;
-    sku: string;
-    category: string;
-    unit_of_measure: string;
-  };
+interface StockStatus {
+  status: string;
+  className: string;
 }
 
-const getStockStatus = (item: InventoryItem) => {
-  const stockPercentage = (item.quantity / item.max_stock_level) * 100;
+const getStockStatus = (item: UnifiedInventoryItem): StockStatus => {
+  const stockPercentage = item.max_stock_level > 0 ? (item.quantity / item.max_stock_level) * 100 : 100;
 
   if (item.quantity <= item.reorder_point) {
     return { status: 'Critical', className: 'bg-red-100 text-red-800' };
@@ -43,28 +33,12 @@ export const InventoryTab: React.FC = () => {
   // Get user's primary location
   const locationId = user?.metadata?.primary_location_id;
 
-  // Fetch real inventory data
+  // Fetch unified inventory data (works for both warehouses and franchise locations)
   const { data: inventoryItems = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['inventory', locationId],
-    queryFn: async (): Promise<InventoryItem[]> => {
+    queryKey: ['unified-inventory', locationId],
+    queryFn: async (): Promise<UnifiedInventoryItem[]> => {
       if (!locationId) throw new Error('Location ID required');
-
-      const { data, error } = await supabase
-        .from('inventory_items')
-        .select(`
-          *,
-          products (
-            name,
-            sku,
-            category,
-            unit_of_measure
-          )
-        `)
-        .eq('location_id', locationId)
-        .order('quantity', { ascending: true }); // Show low stock items first
-
-      if (error) throw error;
-      return data || [];
+      return await InventoryAPI.getUnifiedInventoryByLocation(locationId);
     },
     enabled: !!locationId,
     staleTime: 30 * 1000, // 30 seconds
@@ -133,7 +107,19 @@ export const InventoryTab: React.FC = () => {
     <div className="grid md:grid-cols-2 gap-6">
       <Card>
         <CardHeader>
-          <CardTitle>Current Inventory ({inventoryItems.length} items)</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            {inventoryItems[0]?.inventory_type === 'warehouse' ? (
+              <Warehouse className="w-5 h-5" />
+            ) : (
+              <MapPin className="w-5 h-5" />
+            )}
+            Current Inventory ({inventoryItems.length} items)
+            {inventoryItems[0] && (
+              <span className="text-sm font-normal text-gray-500">
+                • {inventoryItems[0].location_name}
+              </span>
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {inventoryItems.length === 0 ? (
@@ -148,13 +134,18 @@ export const InventoryTab: React.FC = () => {
                 return (
                   <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
-                      <p className="font-medium">{item.products.name}</p>
+                      <p className="font-medium">{item.product_name}</p>
                       <p className="text-sm text-gray-600">
-                        {item.quantity} {item.products.unit_of_measure || 'units'} remaining
+                        {item.quantity} units remaining • Available: {item.available_quantity}
                       </p>
                       <p className="text-xs text-gray-500">
-                        SKU: {item.products.sku} • Reorder at: {item.reorder_point}
+                        SKU: {item.sku} • Reorder at: {item.reorder_point} • Value: ₱{item.total_value.toLocaleString()}
                       </p>
+                      {item.inventory_type === 'warehouse' && item.reserved_quantity > 0 && (
+                        <p className="text-xs text-orange-600">
+                          Reserved: {item.reserved_quantity} units
+                        </p>
+                      )}
                     </div>
                     <div className="text-right">
                       <Badge className={stockStatus.className}>
@@ -194,13 +185,18 @@ export const InventoryTab: React.FC = () => {
                   .map((item) => (
                     <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg border-red-200 bg-red-50">
                       <div>
-                        <p className="font-medium">{item.products.name}</p>
+                        <p className="font-medium">{item.product_name}</p>
                         <p className="text-sm text-red-600">
                           Only {item.quantity} left • Reorder needed
                         </p>
                         <p className="text-xs text-gray-500">
-                          Cost: ₱{item.unit_cost?.toLocaleString() || 'N/A'} per {item.products.unit_of_measure || 'unit'}
+                          Cost: ₱{item.unit_cost?.toLocaleString() || 'N/A'} per unit • Total: ₱{item.total_value.toLocaleString()}
                         </p>
+                        {item.inventory_type === 'warehouse' && (
+                          <p className="text-xs text-blue-600">
+                            Warehouse: {item.location_name}
+                          </p>
+                        )}
                       </div>
                       <Button size="sm" variant="outline" className="border-red-300 text-red-700 hover:bg-red-100">
                         <ShoppingCart className="w-4 h-4 mr-1" />
@@ -214,6 +210,9 @@ export const InventoryTab: React.FC = () => {
                 <div className="text-center p-8 text-green-600">
                   <Package className="w-12 h-12 mx-auto mb-4" />
                   <p>All items are well stocked!</p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Total inventory value: ₱{inventoryItems.reduce((sum, item) => sum + item.total_value, 0).toLocaleString()}
+                  </p>
                 </div>
               )}
 

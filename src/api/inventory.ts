@@ -1,6 +1,32 @@
 import { BaseAPI } from './base'
 import { supabase } from '@/lib/supabase'
 
+// Unified inventory interface that works with both warehouse and location inventory
+export interface UnifiedInventoryItem {
+  id: string
+  inventory_type: 'warehouse' | 'location'
+  location_id: string
+  location_name: string
+  city: string
+  location_type: string
+  product_id: string
+  product_name: string
+  sku: string
+  category: string
+  quantity: number
+  reserved_quantity: number
+  available_quantity: number
+  reorder_point: number
+  max_stock_level: number
+  unit_cost: number
+  total_value: number
+  last_counted_at?: string
+  last_restocked_at?: string
+  created_at: string
+  updated_at: string
+}
+
+// Legacy interface for backward compatibility
 export interface InventoryItem {
   warehouse_id: string
   product_id: string
@@ -23,6 +49,19 @@ export interface InventoryItem {
     name: string
     code: string
   }
+}
+
+export interface InventorySummary {
+  inventory_type: string
+  location_id: string
+  location_name: string
+  location_type: string
+  total_products: number
+  total_quantity: number
+  total_value: number
+  low_stock_items: number
+  avg_quantity_per_product: number
+  last_updated: string
 }
 
 export interface StockMovement {
@@ -88,34 +127,121 @@ export interface ReorderRequest {
 }
 
 export class InventoryAPI extends BaseAPI {
-  // Get inventory by location/warehouse
-  static async getInventoryByLocation(locationId: string): Promise<InventoryItem[]> {
+  // Get unified inventory by location (works for both warehouses and franchise locations)
+  static async getUnifiedInventoryByLocation(locationId: string): Promise<UnifiedInventoryItem[]> {
     const user = await this.getCurrentUserProfile()
-    
+
     // Verify access to location
-    const location = await this.readSingle('franchise_locations', { id: locationId })
-    if (location.franchisee_id !== user.id && !['franchisor', 'admin'].includes(user.role || '')) {
-      throw new Error('Access denied to this location')
+    try {
+      // Check if it's a franchise location
+      const location = await this.readSingle('franchise_locations', { id: locationId })
+      if (location.franchisee_id !== user.id && !['franchisor', 'admin'].includes(user.role || '')) {
+        throw new Error('Access denied to this location')
+      }
+    } catch {
+      // Check if it's a warehouse (franchisor/admin only)
+      await this.checkPermission(['franchisor', 'admin'])
     }
 
-    // Use the inventory_status view for comprehensive data
+    // Use the unified inventory view
     const { data, error } = await supabase
-      .from('inventory_status')
+      .from('unified_inventory')
       .select('*')
-      .eq('warehouse_id', locationId) // Assuming location maps to warehouse for simplicity
+      .eq('location_id', locationId)
+      .order('product_name', { ascending: true })
 
     if (error) throw new Error(error.message)
     return data || []
   }
 
+  // Get inventory summary for dashboard
+  static async getInventorySummary(locationId?: string): Promise<InventorySummary[]> {
+    const user = await this.getCurrentUserProfile()
+
+    let query = supabase
+      .from('inventory_summary')
+      .select('*')
+      .order('total_value', { ascending: false })
+
+    // If locationId provided, filter by it
+    if (locationId) {
+      // Verify access
+      if (user.role !== 'franchisor' && user.role !== 'admin') {
+        const location = await this.readSingle('franchise_locations', { id: locationId })
+        if (location.franchisee_id !== user.id) {
+          throw new Error('Access denied to this location')
+        }
+      }
+      query = query.eq('location_id', locationId)
+    } else if (user.role === 'franchisee') {
+      // Franchisees can only see their own locations
+      const userLocationId = user.metadata?.primary_location_id
+      if (userLocationId) {
+        query = query.eq('location_id', userLocationId)
+      }
+    }
+
+    const { data, error } = await query
+    if (error) throw new Error(error.message)
+    return data || []
+  }
+
+  // Get network-wide inventory summary (franchisor only)
+  static async getNetworkInventorySummary(): Promise<any> {
+    await this.checkPermission(['franchisor', 'admin'])
+
+    const { data, error } = await supabase.rpc('get_network_inventory_summary')
+    if (error) throw new Error(error.message)
+    return data?.[0] || {
+      total_locations: 0,
+      total_products: 0,
+      total_inventory_value: 0,
+      warehouse_value: 0,
+      location_value: 0,
+      critical_stock_items: 0,
+      low_stock_items: 0
+    }
+  }
+
+  // Legacy method for backward compatibility
+  static async getInventoryByLocation(locationId: string): Promise<InventoryItem[]> {
+    const unifiedData = await this.getUnifiedInventoryByLocation(locationId)
+
+    // Convert unified format to legacy format
+    return unifiedData.map(item => ({
+      warehouse_id: item.location_id,
+      product_id: item.product_id,
+      quantity_on_hand: item.quantity,
+      reserved_quantity: item.reserved_quantity,
+      available_quantity: item.available_quantity,
+      reorder_level: item.reorder_point,
+      max_stock_level: item.max_stock_level,
+      last_counted_at: item.last_counted_at,
+      last_restocked_at: item.last_restocked_at,
+      cost_per_unit: item.unit_cost,
+      product: {
+        name: item.product_name,
+        sku: item.sku,
+        category: item.category,
+        price: item.unit_cost
+      },
+      warehouse: {
+        name: item.location_name,
+        code: item.sku
+      }
+    }))
+  }
+
   // Get inventory across all locations (franchisor only)
-  static async getAllInventory(): Promise<InventoryItem[]> {
+  static async getAllInventory(): Promise<UnifiedInventoryItem[]> {
     await this.checkPermission(['franchisor', 'admin'])
 
     const { data, error } = await supabase
-      .from('inventory_status')
+      .from('unified_inventory')
       .select('*')
-      .order('warehouse_name', { ascending: true })
+      .order('inventory_type', { ascending: true })
+      .order('location_name', { ascending: true })
+      .order('product_name', { ascending: true })
 
     if (error) throw new Error(error.message)
     return data || []
