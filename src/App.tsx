@@ -96,6 +96,7 @@ const RouteTest = React.lazy(() => import("./components/testing/RouteTest"));
 const ProductionFixesTest = React.lazy(() => import("./components/testing/ProductionFixesTest"));
 const IntegrationTest = React.lazy(() => import("./components/testing/IntegrationTest"));
 const TestSuiteDashboard = React.lazy(() => import("./components/testing/TestSuiteDashboard"));
+const RLSSecurityTest = React.lazy(() => import("./components/testing/RLSSecurityTest"));
 
 // 404 page
 const NotFound = React.lazy(() => import("./pages/NotFound"));
@@ -396,6 +397,11 @@ const App = () => (
                           </RequireAuth>
                         } />
                         <Route path="/test" element={<TestSuiteDashboard />} />
+                        <Route path="/test/rls-security" element={
+                          <RequireAuth>
+                            <RLSSecurityTest />
+                          </RequireAuth>
+                        } />
 
                         {/* Protected IAM Routes (requires special permissions) */}
                         <Route path="/iam-management" element={

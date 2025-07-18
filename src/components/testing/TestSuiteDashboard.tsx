@@ -21,15 +21,27 @@ const TestSuiteDashboard: React.FC = () => {
 
   const testSuites = [
     {
+      id: 'rls-security',
+      name: 'RLS Security Test Suite',
+      description: 'CRITICAL: Tests Row Level Security policies for 13 previously vulnerable database tables to prevent data breaches.',
+      icon: Shield,
+      path: '/test/rls-security',
+      category: 'Database Security',
+      priority: 'Critical',
+      tests: 65,
+      coverage: ['RLS Policies', 'Data Isolation', 'Access Control', 'Unauthorized Access Prevention'],
+      color: 'text-red-600 bg-red-50 border-red-200'
+    },
+    {
       id: 'auth-security',
       name: 'Authentication Security Test Suite',
       description: 'Comprehensive security testing for authentication bypass prevention, session management, and token security.',
       icon: Shield,
       path: '/test/auth-security',
-      category: 'Security',
+      category: 'Auth Security',
       priority: 'Critical',
       tests: 8,
-      coverage: ['Session Management', 'Token Security', 'RLS Policies', 'Logout Security'],
+      coverage: ['Session Management', 'Token Security', 'Authentication Flow', 'Logout Security'],
       color: 'text-red-600 bg-red-50 border-red-200'
     },
     {
@@ -168,7 +180,7 @@ const TestSuiteDashboard: React.FC = () => {
             </div>
             <div className="p-4 bg-green-50 rounded-lg">
               <div className="text-2xl font-bold text-green-600">
-                {testSuites.reduce((sum, suite) => sum + suite.tests, 0)}
+                {testSuites.reduce((sum, suite) => sum + suite.tests, 0)}+
               </div>
               <div className="text-sm text-green-800">Total Tests</div>
             </div>
