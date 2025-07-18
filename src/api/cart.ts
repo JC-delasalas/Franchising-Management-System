@@ -148,12 +148,14 @@ export const CartAPI = {
 
     // Check if item already exists in cart
     console.log('🛒 ADD TO CART - Checking existing item...');
-    const { data: existingItem } = await supabase
+    const { data: existingItem, error: checkError } = await supabase
       .from('shopping_cart')
       .select('*')
       .eq('user_id', user.user.id)
       .eq('product_id', productId)
-      .single();
+      .maybeSingle(); // Use maybeSingle instead of single to handle no results gracefully
+
+    console.log('🛒 ADD TO CART - Check error (if any):', checkError);
 
     console.log('🛒 ADD TO CART - Existing item check:', { existingItem });
 

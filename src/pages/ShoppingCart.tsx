@@ -328,6 +328,12 @@ const ShoppingCart: React.FC = () => {
     );
   }
 
+  console.log('🛒 CART DISPLAY - Checking cart summary:', {
+    cartSummary,
+    hasItems: cartSummary?.items?.length > 0,
+    itemCount: cartSummary?.itemCount
+  });
+
   if (!cartSummary || cartSummary.items.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
