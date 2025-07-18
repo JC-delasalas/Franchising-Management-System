@@ -4,18 +4,29 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/lib/supabase';
 import {
   Upload,
   ShoppingCart,
   Download,
-  BookOpen
+  BookOpen,
+  Bell,
+  AlertTriangle,
+  RefreshCw
 } from 'lucide-react';
 
-const notices = [
-  { title: 'New Product Launch', message: 'Introducing Spicy Siomai variant - now available for order!', date: '2024-01-15', type: 'info' },
-  { title: 'Training Reminder', message: 'Monthly compliance training due by January 20th', date: '2024-01-14', type: 'warning' },
-  { title: 'Promotion Update', message: 'Valentine\'s Day promo materials now ready for download', date: '2024-01-13', type: 'success' }
-];
+interface Notice {
+  id: string;
+  title: string;
+  message: string;
+  type: string;
+  priority: string;
+  created_at: string;
+  expires_at?: string;
+}
 
 const getNoticeType = (type: string) => {
   switch (type) {
@@ -27,6 +38,28 @@ const getNoticeType = (type: string) => {
 };
 
 export const OverviewTab: React.FC = () => {
+  const { user } = useAuth();
+
+  // Fetch real notifications/notices for the user
+  const { data: notices = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['notifications', user?.id],
+    queryFn: async (): Promise<Notice[]> => {
+      if (!user?.id) throw new Error('User ID required');
+
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+    staleTime: 60 * 1000, // 1 minute
+    refetchInterval: 5 * 60 * 1000, // 5 minutes
+  });
   return (
     <div className="grid md:grid-cols-2 gap-6">
       <Card>
@@ -66,20 +99,51 @@ export const OverviewTab: React.FC = () => {
           <CardTitle>Announcements & Notices</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {notices.map((notice, index) => (
-              <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-medium text-sm">{notice.title}</h4>
-                  <Badge className={getNoticeType(notice.type)}>
-                    {notice.type}
-                  </Badge>
+          {isLoading ? (
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-start justify-between mb-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-5 w-16" />
+                  </div>
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-3 w-20" />
                 </div>
-                <p className="text-sm text-gray-600 mb-2">{notice.message}</p>
-                <p className="text-xs text-gray-500">{notice.date}</p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : error ? (
+            <div className="text-center p-8 text-red-600">
+              <AlertTriangle className="w-12 h-12 mx-auto mb-4" />
+              <p>Error loading notifications. Please try again.</p>
+              <Button onClick={() => refetch()} className="mt-4" size="sm">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Retry
+              </Button>
+            </div>
+          ) : notices.length === 0 ? (
+            <div className="text-center p-8 text-gray-500">
+              <Bell className="w-12 h-12 mx-auto mb-4" />
+              <p>No new announcements or notices.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {notices.map((notice) => (
+                <div key={notice.id} className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-medium text-sm">{notice.title}</h4>
+                    <Badge className={getNoticeType(notice.type)}>
+                      {notice.priority || notice.type}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-2">{notice.message}</p>
+                  <p className="text-xs text-gray-500">
+                    {new Date(notice.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
