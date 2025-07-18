@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { CartAPI, CartSummary } from '@/api/cart';
 import { cartDebugger } from '@/utils/cartDebugger';
+import { cartPerformanceProfiler } from '@/utils/cartPerformanceProfiler';
 import { queryKeys } from '@/lib/queryClient';
 import {
   ArrowLeft,
@@ -30,6 +31,43 @@ const ShoppingCart: React.FC = () => {
   const [debugResults, setDebugResults] = useState<any[]>([]);
   const [showDebugPanel, setShowDebugPanel] = useState(false);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
+  const [performanceMetrics, setPerformanceMetrics] = useState<any>(null);
+
+  // Fetch cart summary with optimized configuration for performance
+  const { data: cartSummary, isLoading, refetch, error, isError, isFetching, status, fetchStatus } = useQuery<CartSummary>({
+    queryKey: queryKeys.cart.summary,
+    queryFn: CartAPI.getCartSummary,
+    retry: (failureCount, error) => {
+      // Don't retry on authentication errors
+      if (error?.message?.includes('Authentication failed') || error?.message?.includes('not authenticated')) {
+        return false;
+      }
+      return failureCount < 1; // Reduced retries for faster feedback
+    },
+    retryDelay: 300, // Even faster retry delay
+    staleTime: 30 * 1000, // Increased stale time to leverage caching
+    gcTime: 5 * 60 * 1000, // Increased garbage collection time for better caching
+    throwOnError: false, // Prevent error boundary from catching
+    // Enable immediately - authentication is handled in API layer
+    enabled: true,
+    // Prevent background refetching to reduce load
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+    // Add network mode for better offline handling
+    networkMode: 'online',
+    // Optimize for performance
+    structuralSharing: true,
+  });
+
+  // Validate cart with proper error handling
+  const { data: validation } = useQuery({
+    queryKey: queryKeys.cart.validation,
+    queryFn: CartAPI.validateCart,
+    enabled: !!cartSummary?.items.length,
+    retry: 1, // Only retry once for validation
+    staleTime: 30 * 1000, // 30 seconds
+    throwOnError: false,
+  });
 
   // Add timeout to prevent infinite loading
   useEffect(() => {
@@ -45,37 +83,29 @@ const ShoppingCart: React.FC = () => {
     }
   }, [isLoading]);
 
-  // Fetch cart summary with optimized configuration
-  const { data: cartSummary, isLoading, refetch, error, isError, isFetching, status, fetchStatus } = useQuery<CartSummary>({
-    queryKey: queryKeys.cart.summary,
-    queryFn: CartAPI.getCartSummary,
-    retry: (failureCount, error) => {
-      // Don't retry on authentication errors
-      if (error?.message?.includes('Authentication failed') || error?.message?.includes('not authenticated')) {
-        return false;
-      }
-      return failureCount < 1; // Reduced retries for faster feedback
-    },
-    retryDelay: 500, // Faster retry delay
-    staleTime: 15 * 1000, // Reduced stale time for more responsive updates
-    gcTime: 2 * 60 * 1000, // Reduced garbage collection time
-    throwOnError: false, // Prevent error boundary from catching
-    // Enable immediately - authentication is handled in API layer
-    enabled: true,
-    // Prevent background refetching to reduce load
-    refetchOnWindowFocus: false,
-    refetchOnMount: true,
-  });
+  // Performance profiling for development
+  const runPerformanceProfile = async () => {
+    try {
+      console.log('🔍 Running cart performance profile...');
+      const results = await cartPerformanceProfiler.profileCartLoading();
+      setPerformanceMetrics(results);
+      console.log('📊 Performance Results:', results);
+      console.log(cartPerformanceProfiler.generateReport());
 
-  // Validate cart with proper error handling
-  const { data: validation } = useQuery({
-    queryKey: queryKeys.cart.validation,
-    queryFn: CartAPI.validateCart,
-    enabled: !!cartSummary?.items.length,
-    retry: 1, // Only retry once for validation
-    staleTime: 30 * 1000, // 30 seconds
-    throwOnError: false,
-  });
+      toast({
+        title: "Performance Profile Complete",
+        description: `Total time: ${results.totalTime.toFixed(2)}ms. Check console for details.`,
+        duration: 5000,
+      });
+    } catch (error) {
+      console.error('Performance profiling failed:', error);
+      toast({
+        title: "Performance Profile Failed",
+        description: "Check console for error details",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Debug logging for development
   useEffect(() => {
@@ -330,14 +360,27 @@ const ShoppingCart: React.FC = () => {
               <h1 className="text-xl font-semibold ml-4">Shopping Cart</h1>
             </div>
 
-            <Button
-              variant="outline"
-              onClick={handleClearCart}
-              disabled={clearCartMutation.isPending}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Clear Cart
-            </Button>
+            <div className="flex items-center gap-2">
+              {process.env.NODE_ENV === 'development' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={runPerformanceProfile}
+                  className="text-xs"
+                >
+                  <Bug className="w-3 h-3 mr-1" />
+                  Test Performance
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                onClick={handleClearCart}
+                disabled={clearCartMutation.isPending}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Clear Cart
+              </Button>
+            </div>
           </div>
         </div>
       </div>

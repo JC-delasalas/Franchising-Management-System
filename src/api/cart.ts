@@ -32,6 +32,10 @@ export interface CartSummary {
 let authCache: { user: any; timestamp: number } | null = null;
 const AUTH_CACHE_DURATION = 5000; // 5 seconds
 
+// Cache cart data to reduce database calls
+let cartCache: { data: CartItemWithProduct[]; timestamp: number; userId: string } | null = null;
+const CART_CACHE_DURATION = 10000; // 10 seconds
+
 const getAuthenticatedUser = async () => {
   // Use cached auth if available and recent
   if (authCache && (Date.now() - authCache.timestamp) < AUTH_CACHE_DURATION) {
@@ -54,16 +58,43 @@ const getAuthenticatedUser = async () => {
   return user.user;
 };
 
+// Cache invalidation utilities
+const invalidateCartCache = () => {
+  cartCache = null;
+  console.log('🗑️ Cart cache invalidated');
+};
+
+const invalidateAuthCache = () => {
+  authCache = null;
+  console.log('🗑️ Auth cache invalidated');
+};
+
 export const CartAPI = {
-  // Get cart items for current user with enhanced error handling
+  // Get cart items for current user with enhanced error handling and performance optimization
   async getCartItems(): Promise<CartItemWithProduct[]> {
     try {
       const user = await getAuthenticatedUser();
 
+      // Check cache first
+      if (cartCache &&
+          cartCache.userId === user.id &&
+          (Date.now() - cartCache.timestamp) < CART_CACHE_DURATION) {
+        console.log('🚀 Using cached cart data');
+        return cartCache.data;
+      }
+
+      console.log('📡 Fetching fresh cart data from database');
+
+      // Optimized query with specific field selection and better join strategy
       const { data, error } = await supabase
         .from('shopping_cart')
         .select(`
-          *,
+          id,
+          user_id,
+          product_id,
+          quantity,
+          added_at,
+          updated_at,
           products!inner (
             id,
             name,
@@ -78,14 +109,25 @@ export const CartAPI = {
           )
         `)
         .eq('user_id', user.id)
-        .order('added_at', { ascending: false });
+        .eq('products.active', true)
+        .order('added_at', { ascending: false })
+        .limit(50); // Reasonable limit to prevent excessive data loading
 
       if (error) {
         console.error('Error fetching cart items:', error);
         throw new Error(`Failed to fetch cart items: ${error.message}`);
       }
 
-      return data || [];
+      const cartItems = data || [];
+
+      // Cache the result
+      cartCache = {
+        data: cartItems,
+        timestamp: Date.now(),
+        userId: user.id
+      };
+
+      return cartItems;
     } catch (error) {
       console.error('Unexpected error in getCartItems:', error);
       throw error; // Re-throw to allow proper error handling
@@ -139,6 +181,9 @@ export const CartAPI = {
         throw new Error(`Failed to add item to cart: ${error.message}`);
       }
 
+      // Invalidate cache after successful mutation
+      invalidateCartCache();
+
       return data;
     }
   },
@@ -183,6 +228,9 @@ export const CartAPI = {
       throw new Error(`Failed to update cart item: ${error.message}`);
     }
 
+    // Invalidate cache after successful mutation
+    invalidateCartCache();
+
     return data;
   },
 
@@ -201,6 +249,9 @@ export const CartAPI = {
       console.error('Error removing from cart:', error);
       throw new Error(`Failed to remove item from cart: ${error.message}`);
     }
+
+    // Invalidate cache after successful mutation
+    invalidateCartCache();
   },
 
   // Clear entire cart
