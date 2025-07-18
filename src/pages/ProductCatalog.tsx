@@ -94,12 +94,15 @@ const ProductCatalog: React.FC = () => {
   }, [products]);
 
   const handleAddToCart = async (product: ProductCatalogItem) => {
+    console.log('🛒 CATALOG - Add to cart clicked:', product.name, product.id);
     try {
       const currentQuantity = cartItems.get(product.id) || 0;
       const newQuantity = currentQuantity + 1;
+      console.log('🛒 CATALOG - Current quantity:', currentQuantity, 'New quantity:', newQuantity);
 
       // Check maximum order quantity
       if (product.maximum_order_qty && newQuantity > product.maximum_order_qty) {
+        console.log('🛒 CATALOG - Maximum quantity reached');
         toast({
           title: "Maximum quantity reached",
           description: `You can only order up to ${product.maximum_order_qty} ${product.unit_of_measure} of this product.`,
@@ -108,18 +111,24 @@ const ProductCatalog: React.FC = () => {
         return;
       }
 
-      await CartAPI.addToCart(product.id, 1);
+      console.log('🛒 CATALOG - Calling CartAPI.addToCart...');
+      const result = await CartAPI.addToCart(product.id, 1);
+      console.log('🛒 CATALOG - CartAPI.addToCart result:', result);
+
       setCartItems(prev => new Map(prev.set(product.id, newQuantity)));
-      
+      console.log('🛒 CATALOG - Updated local cart state');
+
       toast({
         title: "Added to cart",
         description: `${product.name} has been added to your cart.`,
       });
+      console.log('🛒 CATALOG - Success toast shown');
 
       // Refresh cart count
       refetch();
+      console.log('🛒 CATALOG - Refetch called');
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      console.error('🛒 CATALOG - Error adding to cart:', error);
       toast({
         title: "Error",
         description: "Failed to add item to cart. Please try again.",

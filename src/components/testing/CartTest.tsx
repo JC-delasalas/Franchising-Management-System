@@ -3,25 +3,36 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { cartTestRunner, CartTestResult } from '@/utils/cartTestRunner';
+import { quickCartTest } from '@/utils/quickCartTest';
+import { useToast } from '@/hooks/use-toast';
 import { ShoppingCart, Play, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 
 const CartTest: React.FC = () => {
+  const { toast } = useToast();
   const [isRunning, setIsRunning] = useState(false);
-  const [results, setResults] = useState<CartTestResult[]>([]);
-  const [summary, setSummary] = useState<{ total: number; passed: number; failed: number } | null>(null);
+  const [testResults, setTestResults] = useState<any>(null);
 
   const runTests = async () => {
     setIsRunning(true);
-    setResults([]);
-    setSummary(null);
+    setTestResults(null);
 
     try {
-      const testResults = await cartTestRunner.runAllTests();
-      setResults(testResults);
-      setSummary(cartTestRunner.getSummary());
+      console.log('🚀 Running quick cart tests...');
+      const results = await quickCartTest.runAllTests();
+      setTestResults(results);
+
+      toast({
+        title: "Cart Tests Complete",
+        description: `Found ${results.diagnosis.filter((d: string) => d.includes('❌')).length} issues`,
+        duration: 5000,
+      });
     } catch (error) {
       console.error('Error running cart tests:', error);
+      toast({
+        title: "Tests Failed",
+        description: "Check console for details",
+        variant: "destructive",
+      });
     } finally {
       setIsRunning(false);
     }
