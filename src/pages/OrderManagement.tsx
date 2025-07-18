@@ -418,7 +418,7 @@ const OrderManagement = () => {
                           <TableCell className="font-medium">{order.order_number}</TableCell>
                           <TableCell>{order.user_profiles?.full_name}</TableCell>
                           <TableCell>{order.franchise_locations?.name}</TableCell>
-                          <TableCell>₱{order.grand_total.toLocaleString()}</TableCell>
+                          <TableCell>₱{(order.total_amount || 0).toLocaleString()}</TableCell>
                           <TableCell>
                             <Badge className={getStatusColor(order.status)}>
                               {order.status.replace('_', ' ')}

@@ -96,7 +96,7 @@ export const useRealTimeInventory = (locationId?: string) => {
     queryKey: ['inventory', locationId || user?.metadata?.primary_location_id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('inventory')
+        .from('inventory_items')
         .select(`
           *,
           products (name, sku, category),

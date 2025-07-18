@@ -8,9 +8,9 @@ interface InventoryItem {
   id: string;
   product_id: string;
   location_id: string;
-  current_stock: number;
-  reorder_level: number;
-  max_stock: number;
+  quantity: number;
+  reorder_point: number;
+  max_stock_level: number;
   unit_cost: number;
   last_updated: string;
   products: {
@@ -35,8 +35,8 @@ interface InventoryTransaction {
 interface StockAlert {
   id: string;
   product_name: string;
-  current_stock: number;
-  reorder_level: number;
+  quantity: number;
+  reorder_point: number;
   status: 'low_stock' | 'out_of_stock' | 'overstock';
   location_name: string;
 }
@@ -106,30 +106,30 @@ export const useRealTimeInventory = (locationId?: string) => {
       const alerts: StockAlert[] = [];
       
       inventory.forEach(item => {
-        if (item.current_stock <= 0) {
+        if (item.quantity <= 0) {
           alerts.push({
             id: item.id,
             product_name: item.products.name,
-            current_stock: item.current_stock,
-            reorder_level: item.reorder_level,
+            quantity: item.quantity,
+            reorder_point: item.reorder_point,
             status: 'out_of_stock',
             location_name: 'Current Location'
           });
-        } else if (item.current_stock <= item.reorder_level) {
+        } else if (item.quantity <= item.reorder_point) {
           alerts.push({
             id: item.id,
             product_name: item.products.name,
-            current_stock: item.current_stock,
-            reorder_level: item.reorder_level,
+            quantity: item.quantity,
+            reorder_point: item.reorder_point,
             status: 'low_stock',
             location_name: 'Current Location'
           });
-        } else if (item.current_stock > item.max_stock) {
+        } else if (item.quantity > item.max_stock_level) {
           alerts.push({
             id: item.id,
             product_name: item.products.name,
-            current_stock: item.current_stock,
-            reorder_level: item.reorder_level,
+            quantity: item.quantity,
+            reorder_point: item.reorder_point,
             status: 'overstock',
             location_name: 'Current Location'
           });
@@ -147,13 +147,13 @@ export const useRealTimeInventory = (locationId?: string) => {
       const currentItem = inventory?.find(item => item.product_id === productId);
       if (!currentItem) throw new Error('Product not found');
 
-      const quantityChange = newStock - currentItem.current_stock;
+      const quantityChange = newStock - currentItem.quantity;
 
       // Update inventory
       const { error: updateError } = await supabase
-        .from('inventory')
-        .update({ 
-          current_stock: newStock,
+        .from('inventory_items')
+        .update({
+          quantity: newStock,
           last_updated: new Date().toISOString()
         })
         .eq('product_id', productId)

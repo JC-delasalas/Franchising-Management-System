@@ -195,7 +195,7 @@ export const useRealTimeSales = (locationId?: string) => {
           payment_method: salesData.payment_method,
           customer_count: salesData.customer_count,
           notes: salesData.notes,
-          uploaded_by: user!.id,
+          created_by: user!.id,
         })
         .select()
         .single();
