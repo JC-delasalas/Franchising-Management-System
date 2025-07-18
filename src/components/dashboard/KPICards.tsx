@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { AnalyticsAPI } from '@/api/analytics';
 import { useAuth } from '@/hooks/useAuth';
+import { useKPIMetrics } from '@/hooks/useKPIMetrics';
 import {
   TrendingUp,
   TrendingDown,
@@ -26,23 +27,8 @@ export const KPICards: React.FC<KPICardsProps> = ({ locationId }) => {
   // Get the location ID from props or user's first location
   const effectiveLocationId = locationId || user?.metadata?.primary_location_id;
 
-  const { data: kpiData, isLoading, error, refetch } = useQuery({
-    queryKey: ['kpi-metrics', effectiveLocationId, role, 'v2'], // Version to force cache invalidation
-    queryFn: async () => {
-      // Use consistent KPI calculation endpoint
-      if (role === 'franchisor') {
-        return AnalyticsAPI.getConsistentFranchisorKPIs(user!.id);
-      } else {
-        return AnalyticsAPI.getConsistentFranchiseeKPIs(effectiveLocationId!);
-      }
-    },
-    enabled: !!user?.id && (role === 'franchisor' || !!effectiveLocationId),
-    staleTime: 5 * 60 * 1000, // Increased to 5 minutes for consistency
-    refetchInterval: false, // Disable auto-refresh to prevent inconsistencies
-    // Manual refresh only to ensure data consistency
-    refetchOnWindowFocus: false,
-    refetchOnMount: true,
-  });
+  // Use real database-driven KPI metrics
+  const { data: kpiData, isLoading, error, refetch } = useKPIMetrics(effectiveLocationId);
 
   if (isLoading) {
     return (
@@ -86,34 +72,35 @@ export const KPICards: React.FC<KPICardsProps> = ({ locationId }) => {
     }).format(amount);
   };
 
-  // Create KPI cards from real data
+  // Create KPI cards from real database data
+  const salesChange = kpiData?.salesChange || 0;
   const kpiCards = [
     {
       name: "Today's Sales",
       value: formatCurrency(kpiData?.todaySales || 0),
-      change: `+${kpiData?.salesChange || 0}%`,
-      trend: 'up',
+      change: `${salesChange >= 0 ? '+' : ''}${salesChange.toFixed(1)}%`,
+      trend: salesChange >= 0 ? 'up' : 'down',
       icon: DollarSign
     },
     {
       name: "This Week",
       value: formatCurrency(kpiData?.weekSales || 0),
-      change: '+12.5%',
-      trend: 'up',
+      change: `${salesChange >= 0 ? '+' : ''}${salesChange.toFixed(1)}%`,
+      trend: salesChange >= 0 ? 'up' : 'down',
       icon: TrendingUp
     },
     {
       name: "This Month",
       value: formatCurrency(kpiData?.monthSales || 0),
-      change: '+15.3%',
-      trend: 'up',
+      change: `${salesChange >= 0 ? '+' : ''}${salesChange.toFixed(1)}%`,
+      trend: salesChange >= 0 ? 'up' : 'down',
       icon: BarChart3
     },
     {
       name: "Orders",
       value: kpiData?.orderCount?.toString() || '0',
-      change: '+8.2%',
-      trend: 'up',
+      change: `Avg: ${formatCurrency(kpiData?.avgOrderValue || 0)}`,
+      trend: 'neutral',
       icon: TrendingUp
     }
   ];

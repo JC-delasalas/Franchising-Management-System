@@ -33,11 +33,18 @@ export const useFranchiseeAnalytics = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fallback to mock data for now, but use real data when available
-  const currentData = useMemo(() => generateFranchiseeSalesData(selectedPeriod), [selectedPeriod]);
-  const currentProductData = useMemo(() => generateProductData(selectedPeriod), [selectedPeriod]);
+  // Use real database data - no more mock fallbacks
+  const currentData = useMemo(() => {
+    // Return empty array if no real data available
+    return analyticsData?.salesData || [];
+  }, [analyticsData, selectedPeriod]);
 
-  // Use real KPI data if available, otherwise fallback to mock
+  const currentProductData = useMemo(() => {
+    // Return empty array if no real data available
+    return analyticsData?.productData || [];
+  }, [analyticsData, selectedPeriod]);
+
+  // Use real KPI data from database
   const currentKPI = useMemo(() => {
     if (analyticsData) {
       return {
