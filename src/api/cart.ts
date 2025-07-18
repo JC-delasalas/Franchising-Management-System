@@ -206,28 +206,22 @@ export const CartAPI = {
 
   // Get cart summary with calculations and error handling
   async getCartSummary(): Promise<CartSummary> {
-    try {
-      const items = await this.getCartItems();
+    const items = await this.getCartItems();
 
-      const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-      const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.products.price), 0);
-      const taxAmount = subtotal * 0.12; // 12% VAT
-      const shippingCost = subtotal > 5000 ? 0 : 200; // Free shipping over ₱5,000
-      const total = subtotal + taxAmount + shippingCost;
+    const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+    const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.products.price), 0);
+    const taxAmount = subtotal * 0.12; // 12% VAT
+    const shippingCost = subtotal > 5000 ? 0 : 200; // Free shipping over ₱5,000
+    const total = subtotal + taxAmount + shippingCost;
 
-      return {
-        items,
-        itemCount,
-        subtotal,
-        taxAmount,
-        shippingCost,
-        total,
-      };
-    } catch (error) {
-      console.error('Error getting cart summary:', error);
-      // Re-throw the error to allow proper error handling in the component
-      throw error;
-    }
+    return {
+      items,
+      itemCount,
+      subtotal,
+      taxAmount,
+      shippingCost,
+      total,
+    };
   },
 
   // Get cart item count

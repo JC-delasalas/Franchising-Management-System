@@ -654,34 +654,30 @@ export type Database = {
         }
       }
       // Shopping Cart Tables
-      cart_items: {
+      shopping_cart: {
         Row: {
           id: string
-          user_id: string
-          product_id: string
+          user_id: string | null
+          product_id: string | null
           quantity: number
-          unit_price: number
-          line_total: number
-          created_at: string
-          updated_at: string
+          added_at: string | null
+          updated_at: string | null
         }
         Insert: {
           id?: string
-          user_id: string
-          product_id: string
+          user_id?: string | null
+          product_id?: string | null
           quantity: number
-          unit_price: number
-          created_at?: string
-          updated_at?: string
+          added_at?: string | null
+          updated_at?: string | null
         }
         Update: {
           id?: string
-          user_id?: string
-          product_id?: string
+          user_id?: string | null
+          product_id?: string | null
           quantity?: number
-          unit_price?: number
-          created_at?: string
-          updated_at?: string
+          added_at?: string | null
+          updated_at?: string | null
         }
       }
       // Order Management Tables
