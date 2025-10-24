@@ -47,7 +47,7 @@ export const NotificationsAPI = {
     const { data, error } = await supabase
       .from('notifications')
       .select('*')
-      .eq('user_id', user.user.id)
+      .eq('recipient_id', user.user.id)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -72,8 +72,8 @@ export const NotificationsAPI = {
     const { count, error } = await supabase
       .from('notifications')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.user.id)
-      .eq('read_at', null); // Use read_at instead of is_read
+      .eq('recipient_id', user.user.id)
+      .is('read_at', null); // Use is() for null checks
 
     if (error) {
       console.error('Error fetching unread count:', error);
