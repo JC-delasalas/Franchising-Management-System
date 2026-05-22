@@ -10,7 +10,19 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+
+# Environment files — never commit secrets
+.env
+.env.*
+!.env.example
+
+# Local overrides (also covers .claude/settings.local.json)
 *.local
+
+# Supabase CLI binaries — install via package manager or path, not commit
+supabase.exe
+supabase
+supabase.tar.gz
 
 # Editor directories and files
 .vscode/*
