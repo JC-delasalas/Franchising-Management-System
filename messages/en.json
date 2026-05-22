@@ -13,5 +13,29 @@
   "phase0": {
     "label": "Phase 0 — Foundation",
     "description": "Scaffold live. App, auth, and dashboards arrive in Phase 1–2 per PLAN.md."
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "signInTitle": "Sign in to FranchiseHub",
+    "signInSubtitle": "Use the email and password your head office set up for you.",
+    "signUpTitle": "Create your account",
+    "signUpSubtitle": "Set up your access. A head office admin will assign your role afterwards.",
+    "email": "Email",
+    "password": "Password",
+    "fullName": "Full name",
+    "passwordHint": "At least 12 characters, with uppercase, lowercase, number, and symbol.",
+    "signingIn": "Signing in…",
+    "createAccount": "Create account",
+    "creatingAccount": "Creating account…",
+    "checkEmail": "Account created. Please check your email to confirm your address, then sign in.",
+    "noAccount": "Don't have an account?",
+    "createOne": "Create one",
+    "haveAccount": "Already have an account?"
+  },
+  "dashboard": {
+    "welcome": "Welcome",
+    "signedInAs": "Signed in as",
+    "phase2Note": "Branch directory, franchisee profiles, sales reports, and royalty review arrive in the next Phase 2 commits."
   }
 }

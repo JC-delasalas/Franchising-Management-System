@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { UserMenu } from "@/components/auth/user-menu";
 
 /**
  * Site header. Server component — fetches translations on the server.
@@ -22,6 +23,7 @@ export async function Header() {
         </Link>
         <nav aria-label="Primary" className="flex items-center gap-2">
           <ThemeToggle />
+          <UserMenu />
         </nav>
       </div>
     </header>
