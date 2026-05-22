@@ -22,10 +22,12 @@ dist-ssr
 .claude/settings.local.json
 **/*.local.json
 
-# Supabase CLI binaries — install via package manager or path, not commit
-supabase.exe
-supabase
-supabase.tar.gz
+# Supabase CLI binaries at repo root — install via package manager or PATH.
+# IMPORTANT: leading slash anchors to repo root, so /supabase does NOT match
+# lib/supabase/ or any other nested directory named "supabase".
+/supabase
+/supabase.exe
+/supabase.tar.gz
 
 # Next.js
 /.next/

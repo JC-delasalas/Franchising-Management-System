@@ -31,12 +31,8 @@ Security hygiene:
 Repo cleanup:
 
 - [x] Create branch `rebuild/next` (currently on it)
-- [x] Archive `business-documentation/` → `legacy/business-documentation/` (commit `8c1f869`)
-- [x] Archive ~26 stale root `*.md` files → `legacy/reports/` (commit `8c1f869`)
-- [x] Archive `src/` → `legacy/src/` (commit `06aaf19`) — preserved for UI/UX reference
-- [x] Archive `scripts/`, `database/`, `supabase/`, `docs/` → `legacy/` (commit `06aaf19`)
-- [x] Archive Vite-era root configs (vite.config.ts, tailwind.config.ts, tsconfig\*, package.json, components.json, index.html, vercel.json, etc.) → `legacy/configs/` (commit `06aaf19`)
-- [x] Add `legacy/README.md` explaining structure
+- [x] Archive entire pre-rebuild codebase to `legacy/` (commits `8c1f869`, `06aaf19`) — UI/UX design tokens ported before deletion
+- [x] **Delete `legacy/` entirely** once design tokens were ported into `app/globals.css`. Repo now contains only the new Next.js codebase + planning docs.
 
 ---
 
@@ -46,21 +42,22 @@ Repo cleanup:
 
 > **Actual stack landed**: Next.js **16.2.6** (newer than originally planned), React **19.2.4**, Tailwind **v4** (CSS-first config via `@theme` in globals.css, no `tailwind.config.ts`), Turbopack dev. Package name `franchisehub`.
 
-- [x] `npx create-next-app@latest` in repo root — TypeScript, Tailwind v4, ESLint, App Router, no src/, `@/*` alias, Turbopack, `--empty` (commit `<TBD>`)
-- [x] `tsconfig.json`: `strict: true`, `noUncheckedIndexedAccess: true`, `noImplicitOverride: true`, `noFallthroughCasesInSwitch: true`. `legacy/` excluded.
-- [x] ESLint configured: `next/core-web-vitals`, `next/typescript`. `legacy/` globally ignored.
-- [ ] Tighten ESLint: add `eslint-plugin-jsx-a11y` (a11y violations) and confirm `eslint-plugin-react-hooks` rules are active via `next/core-web-vitals`
-- [ ] Port design tokens from `legacy/configs/tailwind.config.ts` and `legacy/src/index.css` into Tailwind v4 `@theme` directive in `app/globals.css`. Re-check `#FF6B6B` contrast — fails WCAG AA on white (3.76:1); restrict to large text or shift to darker shade
-- [ ] Install full stack: `@supabase/ssr`, `@supabase/supabase-js`, `@tanstack/react-query`, `zod`, `react-hook-form`, `@hookform/resolvers`, `lucide-react`, `next-intl`, `next-themes`, `sonner`, `resend`, `react-email`, `@sentry/nextjs`, `serwist`
-- [ ] Prettier + Husky + lint-staged + commitlint with Conventional Commits config
-- [ ] `.github/workflows/ci.yml`: install → typecheck (`tsc --noEmit`) → lint → unit test → build
-- [ ] Sentry init (`sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`)
+- [x] `npx create-next-app@latest` in repo root — TypeScript, Tailwind v4, ESLint, App Router, no src/, `@/*` alias, Turbopack, `--empty` (commit `7b486fe`)
+- [x] `tsconfig.json`: `strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`, `noFallthroughCasesInSwitch`
+- [x] ESLint: `next/core-web-vitals` + `next/typescript` + stricter jsx-a11y rules (no-autofocus, click-events-have-key-events, etc.)
+- [x] Design tokens ported into Tailwind v4 `@theme` directive in `app/globals.css` (shadcn-style HSL palette + radius scale + dark mode). **Note**: `#FF6B6B` brand color still needs a contrast review before being adopted as `--primary`; currently the palette uses the neutral shadcn default.
+- [x] Full stack installed: `@supabase/ssr`, `@supabase/supabase-js`, `@tanstack/react-query`, `zod`, `react-hook-form`, `@hookform/resolvers`, `lucide-react`, `next-intl`, `next-themes`, `sonner`, `clsx`, `tailwind-merge`, `class-variance-authority`, `@sentry/nextjs`, `resend`, `@react-email/{components,render}`, `serwist`, `@serwist/next`
+- [x] Prettier + `prettier-plugin-tailwindcss` (Husky + lint-staged + commitlint still TODO)
+- [x] `.github/workflows/ci.yml`: typecheck → lint → format → build
+- [x] Supabase server/client/middleware helpers (`lib/supabase/{server,client,middleware}.ts`)
+- [x] Root `proxy.ts` (Next.js 16 renamed `middleware.ts` to `proxy.ts`) — refreshes Supabase session every request
+- [x] `/api/health` route
+- [x] App layout shell: skip-to-content link (WCAG 2.4.1), real metadata, dark-mode-ready body
+- [ ] Husky + lint-staged + commitlint (pre-commit hooks)
+- [ ] Sentry init (`sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`) — package installed, needs DSN to activate
 - [ ] Vercel Analytics + Speed Insights
-- [ ] Supabase server/client/middleware helpers (`lib/supabase/{server,client,middleware}.ts`)
-- [ ] Protected route middleware (`middleware.ts`)
-- [ ] App layout shell: header, collapsible sidebar (port from old shadcn `sidebar.tsx` but refactor — old one is 761 lines), skip-to-content link, theme switcher, locale switcher
-- [ ] `/api/health` route
-- [ ] `next-intl` scaffold with `en.json` (Filipino added in Phase 3)
+- [ ] App layout: header, collapsible sidebar, theme switcher, locale switcher (full shell; current layout is minimal)
+- [ ] `next-intl` scaffold with `en.json` (Filipino added in Phase 3) — package installed, not yet wired
 - [ ] Vercel project linked, env vars configured, first preview deploy green
 
 ---

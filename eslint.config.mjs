@@ -28,8 +28,6 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Archived pre-rebuild codebase — reference only, not active
-    "legacy/**",
   ]),
 ]);
 

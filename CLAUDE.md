@@ -14,13 +14,9 @@ A franchise management system for Philippine franchisors. One platform to replac
 
 1. **`Franchise.md`** — the product spec. This is canonical.
 2. **`PLAN.md`** — the implementation roadmap and current phase.
-3. **`legacy/`** — the entire previous Vite/React codebase, archived during the rebuild. Reference only. Subdirectories:
-   - `legacy/business-documentation/` — old business docs (not requirements)
-   - `legacy/src/` — old UI/UX, preserved for design reference (port shadcn customizations and Tailwind tokens from here)
-   - `legacy/supabase/`, `legacy/database/`, `legacy/scripts/` — old project's schema and scripts (tied to abandoned project `ktugncuiwjoatopnialp` — do not reuse)
-   - `legacy/docs/`, `legacy/reports/`, `legacy/configs/`, `legacy/misc/` — assorted historical artifacts
+3. **`AGENTS.md`** — Next.js 16 warning. Read before writing Next.js code: APIs, conventions, and file structure have breaking changes from earlier versions.
 
-   If you find yourself building something from `legacy/` that isn't in `Franchise.md`, stop and ask.
+The previous Vite/React codebase has been removed entirely. The new project is a clean-slate Next.js 16 app — every line of code must trace to `Franchise.md`.
 
 ## How to talk to the user
 

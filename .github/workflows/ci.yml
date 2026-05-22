@@ -11,6 +11,12 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Opt-in early to Node 24 for GitHub Actions internals. Node 20 is being
+# removed from runners on Sep 16, 2026; this opts us in ahead of the default
+# flip on Jun 2, 2026. Doesn't affect our app's Node version (set below).
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
