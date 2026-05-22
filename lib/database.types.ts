@@ -19,6 +19,56 @@ export type Database = {
   };
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          audience: Database["public"]["Enums"]["announcement_audience"];
+          author_id: string | null;
+          body: string;
+          created_at: string;
+          expires_at: string | null;
+          franchisor_id: string;
+          id: string;
+          pinned: boolean;
+          published_at: string | null;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          audience?: Database["public"]["Enums"]["announcement_audience"];
+          author_id?: string | null;
+          body: string;
+          created_at?: string;
+          expires_at?: string | null;
+          franchisor_id: string;
+          id?: string;
+          pinned?: boolean;
+          published_at?: string | null;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          audience?: Database["public"]["Enums"]["announcement_audience"];
+          author_id?: string | null;
+          body?: string;
+          created_at?: string;
+          expires_at?: string | null;
+          franchisor_id?: string;
+          id?: string;
+          pinned?: boolean;
+          published_at?: string | null;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "announcements_franchisor_id_fkey";
+            columns: ["franchisor_id"];
+            isOneToOne: false;
+            referencedRelation: "franchisors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       audit_log: {
         Row: {
           action: string;
@@ -58,6 +108,520 @@ export type Database = {
         };
         Relationships: [];
       };
+      branch_franchisees: {
+        Row: {
+          assigned_at: string;
+          branch_id: string;
+          created_by: string | null;
+          franchisee_id: string;
+          id: string;
+          is_primary: boolean;
+          unassigned_at: string | null;
+        };
+        Insert: {
+          assigned_at?: string;
+          branch_id: string;
+          created_by?: string | null;
+          franchisee_id: string;
+          id?: string;
+          is_primary?: boolean;
+          unassigned_at?: string | null;
+        };
+        Update: {
+          assigned_at?: string;
+          branch_id?: string;
+          created_by?: string | null;
+          franchisee_id?: string;
+          id?: string;
+          is_primary?: boolean;
+          unassigned_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "branch_franchisees_branch_id_fkey";
+            columns: ["branch_id"];
+            isOneToOne: false;
+            referencedRelation: "branches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "branch_franchisees_franchisee_id_fkey";
+            columns: ["franchisee_id"];
+            isOneToOne: false;
+            referencedRelation: "franchisees";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      branches: {
+        Row: {
+          address: string | null;
+          archived_at: string | null;
+          city: string | null;
+          code: string;
+          contact_person: string | null;
+          contact_phone: string | null;
+          created_at: string;
+          franchisor_id: string;
+          id: string;
+          name: string;
+          notes: string | null;
+          opening_date: string | null;
+          operating_schedule: Json | null;
+          province: string | null;
+          region: string | null;
+          status: Database["public"]["Enums"]["branch_status"];
+          updated_at: string;
+        };
+        Insert: {
+          address?: string | null;
+          archived_at?: string | null;
+          city?: string | null;
+          code: string;
+          contact_person?: string | null;
+          contact_phone?: string | null;
+          created_at?: string;
+          franchisor_id: string;
+          id?: string;
+          name: string;
+          notes?: string | null;
+          opening_date?: string | null;
+          operating_schedule?: Json | null;
+          province?: string | null;
+          region?: string | null;
+          status?: Database["public"]["Enums"]["branch_status"];
+          updated_at?: string;
+        };
+        Update: {
+          address?: string | null;
+          archived_at?: string | null;
+          city?: string | null;
+          code?: string;
+          contact_person?: string | null;
+          contact_phone?: string | null;
+          created_at?: string;
+          franchisor_id?: string;
+          id?: string;
+          name?: string;
+          notes?: string | null;
+          opening_date?: string | null;
+          operating_schedule?: Json | null;
+          province?: string | null;
+          region?: string | null;
+          status?: Database["public"]["Enums"]["branch_status"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "branches_franchisor_id_fkey";
+            columns: ["franchisor_id"];
+            isOneToOne: false;
+            referencedRelation: "franchisors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      compliance_records: {
+        Row: {
+          branch_id: string;
+          created_at: string;
+          document_id: string | null;
+          due_date: string | null;
+          expiry_date: string | null;
+          franchisor_id: string;
+          id: string;
+          requirement_id: string;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          reviewer_notes: string | null;
+          status: Database["public"]["Enums"]["compliance_status"];
+          submitted_at: string | null;
+          submitted_by: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          branch_id: string;
+          created_at?: string;
+          document_id?: string | null;
+          due_date?: string | null;
+          expiry_date?: string | null;
+          franchisor_id: string;
+          id?: string;
+          requirement_id: string;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          reviewer_notes?: string | null;
+          status?: Database["public"]["Enums"]["compliance_status"];
+          submitted_at?: string | null;
+          submitted_by?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          branch_id?: string;
+          created_at?: string;
+          document_id?: string | null;
+          due_date?: string | null;
+          expiry_date?: string | null;
+          franchisor_id?: string;
+          id?: string;
+          requirement_id?: string;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          reviewer_notes?: string | null;
+          status?: Database["public"]["Enums"]["compliance_status"];
+          submitted_at?: string | null;
+          submitted_by?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "compliance_records_branch_id_fkey";
+            columns: ["branch_id"];
+            isOneToOne: false;
+            referencedRelation: "branches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compliance_records_document_fk";
+            columns: ["document_id"];
+            isOneToOne: false;
+            referencedRelation: "documents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compliance_records_franchisor_id_fkey";
+            columns: ["franchisor_id"];
+            isOneToOne: false;
+            referencedRelation: "franchisors";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "compliance_records_requirement_id_fkey";
+            columns: ["requirement_id"];
+            isOneToOne: false;
+            referencedRelation: "compliance_requirements";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      compliance_requirements: {
+        Row: {
+          active: boolean;
+          category: string | null;
+          created_at: string;
+          default_lead_days: number;
+          description: string | null;
+          franchisor_id: string;
+          id: string;
+          jurisdiction_city: string | null;
+          jurisdiction_region: string | null;
+          name: string;
+          renewal_months: number | null;
+          required_attachment: boolean;
+          updated_at: string;
+        };
+        Insert: {
+          active?: boolean;
+          category?: string | null;
+          created_at?: string;
+          default_lead_days?: number;
+          description?: string | null;
+          franchisor_id: string;
+          id?: string;
+          jurisdiction_city?: string | null;
+          jurisdiction_region?: string | null;
+          name: string;
+          renewal_months?: number | null;
+          required_attachment?: boolean;
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          category?: string | null;
+          created_at?: string;
+          default_lead_days?: number;
+          description?: string | null;
+          franchisor_id?: string;
+          id?: string;
+          jurisdiction_city?: string | null;
+          jurisdiction_region?: string | null;
+          name?: string;
+          renewal_months?: number | null;
+          required_attachment?: boolean;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "compliance_requirements_franchisor_id_fkey";
+            columns: ["franchisor_id"];
+            isOneToOne: false;
+            referencedRelation: "franchisors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      contracts: {
+        Row: {
+          created_at: string;
+          document_path: string | null;
+          end_date: string | null;
+          franchisee_id: string;
+          id: string;
+          notes: string | null;
+          reference_number: string;
+          renewal_status: Database["public"]["Enums"]["contract_renewal_status"];
+          start_date: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          document_path?: string | null;
+          end_date?: string | null;
+          franchisee_id: string;
+          id?: string;
+          notes?: string | null;
+          reference_number: string;
+          renewal_status?: Database["public"]["Enums"]["contract_renewal_status"];
+          start_date: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          document_path?: string | null;
+          end_date?: string | null;
+          franchisee_id?: string;
+          id?: string;
+          notes?: string | null;
+          reference_number?: string;
+          renewal_status?: Database["public"]["Enums"]["contract_renewal_status"];
+          start_date?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "contracts_franchisee_id_fkey";
+            columns: ["franchisee_id"];
+            isOneToOne: false;
+            referencedRelation: "franchisees";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      document_types: {
+        Row: {
+          created_at: string;
+          default_retention_years: number;
+          franchisor_id: string;
+          id: string;
+          name: string;
+          requires_expiry: boolean;
+        };
+        Insert: {
+          created_at?: string;
+          default_retention_years?: number;
+          franchisor_id: string;
+          id?: string;
+          name: string;
+          requires_expiry?: boolean;
+        };
+        Update: {
+          created_at?: string;
+          default_retention_years?: number;
+          franchisor_id?: string;
+          id?: string;
+          name?: string;
+          requires_expiry?: boolean;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "document_types_franchisor_id_fkey";
+            columns: ["franchisor_id"];
+            isOneToOne: false;
+            referencedRelation: "franchisors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      documents: {
+        Row: {
+          archived_at: string | null;
+          branch_id: string | null;
+          document_type_id: string | null;
+          expiry_date: string | null;
+          file_name: string;
+          file_size_bytes: number | null;
+          franchisee_id: string | null;
+          franchisor_id: string;
+          id: string;
+          mime_type: string | null;
+          review_status: Database["public"]["Enums"]["document_review_status"];
+          reviewer_id: string | null;
+          reviewer_notes: string | null;
+          storage_path: string;
+          uploaded_at: string;
+          uploaded_by: string | null;
+        };
+        Insert: {
+          archived_at?: string | null;
+          branch_id?: string | null;
+          document_type_id?: string | null;
+          expiry_date?: string | null;
+          file_name: string;
+          file_size_bytes?: number | null;
+          franchisee_id?: string | null;
+          franchisor_id: string;
+          id?: string;
+          mime_type?: string | null;
+          review_status?: Database["public"]["Enums"]["document_review_status"];
+          reviewer_id?: string | null;
+          reviewer_notes?: string | null;
+          storage_path: string;
+          uploaded_at?: string;
+          uploaded_by?: string | null;
+        };
+        Update: {
+          archived_at?: string | null;
+          branch_id?: string | null;
+          document_type_id?: string | null;
+          expiry_date?: string | null;
+          file_name?: string;
+          file_size_bytes?: number | null;
+          franchisee_id?: string | null;
+          franchisor_id?: string;
+          id?: string;
+          mime_type?: string | null;
+          review_status?: Database["public"]["Enums"]["document_review_status"];
+          reviewer_id?: string | null;
+          reviewer_notes?: string | null;
+          storage_path?: string;
+          uploaded_at?: string;
+          uploaded_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "documents_branch_id_fkey";
+            columns: ["branch_id"];
+            isOneToOne: false;
+            referencedRelation: "branches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "documents_document_type_id_fkey";
+            columns: ["document_type_id"];
+            isOneToOne: false;
+            referencedRelation: "document_types";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "documents_franchisee_id_fkey";
+            columns: ["franchisee_id"];
+            isOneToOne: false;
+            referencedRelation: "franchisees";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "documents_franchisor_id_fkey";
+            columns: ["franchisor_id"];
+            isOneToOne: false;
+            referencedRelation: "franchisors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      franchisee_owners: {
+        Row: {
+          assigned_at: string;
+          assigned_by: string | null;
+          franchisee_id: string;
+          id: string;
+          unassigned_at: string | null;
+          user_id: string;
+        };
+        Insert: {
+          assigned_at?: string;
+          assigned_by?: string | null;
+          franchisee_id: string;
+          id?: string;
+          unassigned_at?: string | null;
+          user_id: string;
+        };
+        Update: {
+          assigned_at?: string;
+          assigned_by?: string | null;
+          franchisee_id?: string;
+          id?: string;
+          unassigned_at?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "franchisee_owners_franchisee_id_fkey";
+            columns: ["franchisee_id"];
+            isOneToOne: false;
+            referencedRelation: "franchisees";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      franchisees: {
+        Row: {
+          archived_at: string | null;
+          business_entity_name: string | null;
+          contact_number: string | null;
+          contract_end_date: string | null;
+          contract_start_date: string | null;
+          created_at: string;
+          email: string | null;
+          franchisor_id: string;
+          id: string;
+          legal_name: string;
+          notes: string | null;
+          renewal_status: Database["public"]["Enums"]["contract_renewal_status"];
+          territory: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          archived_at?: string | null;
+          business_entity_name?: string | null;
+          contact_number?: string | null;
+          contract_end_date?: string | null;
+          contract_start_date?: string | null;
+          created_at?: string;
+          email?: string | null;
+          franchisor_id: string;
+          id?: string;
+          legal_name: string;
+          notes?: string | null;
+          renewal_status?: Database["public"]["Enums"]["contract_renewal_status"];
+          territory?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          business_entity_name?: string | null;
+          contact_number?: string | null;
+          contract_end_date?: string | null;
+          contract_start_date?: string | null;
+          created_at?: string;
+          email?: string | null;
+          franchisor_id?: string;
+          id?: string;
+          legal_name?: string;
+          notes?: string | null;
+          renewal_status?: Database["public"]["Enums"]["contract_renewal_status"];
+          territory?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "franchisees_franchisor_id_fkey";
+            columns: ["franchisor_id"];
+            isOneToOne: false;
+            referencedRelation: "franchisors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       franchisors: {
         Row: {
           contact_email: string | null;
@@ -87,6 +651,294 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [];
+      };
+      invoice_line_items: {
+        Row: {
+          amount: number;
+          created_at: string;
+          description: string;
+          id: string;
+          invoice_id: string;
+          line_type: Database["public"]["Enums"]["invoice_line_type"];
+          royalty_id: string | null;
+          sort_order: number;
+        };
+        Insert: {
+          amount?: number;
+          created_at?: string;
+          description: string;
+          id?: string;
+          invoice_id: string;
+          line_type: Database["public"]["Enums"]["invoice_line_type"];
+          royalty_id?: string | null;
+          sort_order?: number;
+        };
+        Update: {
+          amount?: number;
+          created_at?: string;
+          description?: string;
+          id?: string;
+          invoice_id?: string;
+          line_type?: Database["public"]["Enums"]["invoice_line_type"];
+          royalty_id?: string | null;
+          sort_order?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invoice_line_items_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_line_items_royalty_id_fkey";
+            columns: ["royalty_id"];
+            isOneToOne: false;
+            referencedRelation: "royalties";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      invoices: {
+        Row: {
+          created_at: string;
+          due_date: string | null;
+          footer_text: string;
+          franchisee_id: string;
+          franchisor_id: string;
+          id: string;
+          invoice_number: string;
+          issued_at: string | null;
+          notes: string | null;
+          period_end: string | null;
+          period_start: string | null;
+          status: Database["public"]["Enums"]["invoice_status"];
+          subtotal: number;
+          total: number;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          due_date?: string | null;
+          footer_text?: string;
+          franchisee_id: string;
+          franchisor_id: string;
+          id?: string;
+          invoice_number: string;
+          issued_at?: string | null;
+          notes?: string | null;
+          period_end?: string | null;
+          period_start?: string | null;
+          status?: Database["public"]["Enums"]["invoice_status"];
+          subtotal?: number;
+          total?: number;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          due_date?: string | null;
+          footer_text?: string;
+          franchisee_id?: string;
+          franchisor_id?: string;
+          id?: string;
+          invoice_number?: string;
+          issued_at?: string | null;
+          notes?: string | null;
+          period_end?: string | null;
+          period_start?: string | null;
+          status?: Database["public"]["Enums"]["invoice_status"];
+          subtotal?: number;
+          total?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invoices_franchisee_id_fkey";
+            columns: ["franchisee_id"];
+            isOneToOne: false;
+            referencedRelation: "franchisees";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoices_franchisor_id_fkey";
+            columns: ["franchisor_id"];
+            isOneToOne: false;
+            referencedRelation: "franchisors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      location_assignments: {
+        Row: {
+          assigned_at: string;
+          assigned_by: string | null;
+          branch_id: string;
+          id: string;
+          unassigned_at: string | null;
+          user_id: string;
+        };
+        Insert: {
+          assigned_at?: string;
+          assigned_by?: string | null;
+          branch_id: string;
+          id?: string;
+          unassigned_at?: string | null;
+          user_id: string;
+        };
+        Update: {
+          assigned_at?: string;
+          assigned_by?: string | null;
+          branch_id?: string;
+          id?: string;
+          unassigned_at?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "location_assignments_branch_id_fkey";
+            columns: ["branch_id"];
+            isOneToOne: false;
+            referencedRelation: "branches";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      notifications: {
+        Row: {
+          body: string | null;
+          created_at: string;
+          id: string;
+          link: string | null;
+          metadata: Json | null;
+          read_at: string | null;
+          title: string;
+          type: string;
+          user_id: string;
+        };
+        Insert: {
+          body?: string | null;
+          created_at?: string;
+          id?: string;
+          link?: string | null;
+          metadata?: Json | null;
+          read_at?: string | null;
+          title: string;
+          type: string;
+          user_id: string;
+        };
+        Update: {
+          body?: string | null;
+          created_at?: string;
+          id?: string;
+          link?: string | null;
+          metadata?: Json | null;
+          read_at?: string | null;
+          title?: string;
+          type?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      payment_attachments: {
+        Row: {
+          file_name: string;
+          file_size_bytes: number | null;
+          id: string;
+          mime_type: string | null;
+          payment_id: string;
+          storage_path: string;
+          uploaded_at: string;
+          uploaded_by: string | null;
+        };
+        Insert: {
+          file_name: string;
+          file_size_bytes?: number | null;
+          id?: string;
+          mime_type?: string | null;
+          payment_id: string;
+          storage_path: string;
+          uploaded_at?: string;
+          uploaded_by?: string | null;
+        };
+        Update: {
+          file_name?: string;
+          file_size_bytes?: number | null;
+          id?: string;
+          mime_type?: string | null;
+          payment_id?: string;
+          storage_path?: string;
+          uploaded_at?: string;
+          uploaded_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payment_attachments_payment_id_fkey";
+            columns: ["payment_id"];
+            isOneToOne: false;
+            referencedRelation: "payments";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      payments: {
+        Row: {
+          amount: number;
+          created_at: string;
+          id: string;
+          invoice_id: string;
+          paid_at: string;
+          payment_method: Database["public"]["Enums"]["payment_method"];
+          reference_number: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          reviewer_notes: string | null;
+          status: Database["public"]["Enums"]["payment_status"];
+          submitted_at: string;
+          submitted_by: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          amount: number;
+          created_at?: string;
+          id?: string;
+          invoice_id: string;
+          paid_at: string;
+          payment_method: Database["public"]["Enums"]["payment_method"];
+          reference_number?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          reviewer_notes?: string | null;
+          status?: Database["public"]["Enums"]["payment_status"];
+          submitted_at?: string;
+          submitted_by?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          amount?: number;
+          created_at?: string;
+          id?: string;
+          invoice_id?: string;
+          paid_at?: string;
+          payment_method?: Database["public"]["Enums"]["payment_method"];
+          reference_number?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          reviewer_notes?: string | null;
+          status?: Database["public"]["Enums"]["payment_status"];
+          submitted_at?: string;
+          submitted_by?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payments_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       profiles: {
         Row: {
@@ -120,6 +972,549 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [];
+      };
+      royalties: {
+        Row: {
+          adjustments: number;
+          base_royalty: number;
+          branch_id: string | null;
+          computed_at: string;
+          computed_by: string | null;
+          created_at: string;
+          franchisee_id: string;
+          franchisor_id: string;
+          id: string;
+          marketing_fee: number;
+          notes: string | null;
+          penalties: number;
+          period_end: string;
+          period_start: string;
+          previous_balance: number;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          status: Database["public"]["Enums"]["royalty_status"];
+          total_due: number | null;
+          transaction_royalty: number;
+          updated_at: string;
+        };
+        Insert: {
+          adjustments?: number;
+          base_royalty?: number;
+          branch_id?: string | null;
+          computed_at?: string;
+          computed_by?: string | null;
+          created_at?: string;
+          franchisee_id: string;
+          franchisor_id: string;
+          id?: string;
+          marketing_fee?: number;
+          notes?: string | null;
+          penalties?: number;
+          period_end: string;
+          period_start: string;
+          previous_balance?: number;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          status?: Database["public"]["Enums"]["royalty_status"];
+          total_due?: number | null;
+          transaction_royalty?: number;
+          updated_at?: string;
+        };
+        Update: {
+          adjustments?: number;
+          base_royalty?: number;
+          branch_id?: string | null;
+          computed_at?: string;
+          computed_by?: string | null;
+          created_at?: string;
+          franchisee_id?: string;
+          franchisor_id?: string;
+          id?: string;
+          marketing_fee?: number;
+          notes?: string | null;
+          penalties?: number;
+          period_end?: string;
+          period_start?: string;
+          previous_balance?: number;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          status?: Database["public"]["Enums"]["royalty_status"];
+          total_due?: number | null;
+          transaction_royalty?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "royalties_branch_id_fkey";
+            columns: ["branch_id"];
+            isOneToOne: false;
+            referencedRelation: "branches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "royalties_franchisee_id_fkey";
+            columns: ["franchisee_id"];
+            isOneToOne: false;
+            referencedRelation: "franchisees";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "royalties_franchisor_id_fkey";
+            columns: ["franchisor_id"];
+            isOneToOne: false;
+            referencedRelation: "franchisors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      royalty_policies: {
+        Row: {
+          created_at: string;
+          effective_from: string;
+          effective_to: string | null;
+          fixed_amount: number | null;
+          franchisor_id: string;
+          id: string;
+          marketing_fee_fixed: number | null;
+          marketing_fee_percentage: number | null;
+          model: Database["public"]["Enums"]["royalty_model"];
+          name: string;
+          notes: string | null;
+          rate_percentage: number | null;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          effective_from: string;
+          effective_to?: string | null;
+          fixed_amount?: number | null;
+          franchisor_id: string;
+          id?: string;
+          marketing_fee_fixed?: number | null;
+          marketing_fee_percentage?: number | null;
+          model: Database["public"]["Enums"]["royalty_model"];
+          name: string;
+          notes?: string | null;
+          rate_percentage?: number | null;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          effective_from?: string;
+          effective_to?: string | null;
+          fixed_amount?: number | null;
+          franchisor_id?: string;
+          id?: string;
+          marketing_fee_fixed?: number | null;
+          marketing_fee_percentage?: number | null;
+          model?: Database["public"]["Enums"]["royalty_model"];
+          name?: string;
+          notes?: string | null;
+          rate_percentage?: number | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "royalty_policies_franchisor_id_fkey";
+            columns: ["franchisor_id"];
+            isOneToOne: false;
+            referencedRelation: "franchisors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      sales_report_attachments: {
+        Row: {
+          file_name: string;
+          file_size_bytes: number | null;
+          id: string;
+          mime_type: string | null;
+          sales_report_id: string;
+          storage_path: string;
+          uploaded_at: string;
+          uploaded_by: string | null;
+        };
+        Insert: {
+          file_name: string;
+          file_size_bytes?: number | null;
+          id?: string;
+          mime_type?: string | null;
+          sales_report_id: string;
+          storage_path: string;
+          uploaded_at?: string;
+          uploaded_by?: string | null;
+        };
+        Update: {
+          file_name?: string;
+          file_size_bytes?: number | null;
+          id?: string;
+          mime_type?: string | null;
+          sales_report_id?: string;
+          storage_path?: string;
+          uploaded_at?: string;
+          uploaded_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sales_report_attachments_sales_report_id_fkey";
+            columns: ["sales_report_id"];
+            isOneToOne: false;
+            referencedRelation: "sales_reports";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      sales_reports: {
+        Row: {
+          branch_id: string;
+          created_at: string;
+          discounts: number;
+          franchisor_id: string;
+          gross_sales: number;
+          id: string;
+          net_sales: number | null;
+          payment_method_breakdown: Json | null;
+          period_end: string;
+          period_start: string;
+          refunds: number;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          reviewer_notes: string | null;
+          status: Database["public"]["Enums"]["sales_report_status"];
+          submitted_at: string | null;
+          submitted_by: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          branch_id: string;
+          created_at?: string;
+          discounts?: number;
+          franchisor_id: string;
+          gross_sales?: number;
+          id?: string;
+          net_sales?: number | null;
+          payment_method_breakdown?: Json | null;
+          period_end: string;
+          period_start: string;
+          refunds?: number;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          reviewer_notes?: string | null;
+          status?: Database["public"]["Enums"]["sales_report_status"];
+          submitted_at?: string | null;
+          submitted_by?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          branch_id?: string;
+          created_at?: string;
+          discounts?: number;
+          franchisor_id?: string;
+          gross_sales?: number;
+          id?: string;
+          net_sales?: number | null;
+          payment_method_breakdown?: Json | null;
+          period_end?: string;
+          period_start?: string;
+          refunds?: number;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          reviewer_notes?: string | null;
+          status?: Database["public"]["Enums"]["sales_report_status"];
+          submitted_at?: string | null;
+          submitted_by?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sales_reports_branch_id_fkey";
+            columns: ["branch_id"];
+            isOneToOne: false;
+            referencedRelation: "branches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sales_reports_franchisor_id_fkey";
+            columns: ["franchisor_id"];
+            isOneToOne: false;
+            referencedRelation: "franchisors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      sop_articles: {
+        Row: {
+          author_id: string | null;
+          body: string;
+          category: string | null;
+          created_at: string;
+          franchisor_id: string;
+          id: string;
+          published_at: string | null;
+          slug: string;
+          title: string;
+          updated_at: string;
+          version: number;
+        };
+        Insert: {
+          author_id?: string | null;
+          body: string;
+          category?: string | null;
+          created_at?: string;
+          franchisor_id: string;
+          id?: string;
+          published_at?: string | null;
+          slug: string;
+          title: string;
+          updated_at?: string;
+          version?: number;
+        };
+        Update: {
+          author_id?: string | null;
+          body?: string;
+          category?: string | null;
+          created_at?: string;
+          franchisor_id?: string;
+          id?: string;
+          published_at?: string | null;
+          slug?: string;
+          title?: string;
+          updated_at?: string;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sop_articles_franchisor_id_fkey";
+            columns: ["franchisor_id"];
+            isOneToOne: false;
+            referencedRelation: "franchisors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      support_tickets: {
+        Row: {
+          assigned_to: string | null;
+          branch_id: string | null;
+          category: Database["public"]["Enums"]["ticket_category"];
+          created_at: string;
+          description: string | null;
+          franchisor_id: string;
+          id: string;
+          priority: Database["public"]["Enums"]["ticket_priority"];
+          resolution_notes: string | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          status: Database["public"]["Enums"]["ticket_status"];
+          subject: string;
+          submitted_by: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          assigned_to?: string | null;
+          branch_id?: string | null;
+          category: Database["public"]["Enums"]["ticket_category"];
+          created_at?: string;
+          description?: string | null;
+          franchisor_id: string;
+          id?: string;
+          priority?: Database["public"]["Enums"]["ticket_priority"];
+          resolution_notes?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          status?: Database["public"]["Enums"]["ticket_status"];
+          subject: string;
+          submitted_by?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          assigned_to?: string | null;
+          branch_id?: string | null;
+          category?: Database["public"]["Enums"]["ticket_category"];
+          created_at?: string;
+          description?: string | null;
+          franchisor_id?: string;
+          id?: string;
+          priority?: Database["public"]["Enums"]["ticket_priority"];
+          resolution_notes?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          status?: Database["public"]["Enums"]["ticket_status"];
+          subject?: string;
+          submitted_by?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_branch_id_fkey";
+            columns: ["branch_id"];
+            isOneToOne: false;
+            referencedRelation: "branches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "support_tickets_franchisor_id_fkey";
+            columns: ["franchisor_id"];
+            isOneToOne: false;
+            referencedRelation: "franchisors";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      ticket_attachments: {
+        Row: {
+          file_name: string;
+          file_size_bytes: number | null;
+          id: string;
+          mime_type: string | null;
+          storage_path: string;
+          ticket_id: string;
+          uploaded_at: string;
+          uploaded_by: string | null;
+        };
+        Insert: {
+          file_name: string;
+          file_size_bytes?: number | null;
+          id?: string;
+          mime_type?: string | null;
+          storage_path: string;
+          ticket_id: string;
+          uploaded_at?: string;
+          uploaded_by?: string | null;
+        };
+        Update: {
+          file_name?: string;
+          file_size_bytes?: number | null;
+          id?: string;
+          mime_type?: string | null;
+          storage_path?: string;
+          ticket_id?: string;
+          uploaded_at?: string;
+          uploaded_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ticket_attachments_ticket_id_fkey";
+            columns: ["ticket_id"];
+            isOneToOne: false;
+            referencedRelation: "support_tickets";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      ticket_messages: {
+        Row: {
+          author_id: string | null;
+          body: string;
+          created_at: string;
+          id: string;
+          internal_note: boolean;
+          ticket_id: string;
+        };
+        Insert: {
+          author_id?: string | null;
+          body: string;
+          created_at?: string;
+          id?: string;
+          internal_note?: boolean;
+          ticket_id: string;
+        };
+        Update: {
+          author_id?: string | null;
+          body?: string;
+          created_at?: string;
+          id?: string;
+          internal_note?: boolean;
+          ticket_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ticket_messages_ticket_id_fkey";
+            columns: ["ticket_id"];
+            isOneToOne: false;
+            referencedRelation: "support_tickets";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      training_completions: {
+        Row: {
+          completed_at: string;
+          id: string;
+          module_id: string;
+          score: number | null;
+          user_id: string;
+        };
+        Insert: {
+          completed_at?: string;
+          id?: string;
+          module_id: string;
+          score?: number | null;
+          user_id: string;
+        };
+        Update: {
+          completed_at?: string;
+          id?: string;
+          module_id?: string;
+          score?: number | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "training_completions_module_id_fkey";
+            columns: ["module_id"];
+            isOneToOne: false;
+            referencedRelation: "training_modules";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      training_modules: {
+        Row: {
+          author_id: string | null;
+          content: string | null;
+          created_at: string;
+          description: string | null;
+          franchisor_id: string;
+          id: string;
+          published_at: string | null;
+          required_for_roles: Database["public"]["Enums"]["app_role"][] | null;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          author_id?: string | null;
+          content?: string | null;
+          created_at?: string;
+          description?: string | null;
+          franchisor_id: string;
+          id?: string;
+          published_at?: string | null;
+          required_for_roles?: Database["public"]["Enums"]["app_role"][] | null;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          author_id?: string | null;
+          content?: string | null;
+          created_at?: string;
+          description?: string | null;
+          franchisor_id?: string;
+          id?: string;
+          published_at?: string | null;
+          required_for_roles?: Database["public"]["Enums"]["app_role"][] | null;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "training_modules_franchisor_id_fkey";
+            columns: ["franchisor_id"];
+            isOneToOne: false;
+            referencedRelation: "franchisors";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       user_roles: {
         Row: {
@@ -161,6 +1556,8 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      current_user_branch_ids: { Args: never; Returns: string[] };
+      current_user_franchisee_ids: { Args: never; Returns: string[] };
       current_user_franchisor_ids: { Args: never; Returns: string[] };
       has_role: {
         Args: { role_name: Database["public"]["Enums"]["app_role"] };
@@ -169,6 +1566,14 @@ export type Database = {
       is_super_admin: { Args: never; Returns: boolean };
     };
     Enums: {
+      announcement_audience:
+        | "all"
+        | "franchisees"
+        | "branch_managers"
+        | "admins"
+        | "finance"
+        | "operations"
+        | "trainers";
       app_role:
         | "super_admin"
         | "head_office_admin"
@@ -178,6 +1583,59 @@ export type Database = {
         | "franchisee_owner"
         | "branch_manager"
         | "viewer";
+      branch_status: "pending_opening" | "active" | "inactive" | "closed";
+      compliance_status:
+        | "not_started"
+        | "pending_submission"
+        | "submitted"
+        | "approved"
+        | "rejected"
+        | "expired"
+        | "overdue";
+      contract_renewal_status:
+        | "current"
+        | "expiring_soon"
+        | "expired"
+        | "in_renewal"
+        | "terminated";
+      document_review_status: "pending" | "approved" | "rejected" | "expired";
+      invoice_line_type:
+        | "royalty_base"
+        | "royalty_transactional"
+        | "marketing_fee"
+        | "penalty"
+        | "adjustment"
+        | "previous_balance";
+      invoice_status: "draft" | "issued" | "partially_paid" | "paid" | "overdue" | "cancelled";
+      payment_method: "bank_transfer" | "gcash" | "maya" | "otc_deposit" | "cash" | "other";
+      payment_status: "pending_review" | "confirmed" | "rejected" | "requires_clarification";
+      royalty_model: "percentage_of_gross" | "percentage_of_net" | "fixed_monthly";
+      royalty_status: "computed" | "reviewed" | "invoiced";
+      sales_report_status:
+        | "draft"
+        | "submitted"
+        | "under_review"
+        | "approved"
+        | "rejected"
+        | "edited_after_submission";
+      ticket_category:
+        | "operations"
+        | "inventory"
+        | "sales_reporting"
+        | "compliance"
+        | "training"
+        | "marketing"
+        | "technical"
+        | "supplier"
+        | "other";
+      ticket_priority: "low" | "normal" | "high" | "urgent";
+      ticket_status:
+        | "open"
+        | "in_progress"
+        | "waiting_franchisee"
+        | "waiting_head_office"
+        | "resolved"
+        | "closed";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -303,6 +1761,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      announcement_audience: [
+        "all",
+        "franchisees",
+        "branch_managers",
+        "admins",
+        "finance",
+        "operations",
+        "trainers",
+      ],
       app_role: [
         "super_admin",
         "head_office_admin",
@@ -312,6 +1779,59 @@ export const Constants = {
         "franchisee_owner",
         "branch_manager",
         "viewer",
+      ],
+      branch_status: ["pending_opening", "active", "inactive", "closed"],
+      compliance_status: [
+        "not_started",
+        "pending_submission",
+        "submitted",
+        "approved",
+        "rejected",
+        "expired",
+        "overdue",
+      ],
+      contract_renewal_status: ["current", "expiring_soon", "expired", "in_renewal", "terminated"],
+      document_review_status: ["pending", "approved", "rejected", "expired"],
+      invoice_line_type: [
+        "royalty_base",
+        "royalty_transactional",
+        "marketing_fee",
+        "penalty",
+        "adjustment",
+        "previous_balance",
+      ],
+      invoice_status: ["draft", "issued", "partially_paid", "paid", "overdue", "cancelled"],
+      payment_method: ["bank_transfer", "gcash", "maya", "otc_deposit", "cash", "other"],
+      payment_status: ["pending_review", "confirmed", "rejected", "requires_clarification"],
+      royalty_model: ["percentage_of_gross", "percentage_of_net", "fixed_monthly"],
+      royalty_status: ["computed", "reviewed", "invoiced"],
+      sales_report_status: [
+        "draft",
+        "submitted",
+        "under_review",
+        "approved",
+        "rejected",
+        "edited_after_submission",
+      ],
+      ticket_category: [
+        "operations",
+        "inventory",
+        "sales_reporting",
+        "compliance",
+        "training",
+        "marketing",
+        "technical",
+        "supplier",
+        "other",
+      ],
+      ticket_priority: ["low", "normal", "high", "urgent"],
+      ticket_status: [
+        "open",
+        "in_progress",
+        "waiting_franchisee",
+        "waiting_head_office",
+        "resolved",
+        "closed",
       ],
     },
   },

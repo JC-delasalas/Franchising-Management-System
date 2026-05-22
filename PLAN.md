@@ -66,68 +66,30 @@ Repo cleanup:
 
 **Deliverable**: Supabase schema applied via versioned migrations, RLS on every table, typed client.
 
-> **Status**: foundation + tenancy applied to Supabase project `egucihmwendiaaoskpno`. 4 tables live with RLS, audit triggers on CBEs, search-path-hardened helpers, TypeScript types generated. Sub-step list:
+> **Status**: ✅ **Schema complete.** 30 tables live on Supabase project `egucihmwendiaaoskpno`, RLS enabled on every one, audit triggers on every Critical Business Entity, search-path-hardened helpers, TypeScript types generated and wired into all three Supabase clients.
 
-Tables (grouped):
+Migrations applied (`supabase/migrations/`):
 
-**Tenancy & access** (foundation migrations: `20260523000001_foundation`, `20260523000002_tenancy_and_rbac`, `20260523000003_harden_function_search_paths`)
+- [x] `20260523000001_foundation` — extensions, audit_log, audit_trigger()
+- [x] `20260523000002_tenancy_and_rbac` — franchisors, profiles (auto-create trigger), app_role enum, user_roles, helpers (has_role / current_user_franchisor_ids / is_super_admin)
+- [x] `20260523000003_harden_function_search_paths` — closes search_path security warnings
+- [x] `20260523000004_franchise_structure` — branches, franchisees, branch_franchisees, contracts, location_assignments, franchisee_owners, current_user_branch_ids() + current_user_franchisee_ids()
+- [x] `20260523000005_sales_royalty_billing` — sales_reports + attachments, royalty_policies, royalties (base + transaction split, generated total_due), invoices (INT-YYYY-NNNNNN numbering + mandatory footer), invoice_line_items (itemized), payments (PH methods incl GCash/Maya/OTC), payment_attachments
+- [x] `20260523000006_compliance_docs_operations` — compliance_requirements (LGU-configurable), compliance_records, document_types, documents, support_tickets + messages + attachments, announcements, sop_articles, training_modules, training_completions, notifications
 
-- [x] `franchisors` (tenant root)
-- [x] `profiles` (auth.users extension with auto-create trigger)
-- [x] `app_role` enum (8 canonical roles)
-- [x] `user_roles` (user × role × franchisor scope) + RLS
-- [x] `audit_log` + generic `audit_trigger()` function + triggers on franchisors and user_roles
-- [x] Helper SQL functions: `has_role()`, `current_user_franchisor_ids()`, `is_super_admin()` — all search-path-hardened
-- [x] `lib/database.types.ts` generated and wired into the three Supabase clients
-- [ ] `location_assignments` (user × branch) — deferred until branches table lands in next migration
+RLS pattern verified across all tables:
 
-**Franchise structure**
-
-- [ ] `franchisees`
-- [ ] `branches`
-- [ ] `branch_franchisees` (assignment history)
-- [ ] `contracts` (contract reference, dates, renewal status)
-
-**Sales & royalty**
-
-- [ ] `sales_reports` + `sales_report_attachments`
-- [ ] `royalty_policies` (per franchisor/brand: percent of gross, percent of net, fixed, marketing fee)
-- [ ] `royalties` (computed, with `base_royalty` + `transaction_royalty` columns)
-- [ ] `invoices` (internal billing only; numbering scheme distinct from BIR)
-- [ ] `invoice_line_items`
-- [ ] `payments` + `payment_attachments` (proof uploads)
-
-**Compliance & docs**
-
-- [ ] `compliance_requirements` (configurable per brand/branch/city/region)
-- [ ] `compliance_records`
-- [ ] `documents` + `document_types`
-
-**Operations**
-
-- [ ] `support_tickets` + `ticket_messages` + `ticket_attachments`
-- [ ] `announcements`
-- [ ] `sop_articles` (knowledge base)
-- [ ] `training_modules` + `training_completions`
-
-**Audit**
-
-- [ ] `audit_log` (immutable after 30 days; partitioned by month if volume grows)
-- [ ] `notifications`
-
-RLS pattern:
-
-- [ ] `SELECT`: scoped via `user_roles.franchisor_id` or `location_assignments.branch_id`
-- [ ] `INSERT/UPDATE/DELETE`: role-gated via helper SQL function `has_role(uuid, text)`
-- [ ] No `SECURITY DEFINER` functions exposed to `anon`/`authenticated` unless explicitly intended
-- [ ] Audit trigger on every Critical Business Entity (sales_reports, royalties, invoices, payments, compliance_records, documents, branches, franchisees, user_roles)
+- [x] `SELECT`: scoped via franchisor_id / branch_id / franchisee_id helpers
+- [x] `INSERT/UPDATE/DELETE`: role-gated via `has_role()` + `is_super_admin()`
+- [x] No `SECURITY DEFINER` functions exposed to `anon`/`authenticated` (only `handle_new_user`, locked down)
+- [x] Audit triggers on franchisors, user_roles, branches, franchisees, branch_franchisees, contracts, location_assignments, franchisee_owners, sales_reports, royalty_policies, royalties, invoices, invoice_line_items, payments, compliance_requirements, compliance_records, documents, support_tickets, announcements, sop_articles, training_modules
 
 Deliverables:
 
-- [ ] Migrations versioned in `supabase/migrations/` with descriptive names
-- [ ] `lib/database.types.ts` generated and committed
-- [ ] Seed script: 1 franchisor, 2 franchisees, 4 branches, 1 supplier, sample sales reports, sample compliance items, sample tickets
-- [ ] RLS test suite: Vitest or `supabase test db` covering "franchisee A cannot see franchisee B's data"
+- [x] Migrations versioned in `supabase/migrations/` with descriptive names
+- [x] `lib/database.types.ts` generated and committed (56 KB, 1894 lines)
+- [ ] Seed script: 1 franchisor, 2 franchisees, 4 branches — deferred to Phase 2.1 commit when we wire it to the auth flow
+- [ ] RLS test suite: Vitest / `supabase test db` covering "franchisee A cannot see franchisee B's data" — deferred to Phase 3 polish
 
 ---
 
@@ -137,12 +99,16 @@ Built in the priority order from `Franchise.md` § Build Recommendation.
 
 ### 2.1 Auth + 8-role RBAC (Week 4)
 
-- Email/password sign-in, magic link option
-- Password policy: 12+ chars, mixed case, numbers, symbols
-- Server Actions for sign-up/sign-in
-- Role assignment UI (Super Admin only)
-- Location assignment UI (Head Office Admin)
-- E2E: each of 8 roles can/cannot do their expected actions
+- [x] Email/password sign-in with zod-validated Server Actions
+- [x] Password policy enforced: 12+ chars, mixed case + number + symbol
+- [x] Sign-up with email confirmation (Supabase verification email)
+- [x] Auth callback route `/auth/callback` exchanging code for session
+- [x] Protected `/dashboard` placeholder (server-side `auth.getUser()` gate)
+- [x] `UserMenu` in header showing email + sign-out form, or Sign-in link
+- [ ] Magic link option (deferred — email/password is enough for MVP)
+- [ ] Role assignment UI (Super Admin only) — Phase 2.1b
+- [ ] Location assignment UI (Head Office Admin) — Phase 2.1b
+- [ ] E2E: each of 8 roles can/cannot do their expected actions — Phase 3 polish
 
 ### 2.2 Branch directory (Week 5)
 
