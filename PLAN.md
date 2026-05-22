@@ -16,26 +16,27 @@
 
 ---
 
-## Pre-flight checklist (do before Phase 0)
+## Pre-flight checklist
 
 Security hygiene:
 
-- [ ] Rotate `ktugncuiwjoatopnialp` Supabase ANON_KEY and SERVICE_ROLE_KEY (old project — even though abandoned, the keys were committed to git history)
-- [ ] Add `.env` to `.gitignore`
-- [ ] `git rm --cached .env`
-- [ ] `git filter-repo --path .env --invert-paths` (purge from history) then `git push --force-with-lease`
-- [ ] Audit Supabase logs of old project for unauthorized access since 2025-07-20
+- [x] Add `.env` to `.gitignore` (commit `7ad9e4e`)
+- [x] `git rm --cached .env` (commit `7ad9e4e`)
+- [x] `git rm --cached supabase.exe supabase.tar.gz` (commit `7ad9e4e`)
+- [ ] **DEFERRED**: Rotate `ktugncuiwjoatopnialp` keys — superseded by user decision to abandon the project entirely. If the old project still exists in the Supabase dashboard, delete it there to invalidate keys.
+- [ ] **DEFERRED**: `git filter-repo --path .env --invert-paths` (purge `.env` from history). Only meaningful after the old keys are invalidated.
 - [ ] Remove user-scope Supabase MCP authenticated to `stephen@sigmarpa.com`: `claude mcp remove supabase --scope user` (after confirming with `claude mcp list`)
 - [ ] Fix the existing security advisor on `egucihmwendiaaoskpno`: revoke EXECUTE on `public.rls_auto_enable()` from `anon` and `authenticated`, or drop the function entirely if unused
 
 Repo cleanup:
 
-- [ ] Create branch `rebuild/next`
-- [ ] `mkdir -p docs/archive/legacy-business-docs` and `mv business-documentation/* docs/archive/legacy-business-docs/`
-- [ ] `mkdir -p docs/archive/legacy-reports` and move the ~30 stale `*.md` files from repo root (AUDIT_*, BUILD_*, DEPLOYMENT_*, CART_*, NAVIGATION_*, PHASE_*, WHITE_SCREEN_*, INTEGRATION_COMPLETE, etc.) into it
-- [ ] `git rm --cached supabase.exe supabase.tar.gz` and add to `.gitignore` (58 MB of binaries don't belong in git)
-- [ ] `git mv src src.legacy` (keep available for reference)
-- [ ] Commit: `chore: pre-flight cleanup before rebuild`
+- [x] Create branch `rebuild/next` (currently on it)
+- [x] Archive `business-documentation/` → `legacy/business-documentation/` (commit `8c1f869`)
+- [x] Archive ~26 stale root `*.md` files → `legacy/reports/` (commit `8c1f869`)
+- [x] Archive `src/` → `legacy/src/` (commit `06aaf19`) — preserved for UI/UX reference
+- [x] Archive `scripts/`, `database/`, `supabase/`, `docs/` → `legacy/` (commit `06aaf19`)
+- [x] Archive Vite-era root configs (vite.config.ts, tailwind.config.ts, tsconfig*, package.json, components.json, index.html, vercel.json, etc.) → `legacy/configs/` (commit `06aaf19`)
+- [x] Add `legacy/README.md` explaining structure
 
 ---
 
@@ -44,7 +45,7 @@ Repo cleanup:
 **Deliverable**: an empty but production-grade Next.js shell that boots, deploys, and authenticates.
 
 - [ ] `npx create-next-app@latest` in repo root, TypeScript, Tailwind, ESLint, App Router
-- [ ] Port `tailwind.config.ts` from `src.legacy/` (palette + design tokens). Re-check `#FF6B6B` contrast — fails WCAG AA on white (3.76:1); restrict to large text or shift to darker shade
+- [ ] Port `tailwind.config.ts` from `legacy/configs/tailwind.config.ts` (palette + design tokens) and `legacy/src/index.css` (CSS variables). Re-check `#FF6B6B` contrast — fails WCAG AA on white (3.76:1); restrict to large text or shift to darker shade
 - [ ] Install full stack: `@supabase/ssr`, `@supabase/supabase-js`, `@tanstack/react-query`, `zod`, `react-hook-form`, `@hookform/resolvers`, `lucide-react`, `next-intl`, `next-themes`, `sonner`, `resend`, `react-email`, `@sentry/nextjs`, `serwist`
 - [ ] `tsconfig.json`: `strict: true`, `noUncheckedIndexedAccess: true`, `noImplicitOverride: true`
 - [ ] ESLint config: `next/core-web-vitals`, `@typescript-eslint/strict`, `eslint-plugin-jsx-a11y`, `eslint-plugin-react-hooks`

@@ -14,7 +14,13 @@ A franchise management system for Philippine franchisors. One platform to replac
 
 1. **`Franchise.md`** — the product spec. This is canonical.
 2. **`PLAN.md`** — the implementation roadmap and current phase.
-3. **`docs/archive/legacy-business-docs/`** — old `business-documentation/` content. Reference only. Do **not** treat as requirements. If you find yourself building something from there that isn't in `Franchise.md`, stop and ask.
+3. **`legacy/`** — the entire previous Vite/React codebase, archived during the rebuild. Reference only. Subdirectories:
+   - `legacy/business-documentation/` — old business docs (not requirements)
+   - `legacy/src/` — old UI/UX, preserved for design reference (port shadcn customizations and Tailwind tokens from here)
+   - `legacy/supabase/`, `legacy/database/`, `legacy/scripts/` — old project's schema and scripts (tied to abandoned project `ktugncuiwjoatopnialp` — do not reuse)
+   - `legacy/docs/`, `legacy/reports/`, `legacy/configs/`, `legacy/misc/` — assorted historical artifacts
+   
+   If you find yourself building something from `legacy/` that isn't in `Franchise.md`, stop and ask.
 
 ## How to talk to the user
 
