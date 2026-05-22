@@ -53,12 +53,12 @@ Repo cleanup:
 - [x] Root `proxy.ts` (Next.js 16 renamed `middleware.ts` to `proxy.ts`) — refreshes Supabase session every request
 - [x] `/api/health` route
 - [x] App layout shell: skip-to-content link (WCAG 2.4.1), real metadata, dark-mode-ready body
-- [ ] Husky + lint-staged + commitlint (pre-commit hooks)
-- [ ] Sentry init (`sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`) — package installed, needs DSN to activate
-- [ ] Vercel Analytics + Speed Insights
-- [ ] App layout: header, collapsible sidebar, theme switcher, locale switcher (full shell; current layout is minimal)
-- [ ] `next-intl` scaffold with `en.json` (Filipino added in Phase 3) — package installed, not yet wired
-- [ ] Vercel project linked, env vars configured, first preview deploy green
+- [x] Husky + lint-staged + commitlint (commit `ce97e37`)
+- [x] Sentry init (`instrumentation.ts`, `instrumentation-client.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`) — lazy, no-op without `NEXT_PUBLIC_SENTRY_DSN` (commit `4353d95`)
+- [x] Vercel Analytics + Speed Insights wired into root layout (commit `4353d95`)
+- [x] `next-intl` scaffold with `messages/en.json`, `i18n/request.ts`, `NextIntlClientProvider` in layout (commit `1383695`)
+- [x] App layout: skip-to-content link, sticky `Header` component, dark-mode `ThemeProvider`, theme toggle. Collapsible sidebar deferred to Phase 2 (waits for role-based nav).
+- [ ] Vercel project linked, env vars configured, first preview deploy green — **requires user to run `vercel login` and `vercel link`**
 
 ---
 
@@ -66,15 +66,20 @@ Repo cleanup:
 
 **Deliverable**: Supabase schema applied via versioned migrations, RLS on every table, typed client.
 
+> **Status**: foundation + tenancy applied to Supabase project `egucihmwendiaaoskpno`. 4 tables live with RLS, audit triggers on CBEs, search-path-hardened helpers, TypeScript types generated. Sub-step list:
+
 Tables (grouped):
 
-**Tenancy & access**
+**Tenancy & access** (foundation migrations: `20260523000001_foundation`, `20260523000002_tenancy_and_rbac`, `20260523000003_harden_function_search_paths`)
 
-- [ ] `franchisors` (tenant root)
-- [ ] `users` (auth.users extension)
-- [ ] `roles` (8 canonical, see CLAUDE.md)
-- [ ] `user_roles` (user × role × scope)
-- [ ] `location_assignments` (user × branch)
+- [x] `franchisors` (tenant root)
+- [x] `profiles` (auth.users extension with auto-create trigger)
+- [x] `app_role` enum (8 canonical roles)
+- [x] `user_roles` (user × role × franchisor scope) + RLS
+- [x] `audit_log` + generic `audit_trigger()` function + triggers on franchisors and user_roles
+- [x] Helper SQL functions: `has_role()`, `current_user_franchisor_ids()`, `is_super_admin()` — all search-path-hardened
+- [x] `lib/database.types.ts` generated and wired into the three Supabase clients
+- [ ] `location_assignments` (user × branch) — deferred until branches table lands in next migration
 
 **Franchise structure**
 
