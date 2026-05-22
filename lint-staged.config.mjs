@@ -5,7 +5,9 @@
  * Full typecheck runs in CI, not here, because tsc --noEmit on a large
  * codebase is too slow for an interactive commit.
  */
-export default {
+const lintStagedConfig = {
   "*.{ts,tsx,js,mjs,cjs}": ["eslint --fix", "prettier --write"],
   "*.{json,md,css,yml,yaml}": ["prettier --write"],
 };
+
+export default lintStagedConfig;

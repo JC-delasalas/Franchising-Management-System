@@ -1,0 +1,17 @@
+{
+  "app": {
+    "name": "FranchiseHub",
+    "tagline": "Franchise control tower for Philippine franchisors.",
+    "shortDescription": "Branches, sales reports, royalties, compliance, documents, and support — in one place."
+  },
+  "nav": {
+    "skipToContent": "Skip to main content",
+    "toggleTheme": "Toggle dark mode",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "phase0": {
+    "label": "Phase 0 — Foundation",
+    "description": "Scaffold live. App, auth, and dashboards arrive in Phase 1–2 per PLAN.md."
+  }
+}

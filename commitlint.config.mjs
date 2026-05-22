@@ -7,7 +7,7 @@
  * Subject is the part after the type, e.g. "add branch management module".
  * Body uses sentence case; subject does not require it.
  */
-export default {
+const commitlintConfig = {
   extends: ["@commitlint/config-conventional"],
   rules: {
     "subject-case": [0], // allow any case in subject
@@ -15,3 +15,5 @@ export default {
     "footer-max-line-length": [0],
   },
 };
+
+export default commitlintConfig;
