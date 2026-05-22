@@ -103,6 +103,7 @@ The system should NOT:
 ## MVP User Stories
 
 ### Admin
+
 - Create and manage branches
 - Assign franchisees to branches
 - View submitted sales reports
@@ -113,6 +114,7 @@ The system should NOT:
 - See overdue reports and missing requirements
 
 ### Franchisee
+
 - Log in and view assigned branch
 - Submit daily or weekly sales reports
 - View royalty breakdown
@@ -122,11 +124,13 @@ The system should NOT:
 - View announcements and SOPs
 
 ### Finance
+
 - View royalty amounts per branch
 - Mark payments as pending, paid, or overdue
 - Export sales and royalty summaries
 
 ### Operations
+
 - View branch compliance status
 - Assign corrective actions
 - Review branch audit history
@@ -250,8 +254,8 @@ Invoice numbering for internal documents must not mimic BIR series numbering con
 
 Professional, helpful, direct. Avoid threatening language. Use neutral status words ("overdue", "needs review", "please submit") instead of accusatory labels ("violator", "non-compliant offender", "in violation").
 
-Bad: *You are non-compliant.*
-Better: *This requirement is overdue. Please submit the needed document or contact head office if you need help.*
+Bad: _You are non-compliant._
+Better: _This requirement is overdue. Please submit the needed document or contact head office if you need help._
 
 This is not softness — it's a Filipino business-relationship reality. Pakikisama and face-saving matter. A system that publicly shames franchisees will be abandoned and worked around.
 

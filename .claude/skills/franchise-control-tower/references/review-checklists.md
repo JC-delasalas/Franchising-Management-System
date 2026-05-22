@@ -7,11 +7,13 @@
 ## 1. PR review (any code change)
 
 ### Scope
+
 - [ ] Change traces to a section in `Franchise.md`
 - [ ] If not in `Franchise.md`, the PR description explains why it's still in scope
 - [ ] Not pulling in a deferred Phase 4+ feature (POS, inventory, ABC, application scoring, mobile, etc.)
 
 ### Schema & RLS
+
 - [ ] Every new table has an RLS policy in the same migration
 - [ ] Policies cover `SELECT`, `INSERT`, `UPDATE`, `DELETE` (or explicitly omit with a comment)
 - [ ] `SECURITY DEFINER` functions explicitly revoke EXECUTE from `anon`/`authenticated` unless intentionally public
@@ -19,11 +21,13 @@
 - [ ] Cross-tenant test exists: Franchisee A cannot see Franchisee B's rows
 
 ### Audit
+
 - [ ] Mutations on Critical Business Entities (sales reports, royalties, invoices, payments, compliance records, documents, branches, franchisees, user_roles) write to `audit_log`
 - [ ] No silent updates — every status transition logged
 - [ ] No hard deletes on CBEs — soft delete only
 
 ### Royalty & billing (if touched)
+
 - [ ] `base_royalty` and `transaction_royalty` remain separate
 - [ ] Invoice rendering itemizes all fee categories
 - [ ] Zero-value lines still render
@@ -32,12 +36,14 @@
 - [ ] No BIR-regulated terminology misused
 
 ### User-facing copy
+
 - [ ] No shaming language (see `references/ph-domain-context.md`)
 - [ ] Strings go through `next-intl`
 - [ ] Error states tell the user how to resolve, not just what failed
 - [ ] Hard news (suspension, contract issues) routed via human workflow, not system finality
 
 ### Engineering hygiene
+
 - [ ] TypeScript strict — no `any` without a comment
 - [ ] Forms validate via zod
 - [ ] Server Actions used for mutations (no client-side writes to Supabase)
@@ -47,6 +53,7 @@
 - [ ] Conventional Commits used
 
 ### Performance
+
 - [ ] No N+1 queries in list views (use joins or Supabase `select` with relations)
 - [ ] Large lists paginated or virtualized
 - [ ] Server Components used where possible; "use client" justified when present
@@ -89,7 +96,7 @@
 - [ ] Status words from approved list ("overdue", "needs review", "please submit", "pending", "in progress", "completed")
 - [ ] Avoids: "violator", "non-compliant offender", "failed", "rejected" (use "needs revision" or "needs follow-up" instead)
 - [ ] BIR-regulated terminology only used in "we don't generate these" context
-- [ ] Error messages explain *what to do next*
+- [ ] Error messages explain _what to do next_
 - [ ] Hard outcomes (suspension, account close) go through human approval workflow
 - [ ] Filipino translation reviewed by a Filipino speaker before launch
 

@@ -6,15 +6,15 @@
 
 ## Tax & document terminology — handle with care
 
-| Term | What it is | We generate? |
-|---|---|---|
-| **Official Receipt (OR)** | BIR-regulated proof of payment for services | No |
-| **Sales Invoice (SI)** | BIR-regulated record of sale of goods | No |
-| **POS receipt** | Customer-facing transaction record from an accredited POS | No |
-| **VAT invoice** | Sales invoice with VAT breakdown — BIR rules apply | No |
-| **Internal billing document** | B2B commercial document between business entities | **Yes** (royalty & marketing fee invoices) |
-| **Statement of account** | Period summary of charges/payments | Yes (Phase 4+ likely) |
-| **Credit memo / debit memo** | Adjustment document | Yes — internal only |
+| Term                          | What it is                                                | We generate?                               |
+| ----------------------------- | --------------------------------------------------------- | ------------------------------------------ |
+| **Official Receipt (OR)**     | BIR-regulated proof of payment for services               | No                                         |
+| **Sales Invoice (SI)**        | BIR-regulated record of sale of goods                     | No                                         |
+| **POS receipt**               | Customer-facing transaction record from an accredited POS | No                                         |
+| **VAT invoice**               | Sales invoice with VAT breakdown — BIR rules apply        | No                                         |
+| **Internal billing document** | B2B commercial document between business entities         | **Yes** (royalty & marketing fee invoices) |
+| **Statement of account**      | Period summary of charges/payments                        | Yes (Phase 4+ likely)                      |
+| **Credit memo / debit memo**  | Adjustment document                                       | Yes — internal only                        |
 
 When in doubt, don't generate. Ask.
 
@@ -26,17 +26,17 @@ Never use phrases like "BIR-friendly invoice", "compliant receipt", or "official
 
 Common documents tracked in the Compliance module. Renewal cycles vary by LGU — do not hard-code them.
 
-| Document | Typical issuer | Typical cycle | Notes |
-|---|---|---|---|
-| Mayor's Permit / Business Permit | City/Municipal LGU | Annual (Jan renewal common) | Penalties for late renewal. Single biggest annual pain point. |
-| Barangay Clearance / Business Permit | Barangay | Annual | Required before Mayor's Permit |
-| BIR Certificate of Registration (BIR 2303) | BIR | One-time + annual registration fee | Annual renewal of registration fee (Jan 31 deadline historically) |
-| Fire Safety Inspection Certificate (FSIC) | BFP | Annual | Required for Mayor's Permit renewal |
-| Sanitary Permit | City/Municipal Health | Annual | Food establishments especially |
-| Lease contract | Landlord | Multi-year | Track expiry for renewal planning |
-| DOLE compliance certificates | DOLE | Varies | If employer-related |
-| SSS / PhilHealth / Pag-IBIG registrations | Respective agencies | Ongoing | If employees |
-| Franchise agreement | Franchisor | Per contract term (3-10 yrs) | Renewal workflow is Phase 4+ |
+| Document                                   | Typical issuer        | Typical cycle                      | Notes                                                             |
+| ------------------------------------------ | --------------------- | ---------------------------------- | ----------------------------------------------------------------- |
+| Mayor's Permit / Business Permit           | City/Municipal LGU    | Annual (Jan renewal common)        | Penalties for late renewal. Single biggest annual pain point.     |
+| Barangay Clearance / Business Permit       | Barangay              | Annual                             | Required before Mayor's Permit                                    |
+| BIR Certificate of Registration (BIR 2303) | BIR                   | One-time + annual registration fee | Annual renewal of registration fee (Jan 31 deadline historically) |
+| Fire Safety Inspection Certificate (FSIC)  | BFP                   | Annual                             | Required for Mayor's Permit renewal                               |
+| Sanitary Permit                            | City/Municipal Health | Annual                             | Food establishments especially                                    |
+| Lease contract                             | Landlord              | Multi-year                         | Track expiry for renewal planning                                 |
+| DOLE compliance certificates               | DOLE                  | Varies                             | If employer-related                                               |
+| SSS / PhilHealth / Pag-IBIG registrations  | Respective agencies   | Ongoing                            | If employees                                                      |
+| Franchise agreement                        | Franchisor            | Per contract term (3-10 yrs)       | Renewal workflow is Phase 4+                                      |
 
 Reminder cadence baseline: 30 / 14 / 7 / 1 days before expiry, via email + in-app. Configurable per document type.
 
@@ -65,15 +65,15 @@ Filipino business culture values:
 
 The system must not weaponize compliance. Specifics:
 
-| Avoid | Use instead |
-|---|---|
-| "You are non-compliant" | "This requirement is overdue" |
-| "Violator" | "Pending submission" |
-| "Failed inspection" | "Needs follow-up" |
-| "Penalty applied automatically" | "Flagged for Finance review" |
-| "Franchisee in breach" | "Items requiring attention" |
-| "Late again!" | "Reminder: please submit when ready" |
-| "Suspended" (without context) | "Access paused pending review — contact head office" |
+| Avoid                           | Use instead                                          |
+| ------------------------------- | ---------------------------------------------------- |
+| "You are non-compliant"         | "This requirement is overdue"                        |
+| "Violator"                      | "Pending submission"                                 |
+| "Failed inspection"             | "Needs follow-up"                                    |
+| "Penalty applied automatically" | "Flagged for Finance review"                         |
+| "Franchisee in breach"          | "Items requiring attention"                          |
+| "Late again!"                   | "Reminder: please submit when ready"                 |
+| "Suspended" (without context)   | "Access paused pending review — contact head office" |
 
 When you have to deliver hard news (e.g. account suspension, contract issue), do it via human-routed workflow with a person in the loop. Never the system speaking with finality on legal/financial status.
 
@@ -103,7 +103,7 @@ The franchisor is ultimately accountable as the PIC. The platform's job is to ma
 
 ## Operational reality
 
-Things to design *for*, not against:
+Things to design _for_, not against:
 
 - **Manual sales entry will dominate MVP** — POS integration is Phase 4+. Plan for typos, double submissions, "I forgot to subtract refunds" — make corrections easy and audit them.
 - **Messenger/Viber will still be used in parallel** — accept it. Don't try to ban it; just make the system more useful than the chat thread for the specific things we track.

@@ -31,13 +31,13 @@ If the user asks for something not in `Franchise.md`, say so explicitly and ask 
 - "Decision + one-line why" over essays.
 - Don't flatter weak ideas.
 - Flag risks early — especially scope creep, compliance ambiguity, and overengineering.
-- When uncertain, recommend *not implement yet* rather than guessing.
+- When uncertain, recommend _not implement yet_ rather than guessing.
 
 ---
 
 ## Constitutional rules (never break without explicit user approval)
 
-1. **No silent edits to brand-critical data.** Branches cannot freely edit product prices, recipes, approved suppliers, promo mechanics, discounts, brand assets, operating procedures, or customer-facing terms. They submit *requests*; head office approves.
+1. **No silent edits to brand-critical data.** Branches cannot freely edit product prices, recipes, approved suppliers, promo mechanics, discounts, brand assets, operating procedures, or customer-facing terms. They submit _requests_; head office approves.
 2. **No automatic legal/financial finality.** Never auto-declare contract breach, tax payable, franchise termination, penalty, or BIR compliance status. Flag and route to human review.
 3. **Stay in MVP. Do not drift toward ERP.** No payroll, full accounting, CRM, HRIS, procurement, POS, LMS, legal-doc automation, advanced BI, or AI forecasting.
 4. **Never bypass BIR-accredited systems.** Don't generate official tax invoices/ORs/sales invoices, modify transaction records without audit trail, delete sales records, backdate, allow unlogged voids, hide discounts/refunds, or produce "clean" reports for audits.
@@ -51,16 +51,16 @@ If the user asks for something not in `Franchise.md`, say so explicitly and ask 
 
 ## Canonical 8 roles
 
-| Role | Scope |
-|---|---|
-| Super Admin | Tenant + system-level config |
-| Head Office Admin | Day-to-day franchisor ops across all branches |
-| Finance | Royalties, payments, invoices, financial exports |
-| Operations | Compliance, audits, corrective actions |
-| Trainer | Training materials, completion tracking, KB authoring |
-| Franchisee Owner | One or more branches; sees only their branches |
-| Branch Manager | Daily branch ops; scoped to assigned branch(es) |
-| Viewer | Read-only — accountants, area managers, auditors |
+| Role              | Scope                                                 |
+| ----------------- | ----------------------------------------------------- |
+| Super Admin       | Tenant + system-level config                          |
+| Head Office Admin | Day-to-day franchisor ops across all branches         |
+| Finance           | Royalties, payments, invoices, financial exports      |
+| Operations        | Compliance, audits, corrective actions                |
+| Trainer           | Training materials, completion tracking, KB authoring |
+| Franchisee Owner  | One or more branches; sees only their branches        |
+| Branch Manager    | Daily branch ops; scoped to assigned branch(es)       |
+| Viewer            | Read-only — accountants, area managers, auditors      |
 
 Do not blur Finance, Operations, and Franchisee permissions. That's the most common foot-gun in franchise systems.
 
@@ -100,7 +100,7 @@ Plus SOP library, reports/exports as supporting features.
 - White-label / multi-tenant for consultants
 - Automated legal notices
 
-If asked to build any of these, respond: *"That's deferred to Phase 4+ per `Franchise.md`. Want to promote it to MVP scope? That needs explicit decision because [trade-off]."*
+If asked to build any of these, respond: _"That's deferred to Phase 4+ per `Franchise.md`. Want to promote it to MVP scope? That needs explicit decision because [trade-off]."_
 
 ---
 
@@ -116,7 +116,7 @@ If asked to build any of these, respond: *"That's deferred to Phase 4+ per `Fran
 - **NEVER GENERATE**: customer-facing Official Receipts (OR), Sales Invoices, or POS receipts — these are regulated and must come from BIR-accredited systems.
 - **Mandatory footer** on every internal invoice we generate:
 
-  > *Internal billing document — for franchisor/franchisee royalty reconciliation. Not a BIR Official Receipt or Sales Invoice.*
+  > _Internal billing document — for franchisor/franchisee royalty reconciliation. Not a BIR Official Receipt or Sales Invoice._
 
 - **Numbering**: internal invoice series must not mimic BIR series conventions. Use a clearly distinct format (e.g. `INT-2026-0001`).
 - **Language**: do not say things like "not BIR-regulated" casually. Use precise framing: "internal billing document, not subject to BIR OR/Sales Invoice issuance rules."
@@ -139,6 +139,7 @@ If asked to build any of these, respond: *"That's deferred to Phase 4+ per `Fran
 ## Review checklists (use these on every relevant artifact — see `references/review-checklists.md` for the full version)
 
 ### Code/PR review (short form)
+
 - [ ] In scope per `Franchise.md`? If not — flag.
 - [ ] New table → RLS policy in same migration?
 - [ ] Mutation on a Critical Business Entity → audit log row?
@@ -149,6 +150,7 @@ If asked to build any of these, respond: *"That's deferred to Phase 4+ per `Fran
 - [ ] Test added for cross-franchisee isolation if RLS changed?
 
 ### Spec/module design review (short form)
+
 - [ ] Traceable to a `Franchise.md` section?
 - [ ] 8 roles' access defined explicitly?
 - [ ] Audit-logged actions identified?

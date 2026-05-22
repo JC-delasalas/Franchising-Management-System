@@ -110,7 +110,7 @@ At every transition there's an audit log row. Computation is never trusted as fi
 - **Internal marketing fee invoices** — franchisor → franchisee for marketing fund
 - **Adjustments / credit memos** — franchisor → franchisee for corrections (only via Finance, always logged)
 
-These are B2B billing documents. They are commercial records between two business entities. They are *not* customer-facing tax documents.
+These are B2B billing documents. They are commercial records between two business entities. They are _not_ customer-facing tax documents.
 
 ### What we never generate
 
@@ -158,19 +158,19 @@ When describing what we do/don't do:
 
 Franchisees pay via bank transfer, GCash, Maya, OTC deposits, sometimes cash. The system must capture:
 
-| Field | Notes |
-|---|---|
-| `amount` | Numeric, currency PHP for MVP |
-| `payment_method` | enum: bank_transfer, gcash, maya, otc_deposit, cash, other |
-| `reference_number` | Free text — bank ref / GCash txn ID |
-| `paid_at` | Date payment was made (not when uploaded) |
-| `proof_file` | Image or PDF — required if non-cash |
-| `submitted_by` | Franchisee user id |
-| `submitted_at` | Auto |
-| `reviewed_by` | Finance user id, nullable |
-| `reviewed_at` | Auto on review |
-| `status` | enum: pending_review, confirmed, rejected, requires_clarification |
-| `reviewer_notes` | Free text from Finance |
+| Field              | Notes                                                             |
+| ------------------ | ----------------------------------------------------------------- |
+| `amount`           | Numeric, currency PHP for MVP                                     |
+| `payment_method`   | enum: bank_transfer, gcash, maya, otc_deposit, cash, other        |
+| `reference_number` | Free text — bank ref / GCash txn ID                               |
+| `paid_at`          | Date payment was made (not when uploaded)                         |
+| `proof_file`       | Image or PDF — required if non-cash                               |
+| `submitted_by`     | Franchisee user id                                                |
+| `submitted_at`     | Auto                                                              |
+| `reviewed_by`      | Finance user id, nullable                                         |
+| `reviewed_at`      | Auto on review                                                    |
+| `status`           | enum: pending_review, confirmed, rejected, requires_clarification |
+| `reviewer_notes`   | Free text from Finance                                            |
 
 Finance review is required for confirmation. No auto-confirmation in MVP.
 

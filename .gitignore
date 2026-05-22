@@ -16,8 +16,11 @@ dist-ssr
 .env.*
 !.env.example
 
-# Local overrides (also covers .claude/settings.local.json)
+# Local overrides
 *.local
+# Claude Code personal settings (gitignored, never commit)
+.claude/settings.local.json
+**/*.local.json
 
 # Supabase CLI binaries — install via package manager or path, not commit
 supabase.exe

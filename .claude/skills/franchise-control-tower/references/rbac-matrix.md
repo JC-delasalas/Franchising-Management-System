@@ -7,16 +7,16 @@
 
 ## Role definitions
 
-| Role | Primary purpose | Default scope |
-|---|---|---|
-| **Super Admin** | Tenant + system-level config; rarely used in day-to-day | Everything in tenant |
-| **Head Office Admin** | Day-to-day franchisor operations | All branches in franchisor |
-| **Finance** | Royalties, payments, invoices, financial exports | All branches, financial data |
-| **Operations** | Compliance, audits, corrective actions | All branches, compliance/ops data |
-| **Trainer** | Training content, completion tracking, SOP authoring | All branches, training/KB data only |
-| **Franchisee Owner** | Owns one or more branches | Only assigned branches |
-| **Branch Manager** | Daily branch operations | Only assigned branch(es), no franchisee-level financial detail |
-| **Viewer** | Read-only consumer (accountant, area manager, auditor) | Configurable scope, read-only |
+| Role                  | Primary purpose                                         | Default scope                                                  |
+| --------------------- | ------------------------------------------------------- | -------------------------------------------------------------- |
+| **Super Admin**       | Tenant + system-level config; rarely used in day-to-day | Everything in tenant                                           |
+| **Head Office Admin** | Day-to-day franchisor operations                        | All branches in franchisor                                     |
+| **Finance**           | Royalties, payments, invoices, financial exports        | All branches, financial data                                   |
+| **Operations**        | Compliance, audits, corrective actions                  | All branches, compliance/ops data                              |
+| **Trainer**           | Training content, completion tracking, SOP authoring    | All branches, training/KB data only                            |
+| **Franchisee Owner**  | Owns one or more branches                               | Only assigned branches                                         |
+| **Branch Manager**    | Daily branch operations                                 | Only assigned branch(es), no franchisee-level financial detail |
+| **Viewer**            | Read-only consumer (accountant, area manager, auditor)  | Configurable scope, read-only                                  |
 
 ---
 
@@ -24,30 +24,30 @@
 
 Legend: `C`=create, `R`=read, `U`=update, `D`=delete (soft only), `A`=approve, `—`=no access.
 
-| Entity | Super Admin | HO Admin | Finance | Operations | Trainer | Franchisee Owner | Branch Manager | Viewer |
-|---|---|---|---|---|---|---|---|---|
-| Franchisors | CRUD | RU | R | R | — | — | — | R |
-| Branches | CRUD | CRUD | R | R | R | R (own) | R (own) | R |
-| Franchisees | CRUD | CRUD | R | R | R | R (own) | R (own) | R |
-| User roles | CRUD | CRU | — | — | — | — | — | — |
-| Location assignments | CRUD | CRU | R | R | — | R (own) | R (own) | R |
-| Sales reports | CRUD | RUA | RA | R | — | CRU (own branch) | CRU (own branch) | R |
-| Royalty policies | CRUD | CRU | RU | R | — | R (own) | — | R |
-| Royalties (computed) | CRUD | RA | RUA | R | — | R (own) | — | R |
-| Invoices (internal) | CRUD | RA | CRUA | R | — | R (own) | — | R |
-| Payments + proofs | CRUD | RA | CRUA | R | — | C + R (own) | C + R (own branch) | R |
-| Compliance requirements | CRUD | CRU | R | CRU | — | R (own) | R (own) | R |
-| Compliance records | CRUD | RUA | R | CRUA | — | CRU (own) | CRU (own branch) | R |
-| Documents | CRUD | CRUA | RA | RUA | RU (training only) | CRU (own) | CRU (own branch) | R |
-| Document types | CRUD | CRU | — | R | — | — | — | R |
-| Support tickets | CRUD | CRUA | R | CRUA | RA (training cat) | CRU (own) | CRU (own branch) | R |
-| Ticket messages | CRUD | CRU | R | CRU | CRU (training cat) | CRU (own) | CRU (own branch) | R |
-| Announcements | CRUD | CRUD | R | R | CRU | R (own) | R (own) | R |
-| SOP articles | CRUD | CRUD | R | R | CRUD | R (own) | R (own) | R |
-| Training modules | CRUD | RU | R | R | CRUD | R (own) | R (own) | R |
-| Training completions | CRUD | R | R | R | CRUA | CRU (own) | CRU (own) | R |
-| Audit log | R | R (filtered) | R (financial only) | R (compliance only) | — | R (own actions) | R (own actions) | — |
-| Notifications | CRUD | R (own) | R (own) | R (own) | R (own) | R (own) | R (own) | R (own) |
+| Entity                  | Super Admin | HO Admin     | Finance            | Operations          | Trainer            | Franchisee Owner | Branch Manager     | Viewer  |
+| ----------------------- | ----------- | ------------ | ------------------ | ------------------- | ------------------ | ---------------- | ------------------ | ------- |
+| Franchisors             | CRUD        | RU           | R                  | R                   | —                  | —                | —                  | R       |
+| Branches                | CRUD        | CRUD         | R                  | R                   | R                  | R (own)          | R (own)            | R       |
+| Franchisees             | CRUD        | CRUD         | R                  | R                   | R                  | R (own)          | R (own)            | R       |
+| User roles              | CRUD        | CRU          | —                  | —                   | —                  | —                | —                  | —       |
+| Location assignments    | CRUD        | CRU          | R                  | R                   | —                  | R (own)          | R (own)            | R       |
+| Sales reports           | CRUD        | RUA          | RA                 | R                   | —                  | CRU (own branch) | CRU (own branch)   | R       |
+| Royalty policies        | CRUD        | CRU          | RU                 | R                   | —                  | R (own)          | —                  | R       |
+| Royalties (computed)    | CRUD        | RA           | RUA                | R                   | —                  | R (own)          | —                  | R       |
+| Invoices (internal)     | CRUD        | RA           | CRUA               | R                   | —                  | R (own)          | —                  | R       |
+| Payments + proofs       | CRUD        | RA           | CRUA               | R                   | —                  | C + R (own)      | C + R (own branch) | R       |
+| Compliance requirements | CRUD        | CRU          | R                  | CRU                 | —                  | R (own)          | R (own)            | R       |
+| Compliance records      | CRUD        | RUA          | R                  | CRUA                | —                  | CRU (own)        | CRU (own branch)   | R       |
+| Documents               | CRUD        | CRUA         | RA                 | RUA                 | RU (training only) | CRU (own)        | CRU (own branch)   | R       |
+| Document types          | CRUD        | CRU          | —                  | R                   | —                  | —                | —                  | R       |
+| Support tickets         | CRUD        | CRUA         | R                  | CRUA                | RA (training cat)  | CRU (own)        | CRU (own branch)   | R       |
+| Ticket messages         | CRUD        | CRU          | R                  | CRU                 | CRU (training cat) | CRU (own)        | CRU (own branch)   | R       |
+| Announcements           | CRUD        | CRUD         | R                  | R                   | CRU                | R (own)          | R (own)            | R       |
+| SOP articles            | CRUD        | CRUD         | R                  | R                   | CRUD               | R (own)          | R (own)            | R       |
+| Training modules        | CRUD        | RU           | R                  | R                   | CRUD               | R (own)          | R (own)            | R       |
+| Training completions    | CRUD        | R            | R                  | R                   | CRUA               | CRU (own)        | CRU (own)          | R       |
+| Audit log               | R           | R (filtered) | R (financial only) | R (compliance only) | —                  | R (own actions)  | R (own actions)    | —       |
+| Notifications           | CRUD        | R (own)      | R (own)            | R (own)             | R (own)            | R (own)          | R (own)            | R (own) |
 
 Notes:
 

@@ -35,7 +35,7 @@ Repo cleanup:
 - [x] Archive ~26 stale root `*.md` files → `legacy/reports/` (commit `8c1f869`)
 - [x] Archive `src/` → `legacy/src/` (commit `06aaf19`) — preserved for UI/UX reference
 - [x] Archive `scripts/`, `database/`, `supabase/`, `docs/` → `legacy/` (commit `06aaf19`)
-- [x] Archive Vite-era root configs (vite.config.ts, tailwind.config.ts, tsconfig*, package.json, components.json, index.html, vercel.json, etc.) → `legacy/configs/` (commit `06aaf19`)
+- [x] Archive Vite-era root configs (vite.config.ts, tailwind.config.ts, tsconfig\*, package.json, components.json, index.html, vercel.json, etc.) → `legacy/configs/` (commit `06aaf19`)
 - [x] Add `legacy/README.md` explaining structure
 
 ---
@@ -72,6 +72,7 @@ Repo cleanup:
 Tables (grouped):
 
 **Tenancy & access**
+
 - [ ] `franchisors` (tenant root)
 - [ ] `users` (auth.users extension)
 - [ ] `roles` (8 canonical, see CLAUDE.md)
@@ -79,12 +80,14 @@ Tables (grouped):
 - [ ] `location_assignments` (user × branch)
 
 **Franchise structure**
+
 - [ ] `franchisees`
 - [ ] `branches`
 - [ ] `branch_franchisees` (assignment history)
 - [ ] `contracts` (contract reference, dates, renewal status)
 
 **Sales & royalty**
+
 - [ ] `sales_reports` + `sales_report_attachments`
 - [ ] `royalty_policies` (per franchisor/brand: percent of gross, percent of net, fixed, marketing fee)
 - [ ] `royalties` (computed, with `base_royalty` + `transaction_royalty` columns)
@@ -93,17 +96,20 @@ Tables (grouped):
 - [ ] `payments` + `payment_attachments` (proof uploads)
 
 **Compliance & docs**
+
 - [ ] `compliance_requirements` (configurable per brand/branch/city/region)
 - [ ] `compliance_records`
 - [ ] `documents` + `document_types`
 
 **Operations**
+
 - [ ] `support_tickets` + `ticket_messages` + `ticket_attachments`
 - [ ] `announcements`
 - [ ] `sop_articles` (knowledge base)
 - [ ] `training_modules` + `training_completions`
 
 **Audit**
+
 - [ ] `audit_log` (immutable after 30 days; partitioned by month if volume grows)
 - [ ] `notifications`
 
@@ -128,6 +134,7 @@ Deliverables:
 Built in the priority order from `Franchise.md` § Build Recommendation.
 
 ### 2.1 Auth + 8-role RBAC (Week 4)
+
 - Email/password sign-in, magic link option
 - Password policy: 12+ chars, mixed case, numbers, symbols
 - Server Actions for sign-up/sign-in
@@ -136,17 +143,20 @@ Built in the priority order from `Franchise.md` § Build Recommendation.
 - E2E: each of 8 roles can/cannot do their expected actions
 
 ### 2.2 Branch directory (Week 5)
+
 - List/create/edit/archive branches (no hard delete — audit retention)
 - All fields from `Franchise.md` § Branch Management
 - Filtering by region/province/city/status
 - CSV export (Finance + Operations + Admin only)
 
 ### 2.3 Franchisee profiles (Week 5–6, partial overlap)
+
 - List/create/edit franchisees
 - Assign to branches (many-to-many)
 - Contract dates with renewal warnings (90/60/30 days out)
 
 ### 2.4 Sales reports (Week 6–7)
+
 - Franchisee submission form (simple UI per CLAUDE.md)
 - Attach proof images/PDFs (Supabase Storage)
 - Status workflow: Draft → Submitted → Under Review → Approved/Rejected
@@ -155,15 +165,17 @@ Built in the priority order from `Franchise.md` § Build Recommendation.
 - Daily/weekly/monthly cadence configurable per franchisor
 
 ### 2.5 Royalty computation (Week 8)
+
 - Royalty policy configuration (per franchisor or per brand)
 - Compute job: on sales-report approval, generate `royalty` record
 - Itemized invoice generation (Resend email + downloadable PDF)
-- **Footer marker** on every invoice: *"Internal billing document — not a BIR Official Receipt or Sales Invoice"*
+- **Footer marker** on every invoice: _"Internal billing document — not a BIR Official Receipt or Sales Invoice"_
 - Finance dashboard: pending/paid/overdue by branch
 - Payment proof upload + Finance approval
 - **No automatic legal finality** — every royalty is reviewable
 
 ### 2.6 Compliance checklist (Week 9–10)
+
 - Configurable requirement templates per brand/city/region (no hard-coded list)
 - Annual renewal logic (e.g. Mayor's Permit → January reminders)
 - Per-branch checklist instance with status workflow
@@ -172,12 +184,14 @@ Built in the priority order from `Franchise.md` § Build Recommendation.
 - Operations review queue
 
 ### 2.7 Document upload (Week 10, overlap with 2.6)
+
 - File upload to Supabase Storage with virus scan (Supabase has built-in)
 - Document type taxonomy from `Franchise.md`
 - Expiry tracking + reminders
 - Soft-delete only (audit)
 
 ### 2.8 Support ticketing (Week 11)
+
 - Franchisee submission form (categories from `Franchise.md`)
 - Admin queue with assignment, priority, status workflow
 - Threaded messages with attachments
@@ -185,12 +199,14 @@ Built in the priority order from `Franchise.md` § Build Recommendation.
 - SLA tracker (response time targets configurable)
 
 ### 2.9 SOP library / knowledge base (Week 12)
+
 - Markdown-authored articles by Head Office Admin or Trainer
 - Read access for all roles; edit access for Head Office Admin + Trainer
 - Categorization + search
 - Announcements feed (homepage of franchisee dashboard)
 
 ### 2.10 Admin dashboard (Week 13)
+
 - Role-scoped landing page per role
 - Franchisor: portfolio KPIs (reports submitted on time, compliance health, royalties YTD, overdue items)
 - Franchisee: my branch status, pending tasks, recent announcements
@@ -198,11 +214,13 @@ Built in the priority order from `Franchise.md` § Build Recommendation.
 - Operations: compliance status across branches, open corrective actions
 
 ### 2.11 Audit logs (Week 13–14, integrated continuously)
+
 - Triggered automatically from Phase 1 (every CBE mutation logs)
 - Admin viewer with filters (user, entity, date range, action type)
 - 30-day immutability enforced via row policy
 
 ### 2.12 Reports & exports (Week 14)
+
 - CSV export per module (Finance, Operations, Admin)
 - PDF royalty statements per franchisee per period
 - Monthly summary email to franchisor (Resend scheduled function)
@@ -261,17 +279,17 @@ Pulled from old `business-documentation/` and `Franchise.md` § Future Features.
 
 ## Risks & mitigations
 
-| Risk | Mitigation |
-|---|---|
-| Franchisee adoption resistance (system feels punitive) | Voice rules in CLAUDE.md; usability test with 2 real franchisees before launch |
-| Manual sales entry disputes | Itemized royalty breakdown; proof-of-payment uploads required; full audit trail |
-| Role permissions blur (Finance vs Operations vs Franchisee) | 8-role canonical, RLS tested per table, separate dashboards per role |
-| Scope creep toward ERP | This PLAN.md as gate; every new feature must trace to `Franchise.md`; reject otherwise |
-| Compliance features confused with legal/tax compliance | Disclaimer copy on every compliance UI: "tracks operational compliance; not a substitute for legal counsel or BIR compliance" |
-| Hard-coded royalty rules | Royalty *policies* are configurable per franchisor/brand from day one |
-| Weak audit logs eroding trust | Audit trigger on every CBE in Phase 1; 30-day immutability; user-visible audit log in admin |
-| Pakikisama violations in copy | All user-facing strings reviewed against voice rule; lint check (planned Phase 3) flags blacklisted words |
-| Old `business-documentation/` reintroducing complexity | Moved to `docs/archive/legacy-business-docs/` in pre-flight; CLAUDE.md instructs to escalate, not import |
+| Risk                                                        | Mitigation                                                                                                                    |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Franchisee adoption resistance (system feels punitive)      | Voice rules in CLAUDE.md; usability test with 2 real franchisees before launch                                                |
+| Manual sales entry disputes                                 | Itemized royalty breakdown; proof-of-payment uploads required; full audit trail                                               |
+| Role permissions blur (Finance vs Operations vs Franchisee) | 8-role canonical, RLS tested per table, separate dashboards per role                                                          |
+| Scope creep toward ERP                                      | This PLAN.md as gate; every new feature must trace to `Franchise.md`; reject otherwise                                        |
+| Compliance features confused with legal/tax compliance      | Disclaimer copy on every compliance UI: "tracks operational compliance; not a substitute for legal counsel or BIR compliance" |
+| Hard-coded royalty rules                                    | Royalty _policies_ are configurable per franchisor/brand from day one                                                         |
+| Weak audit logs eroding trust                               | Audit trigger on every CBE in Phase 1; 30-day immutability; user-visible audit log in admin                                   |
+| Pakikisama violations in copy                               | All user-facing strings reviewed against voice rule; lint check (planned Phase 3) flags blacklisted words                     |
+| Old `business-documentation/` reintroducing complexity      | Moved to `docs/archive/legacy-business-docs/` in pre-flight; CLAUDE.md instructs to escalate, not import                      |
 
 ---
 
