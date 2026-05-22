@@ -23,9 +23,10 @@ dist-ssr
 **/*.local.json
 
 # Supabase CLI binaries at repo root — install via package manager or PATH.
-# IMPORTANT: leading slash anchors to repo root, so /supabase does NOT match
-# lib/supabase/ or any other nested directory named "supabase".
-/supabase
+# IMPORTANT: only ignore by extension. Do NOT use a bare `/supabase` rule —
+# it would match the `supabase/` directory (migrations, config.toml, seed.sql,
+# functions/) which we DO want to track. The Linux binary `supabase` (no
+# extension) at root is uncommon; add to .git/info/exclude locally if needed.
 /supabase.exe
 /supabase.tar.gz
 
