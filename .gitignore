@@ -24,6 +24,30 @@ supabase.exe
 supabase
 supabase.tar.gz
 
+# Next.js
+/.next/
+/out/
+/build
+/coverage
+next-env.d.ts
+*.tsbuildinfo
+
+# Vercel
+.vercel
+
+# Package manager artifacts
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+.pnpm-debug.log*
+
+# Certificates
+*.pem
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

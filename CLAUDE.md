@@ -159,7 +159,7 @@ Permission separation matters. Don't blur Finance, Operations, and Franchisee ac
 
 | Concern | Tool |
 |---|---|
-| Framework | Next.js 15, App Router, React Server Components by default |
+| Framework | Next.js 16, App Router, React 19, React Server Components by default. Turbopack dev. Tailwind v4 (CSS-first `@theme` config in `app/globals.css`, not `tailwind.config.ts`). |
 | Hosting | Vercel |
 | DB & Auth | Supabase (project ref `egucihmwendiaaoskpno`) |
 | DB client | `@supabase/ssr` server-side, typed via `generate_typescript_types` |

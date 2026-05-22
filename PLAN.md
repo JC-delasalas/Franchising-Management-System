@@ -44,11 +44,14 @@ Repo cleanup:
 
 **Deliverable**: an empty but production-grade Next.js shell that boots, deploys, and authenticates.
 
-- [ ] `npx create-next-app@latest` in repo root, TypeScript, Tailwind, ESLint, App Router
-- [ ] Port `tailwind.config.ts` from `legacy/configs/tailwind.config.ts` (palette + design tokens) and `legacy/src/index.css` (CSS variables). Re-check `#FF6B6B` contrast — fails WCAG AA on white (3.76:1); restrict to large text or shift to darker shade
+> **Actual stack landed**: Next.js **16.2.6** (newer than originally planned), React **19.2.4**, Tailwind **v4** (CSS-first config via `@theme` in globals.css, no `tailwind.config.ts`), Turbopack dev. Package name `franchisehub`.
+
+- [x] `npx create-next-app@latest` in repo root — TypeScript, Tailwind v4, ESLint, App Router, no src/, `@/*` alias, Turbopack, `--empty` (commit `<TBD>`)
+- [x] `tsconfig.json`: `strict: true`, `noUncheckedIndexedAccess: true`, `noImplicitOverride: true`, `noFallthroughCasesInSwitch: true`. `legacy/` excluded.
+- [x] ESLint configured: `next/core-web-vitals`, `next/typescript`. `legacy/` globally ignored.
+- [ ] Tighten ESLint: add `eslint-plugin-jsx-a11y` (a11y violations) and confirm `eslint-plugin-react-hooks` rules are active via `next/core-web-vitals`
+- [ ] Port design tokens from `legacy/configs/tailwind.config.ts` and `legacy/src/index.css` into Tailwind v4 `@theme` directive in `app/globals.css`. Re-check `#FF6B6B` contrast — fails WCAG AA on white (3.76:1); restrict to large text or shift to darker shade
 - [ ] Install full stack: `@supabase/ssr`, `@supabase/supabase-js`, `@tanstack/react-query`, `zod`, `react-hook-form`, `@hookform/resolvers`, `lucide-react`, `next-intl`, `next-themes`, `sonner`, `resend`, `react-email`, `@sentry/nextjs`, `serwist`
-- [ ] `tsconfig.json`: `strict: true`, `noUncheckedIndexedAccess: true`, `noImplicitOverride: true`
-- [ ] ESLint config: `next/core-web-vitals`, `@typescript-eslint/strict`, `eslint-plugin-jsx-a11y`, `eslint-plugin-react-hooks`
 - [ ] Prettier + Husky + lint-staged + commitlint with Conventional Commits config
 - [ ] `.github/workflows/ci.yml`: install → typecheck (`tsc --noEmit`) → lint → unit test → build
 - [ ] Sentry init (`sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`)
