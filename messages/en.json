@@ -8,7 +8,12 @@
     "skipToContent": "Skip to main content",
     "toggleTheme": "Toggle dark mode",
     "openMenu": "Open menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "primary": "Primary navigation",
+    "account": "Account",
+    "dashboard": "Dashboard",
+    "branches": "Branches",
+    "franchisees": "Franchisees"
   },
   "phase0": {
     "label": "Phase 0 — Foundation",
@@ -36,6 +41,138 @@
   "dashboard": {
     "welcome": "Welcome",
     "signedInAs": "Signed in as",
-    "phase2Note": "Branch directory, franchisee profiles, sales reports, and royalty review arrive in the next Phase 2 commits."
+    "phase2Note": "More modules — sales reports, royalty review, compliance checklists, tickets — arrive in upcoming Phase 2 commits.",
+    "noRoleAssigned": "No role assigned yet. A head office admin will set up your access shortly.",
+    "rolesSummary": "Your access:",
+    "notice": {
+      "forbidden": "You don't have access to that page. If you think you should, please contact your head office admin.",
+      "noFranchisor": "Add a franchisor first before creating branches or franchisees. Ask a Super Admin to set one up."
+    },
+    "role": {
+      "super_admin": "Super Admin",
+      "head_office_admin": "Head Office Admin",
+      "finance": "Finance",
+      "operations": "Operations",
+      "trainer": "Trainer",
+      "franchisee_owner": "Franchisee Owner",
+      "branch_manager": "Branch Manager",
+      "viewer": "Viewer"
+    },
+    "cards": {
+      "branches": {
+        "title": "Branches",
+        "description": "Manage every branch in your franchise network.",
+        "metricLabel": "Active branches"
+      },
+      "franchisees": {
+        "title": "Franchisees",
+        "description": "Track franchisees, contracts, and renewal status.",
+        "metricLabel": "Active franchisees"
+      },
+      "myBranches": {
+        "title": "My branches",
+        "description": "View the branches you operate or manage."
+      },
+      "salesReports": {
+        "title": "Sales reports",
+        "description": "Submit and review daily or weekly sales."
+      },
+      "royalties": {
+        "title": "Royalties",
+        "description": "See royalty computations and pay your invoices."
+      },
+      "compliance": {
+        "title": "Compliance",
+        "description": "Track permits, renewals, and required documents."
+      },
+      "tickets": {
+        "title": "Support tickets",
+        "description": "Raise an issue or follow up on an open request."
+      }
+    }
+  },
+  "branches": {
+    "title": "Branches",
+    "subtitle": "Every branch in your network, with location, status, and contact info.",
+    "addBranch": "Add branch",
+    "newTitle": "Add a branch",
+    "newSubtitle": "Set up a new branch. Fields with no asterisk are optional and can be filled in later.",
+    "editTitle": "Edit branch",
+    "name": "Branch name",
+    "code": "Branch code",
+    "location": "Location",
+    "address": "Address",
+    "city": "City / municipality",
+    "province": "Province",
+    "region": "Region",
+    "openingDate": "Opening date",
+    "status": "Status",
+    "contactPerson": "Contact person",
+    "contactPhone": "Contact phone",
+    "notes": "Notes",
+    "franchisor": "Franchisor",
+    "selectFranchisor": "Select a franchisor…",
+    "actions": "Actions",
+    "view": "View",
+    "edit": "Edit",
+    "archive": "Archive branch",
+    "confirmArchive": "Archive this branch? It will stop appearing in active lists but stays in the audit trail.",
+    "create": "Create branch",
+    "creating": "Creating…",
+    "save": "Save changes",
+    "saving": "Saving…",
+    "backToList": "Back to branches",
+    "details": "Details",
+    "emptyTitle": "No branches yet.",
+    "emptyDescriptionAdmin": "Add the first branch to start tracking sales reports and compliance.",
+    "emptyDescriptionViewer": "Branches will appear here once head office adds them.",
+    "emptyDescriptionBranch": "You are not assigned to any branches yet. Contact your head office admin.",
+    "statusValue": {
+      "pending_opening": "Pending opening",
+      "active": "Active",
+      "inactive": "Inactive",
+      "closed": "Closed"
+    }
+  },
+  "franchisees": {
+    "title": "Franchisees",
+    "subtitle": "Track every franchisee, their territories, and contract renewal status.",
+    "addFranchisee": "Add franchisee",
+    "newTitle": "Add a franchisee",
+    "newSubtitle": "Create the franchisee record. You can assign branches to them afterwards.",
+    "editTitle": "Edit franchisee",
+    "legalName": "Legal name",
+    "businessEntityName": "Business entity name",
+    "contactNumber": "Contact number",
+    "email": "Email",
+    "territory": "Territory",
+    "contractStart": "Contract start",
+    "contractEnd": "Contract end",
+    "renewalStatus": "Renewal status",
+    "notes": "Notes",
+    "franchisor": "Franchisor",
+    "selectFranchisor": "Select a franchisor…",
+    "actions": "Actions",
+    "view": "View",
+    "edit": "Edit",
+    "archive": "Archive franchisee",
+    "confirmArchive": "Archive this franchisee? It will stop appearing in active lists but stays in the audit trail.",
+    "create": "Create franchisee",
+    "creating": "Creating…",
+    "save": "Save changes",
+    "saving": "Saving…",
+    "backToList": "Back to franchisees",
+    "details": "Details",
+    "emptyTitle": "No franchisees yet.",
+    "emptyDescriptionAdmin": "Add your first franchisee to start tracking their branches and contract.",
+    "emptyDescriptionViewer": "Franchisees will appear here once head office adds them.",
+    "emptyDescriptionOwner": "Your franchisee record is being set up. Check back shortly.",
+    "renewalValue": {
+      "current": "Current",
+      "expiring_soon": "Expiring soon",
+      "expired": "Expired",
+      "in_renewal": "In renewal",
+      "terminated": "Terminated"
+    }
   }
 }

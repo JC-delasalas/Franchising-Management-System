@@ -112,16 +112,22 @@ Built in the priority order from `Franchise.md` § Build Recommendation.
 
 ### 2.2 Branch directory (Week 5)
 
-- List/create/edit/archive branches (no hard delete — audit retention)
-- All fields from `Franchise.md` § Branch Management
-- Filtering by region/province/city/status
-- CSV export (Finance + Operations + Admin only)
+- [x] List branches at `/branches` — server-rendered, RLS-scoped via `branches read scope` policy
+- [x] Create branch at `/branches/new` — zod-validated form, head_office_admin or super_admin only
+- [x] View branch detail at `/branches/[id]` — full fields, edit link for admins
+- [x] Edit branch at `/branches/[id]/edit` — zod-validated update
+- [x] Archive (soft-delete) — `archived_at` timestamp, hidden from active lists; CBE audit row preserved
+- [x] Status badges (pending_opening / active / inactive / closed) — neutral language per Franchise.md voice rule
+- [ ] Filtering by region/province/city/status (basic list works; filters are Phase 3 polish)
+- [ ] CSV export (Phase 2.12)
 
 ### 2.3 Franchisee profiles (Week 5–6, partial overlap)
 
-- List/create/edit franchisees
-- Assign to branches (many-to-many)
-- Contract dates with renewal warnings (90/60/30 days out)
+- [x] List franchisees at `/franchisees` with renewal status badges
+- [x] Create / view / edit / archive — same RLS gate as branches
+- [x] Contract start/end dates captured; renewal_status enum (current / expiring_soon / expired / in_renewal / terminated)
+- [ ] Assign to branches (many-to-many) — `branch_franchisees` table exists in schema; UI deferred to next module commit
+- [ ] Contract renewal warning automation (90/60/30 days out) — Phase 2.5 or 3
 
 ### 2.4 Sales reports (Week 6–7)
 
